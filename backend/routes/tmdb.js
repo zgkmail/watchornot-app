@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const { decrypt } = require('../utils/encryption');
-const { getApiKey } = require('../db/database');
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -27,15 +25,12 @@ router.get('/search', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    // Get encrypted API key from database
-    const encryptedKey = getApiKey(req.session.userId, 'tmdb');
+    // Use API key from environment variables
+    const apiKey = process.env.TMDB_API_KEY;
 
-    if (!encryptedKey) {
-      return res.status(404).json({ error: 'TMDB API key not found. Please set your API key first.' });
+    if (!apiKey) {
+      return res.status(500).json({ error: 'TMDB API key not configured on server. Please contact administrator.' });
     }
-
-    // Decrypt the API key
-    const apiKey = decrypt(encryptedKey, process.env.ENCRYPTION_KEY);
 
     // Make request to TMDB API
     const response = await axios.get(`${TMDB_BASE_URL}/search/multi`, {
@@ -75,15 +70,12 @@ router.get('/:mediaType/:id', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    // Get encrypted API key from database
-    const encryptedKey = getApiKey(req.session.userId, 'tmdb');
+    // Use API key from environment variables
+    const apiKey = process.env.TMDB_API_KEY;
 
-    if (!encryptedKey) {
-      return res.status(404).json({ error: 'TMDB API key not found. Please set your API key first.' });
+    if (!apiKey) {
+      return res.status(500).json({ error: 'TMDB API key not configured on server. Please contact administrator.' });
     }
-
-    // Decrypt the API key
-    const apiKey = decrypt(encryptedKey, process.env.ENCRYPTION_KEY);
 
     // Make request to TMDB API
     const response = await axios.get(`${TMDB_BASE_URL}/${mediaType}/${id}`, {

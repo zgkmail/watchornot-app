@@ -7,9 +7,10 @@ A modern movie and TV show discovery app with secure backend API key storage. Sn
 - **Image Recognition**: Use your camera or upload images to detect movie/TV show titles
 - **Movie Database**: Powered by TMDB API with comprehensive movie and TV show information
 - **Taste Profile**: Rate movies to build your personalized taste profile
-- **Secure API Keys**: Backend server with encrypted API key storage (AES-256)
+- **Secure API Keys**: Backend server keeps API keys secure on the server
 - **Session Management**: Automatic user session handling
 - **Rate Limiting**: Built-in protection against API abuse
+- **Zero Configuration**: No API key input required from users
 
 ## Architecture
 
@@ -21,17 +22,17 @@ A modern movie and TV show discovery app with secure backend API key storage. Sn
 
 ### Backend (NEW!)
 - **Server**: Node.js + Express.js
-- **Database**: SQLite with better-sqlite3
-- **Encryption**: AES-256-GCM for API keys
+- **Database**: SQLite for session management
+- **API Proxy**: Secure proxy for TMDB and Google Vision APIs
 - **Authentication**: Session-based with express-session
-- **Security**: Rate limiting, CORS protection
+- **Security**: Rate limiting, CORS protection, environment-based API keys
 
 ## Quick Start
 
 ### Prerequisites
 - Node.js 18+ and npm
 - A modern web browser
-- API keys from:
+- **For server admin**: API keys from:
   - [TMDB](https://www.themoviedb.org/settings/api)
   - [Google Cloud Vision](https://console.cloud.google.com/)
 
@@ -47,11 +48,13 @@ npm install
 # Create environment file
 cp .env.example .env
 
-# Generate encryption keys
-node -e "console.log('ENCRYPTION_KEY=' + require('crypto').randomBytes(32).toString('hex'))"
+# Generate session secret
 node -e "console.log('SESSION_SECRET=' + require('crypto').randomBytes(32).toString('hex'))"
 
-# Add the generated keys to .env file
+# Edit .env and add:
+# - Generated SESSION_SECRET
+# - Your TMDB_API_KEY
+# - Your VISION_API_KEY
 nano .env
 
 # Start the backend server
@@ -84,13 +87,11 @@ npx http-server -p 3000
 
 The frontend will be available at `http://localhost:3000`
 
-### 3. Configure API Keys
+### 3. Start Using the App
 
-1. Open the app in your browser
-2. Go to the **Profile** tab
-3. Enter your TMDB API key and click "Save TMDB Key"
-4. Enter your Google Vision API key and click "Save Vision Key"
-5. You're ready to start snapping movies!
+1. Open the app in your browser (http://localhost:3000)
+2. The backend securely handles all API requests
+3. Start snapping movies!
 
 ## Project Structure
 
@@ -106,12 +107,9 @@ cinesense-app/
     ├── db/
     │   ├── database.js     # SQLite setup & queries
     │   └── cinesense.db    # Database (auto-created)
-    ├── routes/
-    │   ├── apiKeys.js      # API key management
-    │   ├── tmdb.js         # TMDB proxy
-    │   └── vision.js       # Vision API proxy
-    └── utils/
-        └── encryption.js   # AES-256 encryption
+    └── routes/
+        ├── tmdb.js         # TMDB proxy
+        └── vision.js       # Vision API proxy
 ```
 
 ## API Endpoints
@@ -120,9 +118,6 @@ cinesense-app/
 
 - `GET /health` - Health check
 - `GET /api/session` - Session info
-- `POST /api/keys` - Store/update API key
-- `GET /api/keys` - List configured providers
-- `DELETE /api/keys/:provider` - Delete API key
 - `GET /api/tmdb/search?query=name` - Search movies/TV
 - `GET /api/tmdb/:type/:id` - Get movie/TV details
 - `POST /api/vision/detect` - Detect text in image
@@ -132,9 +127,9 @@ See [backend/README.md](backend/README.md) for detailed API documentation.
 ## Security Features
 
 ### API Key Protection
-- **Encryption at Rest**: AES-256-GCM with PBKDF2 key derivation
-- **Unique Salts**: Each key encrypted with unique salt and IV
+- **Server-side Storage**: API keys stored in environment variables
 - **No Client Exposure**: API keys never sent to frontend
+- **Proxy Architecture**: Backend proxies all external API requests
 - **Session-based Auth**: Secure HTTP-only cookies
 
 ### Rate Limiting
@@ -174,8 +169,9 @@ Create `backend/.env` with:
 PORT=3001
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
-ENCRYPTION_KEY=your_32_char_encryption_key
 SESSION_SECRET=your_session_secret
+TMDB_API_KEY=your_tmdb_api_key
+VISION_API_KEY=your_vision_api_key
 ```
 
 ### Frontend Backend URL
@@ -211,10 +207,10 @@ Deploy to any Node.js hosting platform:
 - Check browser console for CORS errors
 - Verify `FRONTEND_URL` matches frontend URL
 
-### API keys not saving
-- Check backend logs for errors
-- Ensure encryption keys are set in `.env`
-- Verify database directory has write permissions
+### API errors
+- Check backend logs for detailed error messages
+- Ensure API keys are correctly set in backend `.env`
+- Verify API keys are valid and have proper permissions
 
 ### Session not persisting
 - Clear browser cookies and try again

@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const { decrypt } = require('../utils/encryption');
-const { getApiKey } = require('../db/database');
 
 const VISION_BASE_URL = 'https://vision.googleapis.com/v1/images:annotate';
 
@@ -23,15 +21,12 @@ router.post('/detect', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    // Get encrypted API key from database
-    const encryptedKey = getApiKey(req.session.userId, 'vision');
+    // Use API key from environment variables
+    const apiKey = process.env.VISION_API_KEY;
 
-    if (!encryptedKey) {
-      return res.status(404).json({ error: 'Google Vision API key not found. Please set your API key first.' });
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Google Vision API key not configured on server. Please contact administrator.' });
     }
-
-    // Decrypt the API key
-    const apiKey = decrypt(encryptedKey, process.env.ENCRYPTION_KEY);
 
     // Prepare Vision API request
     const visionRequest = {

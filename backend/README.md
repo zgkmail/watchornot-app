@@ -1,14 +1,14 @@
 # CineSense Backend
 
-Secure backend server for CineSense app that handles encrypted API key storage and provides proxy endpoints for TMDB and Google Vision APIs.
+Secure backend server for CineSense app that provides proxy endpoints for TMDB and Google Vision APIs, keeping API keys secure on the server.
 
 ## Features
 
-- **Secure API Key Storage**: API keys are encrypted using AES-256-GCM encryption
+- **Secure API Key Storage**: API keys stored in server environment variables, never exposed to clients
 - **Session-based Authentication**: Automatic user session management
 - **Proxy Endpoints**: Backend proxies requests to TMDB and Google Vision APIs
 - **Rate Limiting**: Built-in rate limiting to prevent API abuse
-- **SQLite Database**: Lightweight database for storing encrypted keys
+- **SQLite Database**: Lightweight database for user session management
 - **Automatic Cleanup**: Removes old sessions (30+ days) automatically
 
 ## Architecture
@@ -21,12 +21,9 @@ backend/
 ├── db/
 │   ├── database.js        # SQLite database setup and queries
 │   └── cinesense.db       # SQLite database file (auto-created)
-├── routes/
-│   ├── apiKeys.js         # API key management endpoints
-│   ├── tmdb.js            # TMDB proxy endpoints
-│   └── vision.js          # Google Vision proxy endpoints
-└── utils/
-    └── encryption.js      # AES-256 encryption utilities
+└── routes/
+    ├── tmdb.js            # TMDB proxy endpoints
+    └── vision.js          # Google Vision proxy endpoints
 ```
 
 ## Setup Instructions
@@ -46,25 +43,26 @@ Create a `.env` file from the example:
 cp .env.example .env
 ```
 
-Generate secure encryption keys:
+Generate a secure session secret:
 
 ```bash
-# Generate ENCRYPTION_KEY
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-
-# Generate SESSION_SECRET
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-Edit `.env` and add your generated keys:
+Edit `.env` and add your configuration:
 
 ```env
 PORT=3001
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
-ENCRYPTION_KEY=your_generated_encryption_key_here
 SESSION_SECRET=your_generated_session_secret_here
+TMDB_API_KEY=your_tmdb_api_key_here
+VISION_API_KEY=your_google_vision_api_key_here
 ```
+
+Get your API keys:
+- **TMDB**: https://www.themoviedb.org/settings/api
+- **Google Vision**: https://console.cloud.google.com/
 
 **IMPORTANT**: Never commit your `.env` file to version control!
 
@@ -96,30 +94,6 @@ GET /api/session
 ```
 Returns current session information.
 
-### API Key Management
-
-#### Store/Update API Key
-```
-POST /api/keys
-Content-Type: application/json
-
-{
-  "provider": "tmdb" | "vision",
-  "apiKey": "your_api_key_here"
-}
-```
-
-#### Get All API Keys (metadata only)
-```
-GET /api/keys
-```
-Returns list of configured providers (not the actual keys).
-
-#### Delete API Key
-```
-DELETE /api/keys/:provider
-```
-
 ### TMDB Proxy Endpoints
 
 #### Search Movies/TV Shows
@@ -147,11 +121,11 @@ Content-Type: application/json
 
 ## Security Features
 
-### Encryption
-- Uses AES-256-GCM (Galois/Counter Mode) for maximum security
-- Each API key is encrypted with a unique salt and initialization vector
-- PBKDF2 key derivation with 100,000 iterations
-- Authentication tags prevent tampering
+### API Key Protection
+- API keys stored securely in server environment variables
+- Keys never exposed to client-side code
+- Backend proxies all API requests
+- No database storage of sensitive API keys
 
 ### Authentication
 - Session-based authentication using secure HTTP-only cookies
@@ -170,7 +144,6 @@ The backend uses SQLite for data storage:
 - **Auto-created** on first run
 - **Schema**:
   - `users`: Stores user sessions and IDs
-  - `api_keys`: Stores encrypted API keys
 
 ### Database Schema
 
@@ -181,18 +154,6 @@ CREATE TABLE users (
   session_id TEXT UNIQUE NOT NULL,
   created_at INTEGER NOT NULL,
   last_accessed INTEGER NOT NULL
-);
-
--- API Keys table
-CREATE TABLE api_keys (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id TEXT NOT NULL,
-  provider TEXT NOT NULL,
-  encrypted_key TEXT NOT NULL,
-  created_at INTEGER NOT NULL,
-  updated_at INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  UNIQUE(user_id, provider)
 );
 ```
 
@@ -214,15 +175,9 @@ Using curl:
 # Health check
 curl http://localhost:3001/health
 
-# Store TMDB API key
-curl -X POST http://localhost:3001/api/keys \
-  -H "Content-Type: application/json" \
-  -b cookies.txt -c cookies.txt \
-  -d '{"provider":"tmdb","apiKey":"your_tmdb_key"}'
-
-# Search for a movie
+# Search for a movie (ensure backend .env has API keys configured)
 curl "http://localhost:3001/api/tmdb/search?query=inception" \
-  -b cookies.txt
+  -b cookies.txt -c cookies.txt
 ```
 
 ## Production Deployment
@@ -230,9 +185,10 @@ curl "http://localhost:3001/api/tmdb/search?query=inception" \
 ### Environment Configuration
 
 1. Set `NODE_ENV=production` in `.env`
-2. Use strong encryption keys (32+ characters)
+2. Use a strong session secret (32+ characters)
 3. Set `FRONTEND_URL` to your production frontend URL
-4. Enable HTTPS (secure cookies)
+4. Ensure API keys are properly configured
+5. Enable HTTPS (secure cookies)
 
 ### Recommended Hosting
 
@@ -273,9 +229,10 @@ server {
 - Check cookies are being sent with `credentials: 'include'`
 - In production, ensure secure cookies are enabled with HTTPS
 
-### API key not found
-- Verify API key was successfully stored (check `POST /api/keys` response)
-- Ensure session cookie is being sent with requests
+### API errors
+- Verify API keys are correctly set in backend `.env` file
+- Check backend logs for detailed error messages
+- Ensure API keys are valid and have proper permissions
 
 ## License
 

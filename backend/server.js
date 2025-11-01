@@ -5,7 +5,6 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // Import routes
-const apiKeysRouter = require('./routes/apiKeys');
 const tmdbRouter = require('./routes/tmdb');
 const visionRouter = require('./routes/vision');
 
@@ -13,15 +12,21 @@ const visionRouter = require('./routes/vision');
 const { getOrCreateUser } = require('./db/database');
 
 // Validate environment variables
-if (!process.env.ENCRYPTION_KEY) {
-  console.error('FATAL ERROR: ENCRYPTION_KEY environment variable is not set!');
-  console.error('Please create a .env file with a secure ENCRYPTION_KEY');
-  process.exit(1);
-}
-
 if (!process.env.SESSION_SECRET) {
   console.error('FATAL ERROR: SESSION_SECRET environment variable is not set!');
   console.error('Please create a .env file with a secure SESSION_SECRET');
+  process.exit(1);
+}
+
+if (!process.env.TMDB_API_KEY) {
+  console.error('FATAL ERROR: TMDB_API_KEY environment variable is not set!');
+  console.error('Please add your TMDB API key to the .env file');
+  process.exit(1);
+}
+
+if (!process.env.VISION_API_KEY) {
+  console.error('FATAL ERROR: VISION_API_KEY environment variable is not set!');
+  console.error('Please add your Google Vision API key to the .env file');
   process.exit(1);
 }
 
@@ -100,7 +105,6 @@ app.get('/api/session', (req, res) => {
 });
 
 // Routes
-app.use('/api/keys', apiKeysRouter);
 app.use('/api/tmdb', strictLimiter, tmdbRouter);
 app.use('/api/vision', strictLimiter, visionRouter);
 
