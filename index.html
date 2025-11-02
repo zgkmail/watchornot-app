@@ -470,7 +470,24 @@
                     }
 
                     const data = await response.json();
-                    return data.results && data.results.length > 0 ? data.results[0] : null;
+
+                    // Filter results to only include movies and TV shows (exclude people, etc.)
+                    if (data.results && data.results.length > 0) {
+                        const validResults = data.results.filter(result =>
+                            result.media_type === 'movie' || result.media_type === 'tv'
+                        );
+
+                        if (validResults.length > 0) {
+                            console.log('    ✓ Found', validResults.length, 'movie/TV results (filtered from', data.results.length, 'total)');
+                            console.log('    First result:', validResults[0].title || validResults[0].name, '(' + validResults[0].media_type + ')');
+                            return validResults[0];
+                        } else {
+                            console.log('    ✗ No movie/TV results (found', data.results.length, 'other results)');
+                            return null;
+                        }
+                    }
+
+                    return null;
                 };
 
                 try {
@@ -495,6 +512,14 @@
                         setSearchMode(true);
                         return;
                     }
+
+                    // Validate media type
+                    if (movie.media_type !== 'movie' && movie.media_type !== 'tv') {
+                        console.error('❌ Invalid media type:', movie.media_type);
+                        throw new Error('Invalid media type: ' + movie.media_type + '. Expected "movie" or "tv".');
+                    }
+
+                    console.log('📦 Fetching details for:', movie.title || movie.name);
 
                     // Fetch movie details
                     const detailsResponse = await fetch(
