@@ -131,9 +131,9 @@
             const [isProcessing, setIsProcessing] = useState(false);
             const [currentMovie, setCurrentMovie] = useState(null);
             const [currentMovieRating, setCurrentMovieRating] = useState(null);
-            const [movieRatings, setMovieRatings] = useState(() => {
-                // Load ratings from localStorage on initialization
-                const saved = localStorage.getItem('movieRatings');
+            const [movieHistory, setMovieHistory] = useState(() => {
+                // Load history from localStorage on initialization
+                const saved = localStorage.getItem('movieHistory');
                 return saved ? JSON.parse(saved) : {};
             });
             const [searchQuery, setSearchQuery] = useState('');
@@ -151,10 +151,10 @@
             const TMDB_API_KEY = localStorage.getItem('TMDB_API_KEY') || '';
             const VISION_API_KEY = localStorage.getItem('VISION_API_KEY') || '';
 
-            // Save ratings to localStorage whenever they change
+            // Save history to localStorage whenever it changes
             React.useEffect(() => {
-                localStorage.setItem('movieRatings', JSON.stringify(movieRatings));
-            }, [movieRatings]);
+                localStorage.setItem('movieHistory', JSON.stringify(movieHistory));
+            }, [movieHistory]);
 
             // Check if API keys are configured on mount
             React.useEffect(() => {
@@ -163,17 +163,25 @@
                 }
             }, []);
 
-            const ratedMovies = Object.keys(movieRatings).filter(id => movieRatings[id] !== null);
+            const historyItems = Object.values(movieHistory);
+            const ratedMovies = historyItems.filter(movie => movie.rating !== null);
             const ratedCount = ratedMovies.length;
             const totalNeeded = 10;
             const remainingNeeded = totalNeeded - ratedCount;
             const progressPercentage = (ratedCount / totalNeeded) * 100;
 
             const handleMovieRating = (movieId, rating) => {
-                setMovieRatings(prev => ({
-                    ...prev,
-                    [movieId]: prev[movieId] === rating ? null : rating
-                }));
+                setMovieHistory(prev => {
+                    const movie = prev[movieId];
+                    if (!movie) return prev;
+                    return {
+                        ...prev,
+                        [movieId]: {
+                            ...movie,
+                            rating: movie.rating === rating ? null : rating
+                        }
+                    };
+                });
             };
 
             const startCamera = async () => {
@@ -273,24 +281,34 @@
                         `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
                     );
                     const data = await response.json();
-                    
+
                     if (data.results && data.results.length > 0) {
                         const movie = data.results[0];
                         const detailsResponse = await fetch(
                             `https://api.themoviedb.org/3/${movie.media_type}/${movie.id}?api_key=${TMDB_API_KEY}&append_to_response=credits`
                         );
                         const details = await detailsResponse.json();
-                        
-                        setCurrentMovie({
+
+                        const movieData = {
                             id: movie.id,
                             title: movie.title || movie.name,
                             year: (movie.release_date || movie.first_air_date || '').split('-')[0],
                             genre: details.genres?.[0]?.name || 'Drama',
                             cast: details.credits?.cast?.slice(0, 3).map(c => c.name).join(', ') || 'N/A',
                             poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
-                            rating: movie.vote_average
-                        });
-                        
+                            score: movie.vote_average,
+                            rating: null,
+                            timestamp: new Date().toISOString()
+                        };
+
+                        setCurrentMovie(movieData);
+
+                        // Add to history immediately when identified
+                        setMovieHistory(prev => ({
+                            ...prev,
+                            [movie.id]: prev[movie.id] ? { ...prev[movie.id], ...movieData, rating: prev[movie.id].rating } : movieData
+                        }));
+
                         setHasScanned(true);
                         setIsProcessing(false);
                         setSearchMode(false);
@@ -348,31 +366,43 @@
                                             </p>
                                         </div>
                                         <div className="px-4 pb-24">
-                                            {ratedMovies.length === 0 ? (
+                                            {historyItems.length === 0 ? (
                                                 <div className="text-center text-gray-400 py-12">
                                                     <Clock className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                                                    <p>No rated titles yet. Start snapping!</p>
+                                                    <p>No titles yet. Start snapping!</p>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-3">
-                                                    {ratedMovies.map((id, index) => (
-                                                        <div key={id} className="bg-gray-800 rounded-xl p-3 flex gap-3">
-                                                            <div className="w-24 h-36 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex-shrink-0"></div>
+                                                    {historyItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((movie) => (
+                                                        <div key={movie.id} className="bg-gray-800 rounded-xl p-3 flex gap-3">
+                                                            {movie.poster ? (
+                                                                <img
+                                                                    src={movie.poster}
+                                                                    alt={movie.title}
+                                                                    className="w-24 h-36 rounded-lg flex-shrink-0 object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-24 h-36 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex-shrink-0"></div>
+                                                            )}
                                                             <div className="flex-1 flex flex-col justify-between">
                                                                 <div>
-                                                                    <h3 className="text-white font-bold text-lg mb-1">Rated Title #{index + 1}</h3>
-                                                                    <p className="text-gray-400 text-sm">Recently rated</p>
+                                                                    <h3 className="text-white font-bold text-lg mb-1 line-clamp-2">{movie.title}</h3>
+                                                                    <p className="text-gray-400 text-sm mb-1">{movie.year} • {movie.genre}</p>
+                                                                    <div className="flex items-center gap-1 text-yellow-400 text-sm">
+                                                                        <span>⭐</span>
+                                                                        <span className="font-semibold">{movie.score?.toFixed(1)}/10</span>
+                                                                    </div>
                                                                 </div>
                                                                 <div className="flex gap-2">
-                                                                    <button 
-                                                                        onClick={() => handleMovieRating(id, 'up')}
-                                                                        className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movieRatings[id] === 'up' ? 'bg-green-500' : 'bg-gray-600')}
+                                                                    <button
+                                                                        onClick={() => handleMovieRating(movie.id, 'up')}
+                                                                        className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movie.rating === 'up' ? 'bg-green-500' : 'bg-gray-600')}
                                                                     >
                                                                         <ThumbsUp className="w-5 h-5 text-white" />
                                                                     </button>
-                                                                    <button 
-                                                                        onClick={() => handleMovieRating(id, 'down')}
-                                                                        className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movieRatings[id] === 'down' ? 'bg-red-500' : 'bg-gray-600')}
+                                                                    <button
+                                                                        onClick={() => handleMovieRating(movie.id, 'down')}
+                                                                        className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movie.rating === 'down' ? 'bg-red-500' : 'bg-gray-600')}
                                                                     >
                                                                         <ThumbsDown className="w-5 h-5 text-white" />
                                                                     </button>
@@ -470,7 +500,7 @@
                                                         </p>
                                                     </div>
                                                 </div>
-                                                {currentMovie.rating >= 7.5 && (
+                                                {currentMovie.score >= 7.5 && (
                                                     <div className="mb-4">
                                                         <div className="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
                                                             <ThumbsUp className="w-4 h-4 mr-1" />
@@ -480,7 +510,7 @@
                                                 )}
                                                 <div className="flex items-center justify-around mb-6 pb-6 border-b border-gray-700">
                                                     <div className="text-center">
-                                                        <div className="text-white text-2xl font-bold">{currentMovie.rating?.toFixed(1)}/10</div>
+                                                        <div className="text-white text-2xl font-bold">{currentMovie.score?.toFixed(1)}/10</div>
                                                         <div className="text-gray-400 text-xs">TMDB Rating</div>
                                                     </div>
                                                 </div>
@@ -587,10 +617,10 @@
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    if (confirm('Are you sure you want to delete all your ratings? This cannot be undone.')) {
-                                                        setMovieRatings({});
-                                                        localStorage.removeItem('movieRatings');
-                                                        alert('Taste profile deleted successfully.');
+                                                    if (confirm('Are you sure you want to delete all your history? This cannot be undone.')) {
+                                                        setMovieHistory({});
+                                                        localStorage.removeItem('movieHistory');
+                                                        alert('History deleted successfully.');
                                                     }
                                                 }}
                                                 className="w-full bg-gray-800 hover:bg-gray-700 text-white py-4 px-5 rounded-xl flex items-center gap-3 border border-gray-700"
