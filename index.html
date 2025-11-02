@@ -218,9 +218,31 @@
 
             const processImage = async (imageData) => {
                 setIsProcessing(true);
+                console.log('\n========== FRONTEND IMAGE PROCESSING ==========');
+                console.log('Timestamp:', new Date().toISOString());
 
                 try {
+                    // Validate image data
+                    if (!imageData) {
+                        throw new Error('No image data provided');
+                    }
+
+                    console.log('✓ Image data received');
+                    console.log('Data URL length:', imageData.length);
+                    console.log('Data URL prefix:', imageData.substring(0, 50));
+
+                    // Extract base64 portion
                     const base64Image = imageData.split(',')[1];
+
+                    if (!base64Image) {
+                        throw new Error('Failed to extract base64 data from image');
+                    }
+
+                    console.log('✓ Base64 extracted, length:', base64Image.length, 'characters');
+                    console.log('📤 Sending request to backend...');
+                    console.log('Backend URL:', `${BACKEND_URL}/api/vision/detect`);
+
+                    const requestStart = Date.now();
                     const visionResponse = await fetch(`${BACKEND_URL}/api/vision/detect`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -228,25 +250,83 @@
                         body: JSON.stringify({ image: base64Image })
                     });
 
+                    const requestDuration = Date.now() - requestStart;
+                    console.log('📥 Response received in', requestDuration, 'ms');
+                    console.log('Response status:', visionResponse.status);
+                    console.log('Response OK:', visionResponse.ok);
+
                     if (!visionResponse.ok) {
                         const errorData = await visionResponse.json();
-                        throw new Error(errorData.error || 'Vision API error');
+                        console.error('❌ Backend error response:', errorData);
+
+                        let errorMsg = errorData.error || 'Vision API error';
+                        if (errorData.debug) {
+                            console.error('Debug info:', errorData.debug);
+                            errorMsg += '\n\nDebug: ' + JSON.stringify(errorData.debug, null, 2);
+                        }
+
+                        throw new Error(errorMsg);
                     }
 
                     const visionData = await visionResponse.json();
+                    console.log('✅ Vision API response received');
+                    console.log('Response structure:', Object.keys(visionData));
+
                     const detectedText = visionData.responses?.[0]?.textAnnotations?.[0]?.description || '';
+                    const totalAnnotations = visionData.responses?.[0]?.textAnnotations?.length || 0;
+
+                    console.log('Total annotations:', totalAnnotations);
 
                     if (!detectedText) {
-                        alert('No text detected. Try manual search.');
+                        console.log('⚠️  No text detected in image');
+
+                        // Check if there's an error in the Vision API response
+                        if (visionData.responses?.[0]?.error) {
+                            const visionError = visionData.responses[0].error;
+                            console.error('Vision API returned error:', visionError);
+                            throw new Error(`Vision API error: ${visionError.message || JSON.stringify(visionError)}`);
+                        }
+
+                        alert('No text detected in image. Please try:\n\n• Ensure the image contains clear text\n• Try better lighting\n• Use manual search instead');
                         setIsProcessing(false);
                         setSearchMode(true);
                         return;
                     }
 
+                    console.log('📝 Detected text preview:', detectedText.substring(0, 100) + (detectedText.length > 100 ? '...' : ''));
+                    console.log('🔍 Searching for movie with detected text...');
+                    console.log('===============================================\n');
+
                     await searchMovie(detectedText);
                 } catch (error) {
-                    console.error('Image processing error:', error);
-                    alert('Error processing image: ' + error.message + '. Check API keys or try manual search.');
+                    console.error('\n❌❌❌ FRONTEND ERROR ❌❌❌');
+                    console.error('Error type:', error.constructor.name);
+                    console.error('Error message:', error.message);
+                    console.error('Error stack:', error.stack);
+                    console.error('===============================================\n');
+
+                    // Create user-friendly error message
+                    let userMessage = 'Error processing image:\n\n';
+
+                    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                        userMessage += '❌ Cannot connect to backend server\n';
+                        userMessage += '• Is the backend running on ' + BACKEND_URL + '?\n';
+                        userMessage += '• Check browser console for details\n';
+                    } else if (error.message.includes('API key')) {
+                        userMessage += '❌ API key issue\n';
+                        userMessage += '• Vision API key may be invalid or missing\n';
+                        userMessage += '• Check backend .env file\n';
+                    } else if (error.message.includes('403')) {
+                        userMessage += '❌ API authentication failed\n';
+                        userMessage += '• Vision API key lacks permissions\n';
+                        userMessage += '• Ensure Vision API is enabled in Google Cloud Console\n';
+                    } else {
+                        userMessage += error.message;
+                    }
+
+                    userMessage += '\n\nTry manual search instead.';
+
+                    alert(userMessage);
                     setIsProcessing(false);
                     setSearchMode(true);
                 }
