@@ -151,7 +151,7 @@
                 localStorage.setItem('movieHistory', JSON.stringify(movieHistory));
             }, [movieHistory]);
 
-            const ratedMovies = Object.keys(movieRatings).filter(id => movieRatings[id] !== null);
+            const ratedMovies = Object.values(movieHistory).filter(movie => movie.rating !== null);
             const ratedCount = ratedMovies.length;
             const totalNeeded = 10;
             const remainingNeeded = totalNeeded - ratedCount;
@@ -357,14 +357,14 @@
                                             </p>
                                         </div>
                                         <div className="px-4 pb-24">
-                                            {historyItems.length === 0 ? (
+                                            {Object.keys(movieHistory).length === 0 ? (
                                                 <div className="text-center text-gray-400 py-12">
                                                     <Clock className="w-16 h-16 mx-auto mb-4 opacity-50" />
                                                     <p>No titles yet. Start snapping!</p>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-3">
-                                                    {historyItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((movie) => (
+                                                    {Object.values(movieHistory).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((movie) => (
                                                         <div key={movie.id} className="bg-gray-800 rounded-xl p-3 flex gap-3">
                                                             {movie.poster ? (
                                                                 <img
