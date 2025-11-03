@@ -206,17 +206,15 @@
                 setTouchStart(null);
             };
 
-            const handleDeleteMovie = (movieId, movieTitle) => {
-                // Confirm before deleting
-                if (confirm(`Delete "${movieTitle}" from your history?`)) {
-                    setMovieHistory(prev => {
-                        const newHistory = { ...prev };
-                        delete newHistory[movieId];
-                        return newHistory;
-                    });
-                    setSwipedItem(null);
-                    setSwipeOffset(0);
-                }
+            const handleDeleteMovie = (movieId) => {
+                // Delete immediately - swipe gesture provides intentionality
+                setMovieHistory(prev => {
+                    const newHistory = { ...prev };
+                    delete newHistory[movieId];
+                    return newHistory;
+                });
+                setSwipedItem(null);
+                setSwipeOffset(0);
             };
 
             const startCamera = async () => {
@@ -783,7 +781,7 @@
                                                             {swipedItem === movie.id && swipeOffset >= 50 && (
                                                                 <div
                                                                     className="absolute right-0 top-0 bottom-0 w-24 flex items-center justify-center cursor-pointer"
-                                                                    onClick={() => handleDeleteMovie(movie.id, movie.title)}
+                                                                    onClick={() => handleDeleteMovie(movie.id)}
                                                                 >
                                                                     <Trash2 className="w-6 h-6 text-white" />
                                                                 </div>
