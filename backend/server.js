@@ -37,6 +37,32 @@ const PORT = process.env.PORT || 3001;
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
 app.use(express.urlencoded({ extended: true }));
 
+// Request logging middleware (after body parser)
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  const method = req.method;
+  const path = req.path;
+
+  console.log(`[${timestamp}] ${method} ${path}`);
+
+  // Log request details for API endpoints
+  if (path.startsWith('/api/')) {
+    console.log('  Headers:', {
+      'content-type': req.headers['content-type'],
+      'content-length': req.headers['content-length']
+    });
+
+    // Don't log image data (too large), just note if present
+    if (req.body && req.body.image) {
+      console.log('  Body: { image: <base64 data, length:', req.body.image.length, '> }');
+    } else if (req.body && Object.keys(req.body).length > 0) {
+      console.log('  Body:', JSON.stringify(req.body, null, 2));
+    }
+  }
+
+  next();
+});
+
 // CORS configuration
 const corsOptions = {
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
