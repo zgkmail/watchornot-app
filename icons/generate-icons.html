@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineSense Icon Generator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: white;
+        }
+
+        .instructions {
+            max-width: 600px;
+            margin: 0 auto 40px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 10px;
+        }
+
+        .icon-preview {
+            display: inline-block;
+            background: #000000;
+            border-radius: 22.5%;
+            overflow: hidden;
+            margin: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .icon-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .sizes {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .size-label {
+            display: block;
+            text-align: center;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>CineSense App Icons</h1>
+
+    <div class="instructions">
+        <h2>How to Generate Icons:</h2>
+        <ol>
+            <li>Take screenshots of each icon size below (or use a screenshot tool to capture exact dimensions)</li>
+            <li>Save them with the filenames shown below each icon</li>
+            <li>Place all icons in the <code>/icons</code> directory</li>
+            <li>Alternatively, use an online tool like <a href="https://realfavicongenerator.net/" target="_blank" style="color: #3b82f6;">RealFaviconGenerator</a></li>
+        </ol>
+        <p><strong>Or use this command to generate basic icons (requires ImageMagick):</strong></p>
+        <pre style="background: #000; padding: 10px; border-radius: 5px; overflow-x: auto;">
+# Install ImageMagick first (if not installed)
+# macOS: brew install imagemagick
+# Ubuntu: sudo apt-get install imagemagick
+
+# Generate icons from a source image (512x512 recommended)
+for size in 72 96 120 128 144 152 180 192 384 512; do
+  convert source-icon.png -resize ${size}x${size} icon-${size}.png
+done
+        </pre>
+    </div>
+
+    <div class="sizes">
+        <h2>Icon Sizes Needed:</h2>
+
+        <!-- 72x72 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 72px; height: 72px;">
+                <div class="icon-content">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-72.png (72x72)</span>
+        </div>
+
+        <!-- 96x96 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 96px; height: 96px;">
+                <div class="icon-content">
+                    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-96.png (96x96)</span>
+        </div>
+
+        <!-- 120x120 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 120px; height: 120px;">
+                <div class="icon-content">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-120.png (120x120)</span>
+        </div>
+
+        <!-- 128x128 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 128px; height: 128px;">
+                <div class="icon-content">
+                    <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-128.png (128x128)</span>
+        </div>
+
+        <!-- 144x144 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 144px; height: 144px;">
+                <div class="icon-content">
+                    <svg width="78" height="78" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-144.png (144x144)</span>
+        </div>
+
+        <!-- 152x152 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 152px; height: 152px;">
+                <div class="icon-content">
+                    <svg width="82" height="82" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-152.png (152x152)</span>
+        </div>
+
+        <!-- 180x180 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 180px; height: 180px;">
+                <div class="icon-content">
+                    <svg width="98" height="98" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-180.png (180x180)</span>
+        </div>
+
+        <!-- 192x192 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 192px; height: 192px;">
+                <div class="icon-content">
+                    <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-192.png (192x192)</span>
+        </div>
+
+        <!-- 384x384 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 192px; height: 192px;">
+                <div class="icon-content">
+                    <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-384.png (384x384) - shown at 50%</span>
+        </div>
+
+        <!-- 512x512 -->
+        <div style="display: inline-block; margin: 20px;">
+            <div class="icon-preview" style="width: 192px; height: 192px;">
+                <div class="icon-content">
+                    <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                </div>
+            </div>
+            <span class="size-label">icon-512.png (512x512) - shown at 37.5%</span>
+        </div>
+    </div>
+
+    <div class="instructions" style="margin-top: 60px;">
+        <h2>Quick Start with Placeholder Icons:</h2>
+        <p>For testing purposes, you can create simple placeholder icons using this SVG as a base. Save the following as <code>icon-base.svg</code>:</p>
+        <pre style="background: #000; padding: 10px; border-radius: 5px; overflow-x: auto; font-size: 11px;">
+&lt;svg width="512" height="512" xmlns="http://www.w3.org/2000/svg"&gt;
+  &lt;defs&gt;
+    &lt;linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"&gt;
+      &lt;stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" /&gt;
+      &lt;stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" /&gt;
+    &lt;/linearGradient&gt;
+  &lt;/defs&gt;
+  &lt;rect width="512" height="512" fill="url(#grad)"/&gt;
+  &lt;path d="M383 317a33 33 0 0 1-33 33H162a33 33 0 0 1-33-33V187a33 33 0 0 1 33-33h55l33-50h100l33 50h55a33 33 0 0 1 33 33z"
+        fill="none" stroke="white" stroke-width="16"/&gt;
+  &lt;circle cx="256" cy="252" r="66" fill="none" stroke="white" stroke-width="16"/&gt;
+&lt;/svg&gt;
+        </pre>
+    </div>
+</body>
+</html>
