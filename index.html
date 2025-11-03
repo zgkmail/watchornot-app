@@ -260,6 +260,10 @@
 
             // Swipe-to-delete handlers
             const handleTouchStart = (e, movieId) => {
+                // If touching a different item, reset swipe state
+                if (swipedItem && swipedItem !== movieId) {
+                    setSwipeOffset(0);
+                }
                 setTouchStart(e.touches[0].clientX);
                 setSwipedItem(movieId);
             };
@@ -270,9 +274,12 @@
                 const currentTouch = e.touches[0].clientX;
                 const diff = touchStart - currentTouch;
 
-                // Only allow left swipe (positive diff) and limit to 100px
+                // Allow left swipe (positive diff) up to 100px, and right swipe (negative diff) to cancel
                 if (diff > 0) {
                     setSwipeOffset(Math.min(diff, 100));
+                } else {
+                    // Right swipe - snap back to 0
+                    setSwipeOffset(0);
                 }
             };
 
