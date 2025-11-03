@@ -13,7 +13,7 @@
 
     <!-- iOS Specific Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="CineSense">
 
     <!-- App Icons -->
@@ -57,11 +57,11 @@
 
         /* Safe area support for iOS notch and home indicator */
         .safe-area-top {
-            padding-top: env(safe-area-inset-top);
+            padding-top: max(env(safe-area-inset-top), 20px);
         }
 
         .safe-area-bottom {
-            padding-bottom: env(safe-area-inset-bottom);
+            padding-bottom: max(env(safe-area-inset-bottom), 20px);
         }
 
         .safe-area-left {
@@ -93,6 +93,33 @@
             input, textarea {
                 -webkit-user-select: text;
                 user-select: text;
+            }
+        }
+
+        /* Ensure full viewport height accounting for dynamic Safari UI */
+        @supports (-webkit-touch-callout: none) {
+            #root {
+                height: -webkit-fill-available;
+            }
+
+            body {
+                height: -webkit-fill-available;
+            }
+        }
+
+        /* Use dynamic viewport height for mobile browsers */
+        @supports (height: 100dvh) {
+            body {
+                height: 100dvh;
+            }
+
+            #root {
+                height: 100dvh;
+            }
+
+            .app-container {
+                height: 100dvh !important;
+                max-height: 100dvh !important;
             }
         }
     </style>
@@ -221,6 +248,7 @@
             const [searchQuery, setSearchQuery] = useState('');
             const [searchMode, setSearchMode] = useState(false);
             const fileInputRef = useRef(null);
+            const cameraInputRef = useRef(null);
             const videoRef = useRef(null);
             const [stream, setStream] = useState(null);
             const [cameraActive, setCameraActive] = useState(false);
@@ -231,7 +259,7 @@
             const [touchStart, setTouchStart] = useState(null);
 
             // Backend API configuration
-            const BACKEND_URL = 'http://localhost:3001';
+            const BACKEND_URL = 'http://10.0.0.101:3001';
 
             // Save history to localStorage whenever it changes
             React.useEffect(() => {
@@ -308,16 +336,54 @@
 
             const startCamera = async () => {
                 try {
-                    const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: 'environment' } 
+                    console.log('🎥 Requesting camera access...');
+
+                    // Check if getUserMedia is available
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        throw new Error('Camera API not available. Your browser may not support camera access.');
+                    }
+
+                    const mediaStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: 'environment' }
                     });
+
+                    console.log('✅ Camera access granted');
+
                     if (videoRef.current) {
                         videoRef.current.srcObject = mediaStream;
                         setStream(mediaStream);
                         setCameraActive(true);
                     }
                 } catch (err) {
-                    alert('Camera access denied. Use file upload instead.');
+                    console.error('❌ Camera error:', err);
+
+                    let errorMessage = '📷 Camera Access Issue\n\n';
+
+                    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                        errorMessage += '⚠️ Camera permission denied\n\n';
+                        errorMessage += 'On iOS Safari:\n';
+                        errorMessage += '• Go to Settings > Safari > Camera\n';
+                        errorMessage += '• Allow camera access\n';
+                        errorMessage += '• Or use "Upload Image" instead';
+                    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                        errorMessage += '⚠️ No camera found\n\n';
+                        errorMessage += 'Please use "Upload Image" instead';
+                    } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                        errorMessage += '⚠️ Camera is being used by another app\n\n';
+                        errorMessage += 'Close other apps and try again';
+                    } else if (err.name === 'NotSupportedError' || err.message.includes('secure')) {
+                        errorMessage += '⚠️ HTTPS Required\n\n';
+                        errorMessage += 'Camera access requires HTTPS.\n\n';
+                        errorMessage += 'Workaround:\n';
+                        errorMessage += '1. Use "Upload Image" instead\n';
+                        errorMessage += '2. Take a photo first, then upload it\n';
+                        errorMessage += '3. Or use manual search';
+                    } else {
+                        errorMessage += '⚠️ Error: ' + (err.message || err.name || 'Unknown error') + '\n\n';
+                        errorMessage += 'Try using "Upload Image" instead';
+                    }
+
+                    alert(errorMessage);
                 }
             };
 
@@ -383,26 +449,47 @@
                     }
                 }
 
-                // Common UI elements to remove
+                // Common UI elements and browser noise to remove
                 const uiNoise = [
                     'play', 'pause', 'watch', 'trailer', 'resume', 'continue watching',
                     'add to list', 'my list', 'more info', 'details', 'info',
                     'hd', 'uhd', '4k', 'ad', 'cc', 'audio description',
                     'pg-13', 'pg', 'r', 'nr', 'tv-ma', 'tv-14', 'tv-pg', 'tv-y', 'tv-g',
                     'episodes', 'seasons', 'season', 'episode',
-                    'download', 'share', 'rate', 'similar titles'
+                    'download', 'share', 'rate', 'similar titles',
+                    // Browser UI
+                    'tab', 'tabs', 'window', 'close', 'minimize', 'maximize',
+                    'back', 'forward', 'reload', 'home', 'search',
+                    // Generic words
+                    'baby', 'fish', 'people', 'man', 'woman', 'boy', 'girl'
                 ];
+
+                // Filter out lines that look like URLs or file paths
+                const isUrlOrPath = (line) => {
+                    return line.includes('://') ||
+                           line.includes('www.') ||
+                           line.includes('.com') ||
+                           line.includes('.net') ||
+                           line.match(/^[a-z]+\/[a-z]+/) || // path like "user/repo"
+                           line.includes('github') ||
+                           line.includes('localhost');
+                };
 
                 // Clean each line
                 const cleanedLines = lines.map(line => {
                     let cleaned = line;
+
+                    // Filter out URLs and paths first
+                    if (isUrlOrPath(cleaned)) {
+                        return '';
+                    }
 
                     // Remove special characters at the start (like #, @, etc.)
                     cleaned = cleaned.replace(/^[#@$%^&*]+/, '');
 
                     // Remove common patterns
                     cleaned = cleaned.replace(/^\d+$/, ''); // Pure numbers
-                    cleaned = cleaned.replace(/^[+\-×x]$/, ''); // Single operators
+                    cleaned = cleaned.replace(/^[+\-×xX]$/, ''); // Single operators including X
                     cleaned = cleaned.replace(/^\d{4}$/, ''); // Years alone
                     cleaned = cleaned.replace(/^\d+h?\s*\d*m?$/, ''); // Runtime (2h 22m)
                     cleaned = cleaned.replace(/^[0-9.,]+$/, ''); // Ratings/numbers
@@ -423,6 +510,11 @@
                         return '';
                     }
 
+                    // Remove single capital letters (like menu items)
+                    if (/^[A-Z]$/.test(cleaned)) {
+                        return '';
+                    }
+
                     return cleaned.trim();
                 }).filter(line => line.length > 0);
 
@@ -433,13 +525,50 @@
                     return null;
                 }
 
-                // Strategy 1: First substantial line is usually the title
-                let title = cleanedLines[0];
+                // Score each line to find the most title-like one
+                const scoreLine = (line) => {
+                    let score = 0;
 
-                // If first line seems too short, try combining first 2 lines
-                if (title.length < 3 && cleanedLines.length > 1) {
-                    title = cleanedLines[0] + ' ' + cleanedLines[1];
-                }
+                    // Prefer lines with multiple words
+                    const wordCount = line.split(/\s+/).length;
+                    if (wordCount >= 2 && wordCount <= 6) score += 30;
+                    if (wordCount === 1) score += 10;
+
+                    // Prefer title case (first letter of words capitalized)
+                    const words = line.split(/\s+/);
+                    const capitalizedWords = words.filter(w => /^[A-Z]/.test(w)).length;
+                    score += (capitalizedWords / words.length) * 20;
+
+                    // Penalize all caps (usually UI elements)
+                    if (line === line.toUpperCase() && line.length > 3) {
+                        score -= 15;
+                    }
+
+                    // Prefer reasonable length (5-50 chars)
+                    if (line.length >= 5 && line.length <= 50) {
+                        score += 20;
+                    }
+
+                    // Penalize very short or very long
+                    if (line.length < 3) score -= 20;
+                    if (line.length > 60) score -= 10;
+
+                    return score;
+                };
+
+                // Score and sort candidates
+                const scoredLines = cleanedLines.map(line => ({
+                    line,
+                    score: scoreLine(line)
+                })).sort((a, b) => b.score - a.score);
+
+                console.log('Scored candidates:');
+                scoredLines.slice(0, 5).forEach((item, i) => {
+                    console.log(`  ${i+1}. "${item.line}" (score: ${item.score})`);
+                });
+
+                // Pick the best candidate
+                let title = scoredLines[0].line;
 
                 // Final cleanup
                 title = title
@@ -453,6 +582,225 @@
                 }
 
                 return { title: title || null, year: extractedYear };
+            };
+
+            /**
+             * Extract movie title candidates from multiple detection sources
+             * Prioritizes web detection, then falls back to OCR text
+             */
+            const extractMovieCandidates = (webDetection, textAnnotations, logoAnnotations) => {
+                console.log('\n🎬 Extracting movie candidates...');
+
+                const candidates = [];
+                const seenTitles = new Set();
+
+                // Streaming services to filter out
+                const streamingServices = new Set([
+                    'netflix', 'prime video', 'amazon prime', 'disney+', 'disney plus', 'hulu',
+                    'hbo max', 'paramount+', 'peacock', 'apple tv+', 'youtube', 'tubi'
+                ]);
+
+                // 1. WEB DETECTION - Most reliable source
+                if (webDetection?.webEntities) {
+                    console.log('📊 Processing web entities...');
+                    webDetection.webEntities.forEach(entity => {
+                        if (!entity.description) return;
+
+                        const title = entity.description.trim();
+                        const lowerTitle = title.toLowerCase();
+
+                        // Filter out streaming services and very short titles
+                        if (streamingServices.has(lowerTitle) || title.length < 2) return;
+
+                        // Filter out generic terms
+                        if (['film', 'movie', 'series', 'tv show', 'watch', 'play', 'episode'].includes(lowerTitle)) return;
+
+                        const titleKey = lowerTitle.replace(/[^\w]/g, '');
+                        if (seenTitles.has(titleKey)) return;
+                        seenTitles.add(titleKey);
+
+                        candidates.push({
+                            title: title,
+                            confidence: Math.min(entity.score || 0.7, 0.95),
+                            source: 'web_entity'
+                        });
+                    });
+                }
+
+                // 2. BEST GUESS LABELS - High confidence
+                if (webDetection?.bestGuessLabels) {
+                    console.log('🎯 Processing best guess labels...');
+                    webDetection.bestGuessLabels.forEach(label => {
+                        if (!label.label) return;
+
+                        const title = label.label.trim();
+                        const lowerTitle = title.toLowerCase();
+
+                        if (streamingServices.has(lowerTitle) || title.length < 2) return;
+
+                        const titleKey = lowerTitle.replace(/[^\w]/g, '');
+                        if (seenTitles.has(titleKey)) return;
+                        seenTitles.add(titleKey);
+
+                        candidates.push({
+                            title: title,
+                            confidence: 0.9,
+                            source: 'best_guess'
+                        });
+                    });
+                }
+
+                // 3. OCR TEXT - Fallback (extract multiple candidates from OCR)
+                if (textAnnotations.length > 0 && candidates.length < 3) {
+                    console.log('📝 Processing OCR text as fallback...');
+                    const detectedText = textAnnotations[0]?.description || '';
+                    if (detectedText) {
+                        const cleanedData = cleanMovieTitle(detectedText);
+                        if (cleanedData?.title) {
+                            const titleKey = cleanedData.title.toLowerCase().replace(/[^\w]/g, '');
+                            if (!seenTitles.has(titleKey)) {
+                                seenTitles.add(titleKey);
+                                candidates.push({
+                                    title: cleanedData.title,
+                                    year: cleanedData.year,
+                                    confidence: 0.6,
+                                    source: 'ocr_text'
+                                });
+                            }
+                        }
+
+                        // Also try extracting title-like phrases directly from the text
+                        const lines = detectedText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                        for (const line of lines) {
+                            // Look for title case phrases (3-50 chars, multiple capitalized words)
+                            if (line.length >= 3 && line.length <= 50) {
+                                const words = line.split(/\s+/);
+                                const capitalizedCount = words.filter(w => /^[A-Z]/.test(w)).length;
+
+                                // If most words are capitalized (title case), it might be a title
+                                if (words.length >= 2 && capitalizedCount >= words.length * 0.6) {
+                                    const titleKey = line.toLowerCase().replace(/[^\w]/g, '');
+                                    if (!seenTitles.has(titleKey) && candidates.length < 5) {
+                                        seenTitles.add(titleKey);
+                                        candidates.push({
+                                            title: line.trim(),
+                                            confidence: 0.5,
+                                            source: 'ocr_phrase'
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Sort by confidence (highest first)
+                candidates.sort((a, b) => b.confidence - a.confidence);
+
+                return candidates.slice(0, 5); // Return top 5 candidates
+            };
+
+            /**
+             * Search for movie using multiple candidates in order of confidence
+             */
+            const searchMovieWithCandidates = async (candidates) => {
+                for (let i = 0; i < candidates.length; i++) {
+                    const candidate = candidates[i];
+                    console.log(`\n🔍 Trying candidate ${i+1}/${candidates.length}: "${candidate.title}"`);
+
+                    try {
+                        const result = await searchMovie(candidate.title, candidate.year, true);
+
+                        // If we found a result, we're done
+                        if (result) {
+                            console.log('✅ Found match!');
+                            return result;
+                        }
+
+                        // If confidence is low and no result, try next
+                        if (candidate.confidence < 0.7) {
+                            console.log('⚠️  Low confidence, trying next candidate...');
+                            continue;
+                        }
+                    } catch (error) {
+                        console.error('❌ Error searching for candidate:', error);
+                        // Continue to next candidate
+                    }
+                }
+
+                // If we get here, nothing worked
+                alert('Could not find a matching movie or TV show.\n\nDetected text doesn\'t match any titles.\nTry:\n• Taking another photo with better angle\n• Uploading a clearer image\n• Using manual search');
+                setIsProcessing(false);
+                setSearchMode(true);
+            };
+
+            /**
+             * Compress image to stay under Claude API's 5 MB limit
+             * Reduces dimensions and adjusts quality while maintaining readability
+             */
+            const compressImage = async (imageDataUrl) => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // Calculate new dimensions to keep under ~4 MB (buffer for 5 MB limit)
+                        // Base64 is ~1.37x larger than binary, so target ~3 MB binary = ~4 MB base64
+                        const MAX_SIZE_MB = 4;
+                        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+
+                        let width = img.width;
+                        let height = img.height;
+                        let quality = 0.85;
+
+                        // Start with a reasonable max dimension
+                        const MAX_DIMENSION = 1920;
+                        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                            if (width > height) {
+                                height = Math.round((height * MAX_DIMENSION) / width);
+                                width = MAX_DIMENSION;
+                            } else {
+                                width = Math.round((width * MAX_DIMENSION) / height);
+                                height = MAX_DIMENSION;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Try to compress until under size limit
+                        let compressed = canvas.toDataURL('image/jpeg', quality);
+                        let attempts = 0;
+
+                        while (compressed.length > MAX_SIZE_BYTES && attempts < 5) {
+                            quality -= 0.1;
+                            if (quality < 0.5) {
+                                // Reduce dimensions further
+                                width = Math.round(width * 0.8);
+                                height = Math.round(height * 0.8);
+                                canvas.width = width;
+                                canvas.height = height;
+                                ctx.drawImage(img, 0, 0, width, height);
+                                quality = 0.85;
+                            }
+                            compressed = canvas.toDataURL('image/jpeg', quality);
+                            attempts++;
+                        }
+
+                        console.log('🗜️  Image compressed:');
+                        console.log('   Original:', imageDataUrl.length, 'bytes');
+                        console.log('   Compressed:', compressed.length, 'bytes');
+                        console.log('   Dimensions:', width, 'x', height);
+                        console.log('   Quality:', quality);
+                        console.log('   Reduction:', ((1 - compressed.length / imageDataUrl.length) * 100).toFixed(1) + '%');
+
+                        resolve(compressed);
+                    };
+                    img.onerror = () => reject(new Error('Failed to load image for compression'));
+                    img.src = imageDataUrl;
+                });
             };
 
             const processImage = async (imageData) => {
@@ -470,19 +818,22 @@
                     console.log('Data URL length:', imageData.length);
                     console.log('Data URL prefix:', imageData.substring(0, 50));
 
+                    // Compress image to stay under Claude API's 5 MB limit
+                    const compressedImage = await compressImage(imageData);
+
                     // Extract base64 portion
-                    const base64Image = imageData.split(',')[1];
+                    const base64Image = compressedImage.split(',')[1];
 
                     if (!base64Image) {
                         throw new Error('Failed to extract base64 data from image');
                     }
 
                     console.log('✓ Base64 extracted, length:', base64Image.length, 'characters');
-                    console.log('📤 Sending request to backend...');
-                    console.log('Backend URL:', `${BACKEND_URL}/api/vision/detect`);
+                    console.log('📤 Sending request to Claude API...');
+                    console.log('Backend URL:', `${BACKEND_URL}/api/claude/identify`);
 
                     const requestStart = Date.now();
-                    const visionResponse = await fetch(`${BACKEND_URL}/api/vision/detect`, {
+                    const claudeResponse = await fetch(`${BACKEND_URL}/api/claude/identify`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         credentials: 'include',
@@ -491,14 +842,14 @@
 
                     const requestDuration = Date.now() - requestStart;
                     console.log('📥 Response received in', requestDuration, 'ms');
-                    console.log('Response status:', visionResponse.status);
-                    console.log('Response OK:', visionResponse.ok);
+                    console.log('Response status:', claudeResponse.status);
+                    console.log('Response OK:', claudeResponse.ok);
 
-                    if (!visionResponse.ok) {
-                        const errorData = await visionResponse.json();
+                    if (!claudeResponse.ok) {
+                        const errorData = await claudeResponse.json();
                         console.error('❌ Backend error response:', errorData);
 
-                        let errorMsg = errorData.error || 'Vision API error';
+                        let errorMsg = errorData.error || 'Claude API error';
                         if (errorData.debug) {
                             console.error('Debug info:', errorData.debug);
                             errorMsg += '\n\nDebug: ' + JSON.stringify(errorData.debug, null, 2);
@@ -507,47 +858,31 @@
                         throw new Error(errorMsg);
                     }
 
-                    const visionData = await visionResponse.json();
-                    console.log('✅ Vision API response received');
-                    console.log('Response structure:', Object.keys(visionData));
+                    const claudeData = await claudeResponse.json();
+                    console.log('✅ Claude API response received');
+                    console.log('Response data:', claudeData);
 
-                    const detectedText = visionData.responses?.[0]?.textAnnotations?.[0]?.description || '';
-                    const totalAnnotations = visionData.responses?.[0]?.textAnnotations?.length || 0;
+                    const detectedTitle = claudeData.title;
+                    const detectedYear = claudeData.year;
+                    const confidence = claudeData.confidence || 0.9;
 
-                    console.log('Total annotations:', totalAnnotations);
+                    console.log('\n🎯 Claude identified:');
+                    console.log('   Title:', detectedTitle);
+                    if (detectedYear) {
+                        console.log('   Year:', detectedYear);
+                    }
+                    console.log('   Confidence:', (confidence * 100).toFixed(1) + '%');
 
-                    if (!detectedText) {
-                        console.log('⚠️  No text detected in image');
-
-                        // Check if there's an error in the Vision API response
-                        if (visionData.responses?.[0]?.error) {
-                            const visionError = visionData.responses[0].error;
-                            console.error('Vision API returned error:', visionError);
-                            throw new Error(`Vision API error: ${visionError.message || JSON.stringify(visionError)}`);
-                        }
-
-                        alert('No text detected in image. Please try:\n\n• Ensure the image contains clear text\n• Try better lighting\n• Use manual search instead');
+                    if (!detectedTitle) {
+                        alert('Could not identify a movie or TV show in the image.\n\nTips:\n• Point camera at the title screen\n• Ensure the title is clearly visible\n• Try manual search instead');
                         setIsProcessing(false);
                         setSearchMode(true);
                         return;
                     }
 
-                    console.log('📝 Detected text preview:', detectedText.substring(0, 100) + (detectedText.length > 100 ? '...' : ''));
-
-                    // Clean the detected text to extract movie title and year
-                    const cleanedData = cleanMovieTitle(detectedText);
-
-                    if (!cleanedData || !cleanedData.title) {
-                        alert('Could not extract a movie title from the image. Please try:\n\n• Image with clearer text\n• Just the title (avoid UI elements)\n• Manual search instead');
-                        setIsProcessing(false);
-                        setSearchMode(true);
-                        return;
-                    }
-
-                    console.log('🔍 Searching for movie with cleaned title...');
-                    console.log('===============================================\n');
-
-                    await searchMovie(cleanedData.title, cleanedData.year);
+                    // Search for the movie directly with Claude's identified title and year
+                    console.log('\n🔍 Searching TMDB for:', detectedTitle + (detectedYear ? ' (' + detectedYear + ')' : ''));
+                    await searchMovie(detectedTitle, detectedYear);
                 } catch (error) {
                     console.error('\n❌❌❌ FRONTEND ERROR ❌❌❌');
                     console.error('Error type:', error.constructor.name);
@@ -582,7 +917,7 @@
                 }
             };
 
-            const searchMovie = async (query, year = null) => {
+            const searchMovie = async (query, year = null, silent = false) => {
                 console.log('🎬 Starting movie search with query:', query);
                 if (year) {
                     console.log('📅 Using year for filtering/ranking:', year);
@@ -611,15 +946,32 @@
                     return alternatives;
                 };
 
-                // Rank/score a result based on year match and popularity
-                const scoreResult = (result, targetYear) => {
+                // Rank/score a result based on title match, year match, and popularity
+                const scoreResult = (result, targetYear, searchQuery) => {
                     let score = 0;
+
+                    const resultTitle = (result.title || result.name || '').toLowerCase();
+                    const queryLower = searchQuery.toLowerCase();
+
+                    // Title match scoring (highest priority)
+                    if (resultTitle === queryLower) {
+                        score += 10000; // Exact title match
+                        console.log('      🎯 EXACT TITLE MATCH!');
+                    } else if (resultTitle.startsWith(queryLower) || resultTitle.endsWith(queryLower)) {
+                        score += 5000; // Title starts or ends with query
+                        console.log('      ✓ Strong title match (prefix/suffix)');
+                    } else if (resultTitle.includes(queryLower)) {
+                        score += 1000; // Title contains query
+                        console.log('      ~ Partial title match (substring)');
+                    } else {
+                        console.log('      ⚠️  Weak title match');
+                    }
 
                     // Extract year from result
                     const releaseDate = result.release_date || result.first_air_date;
                     const resultYear = releaseDate ? parseInt(releaseDate.split('-')[0]) : null;
 
-                    // Year match scoring (highest priority)
+                    // Year match scoring (high priority)
                     if (targetYear && resultYear) {
                         const yearDiff = Math.abs(resultYear - targetYear);
                         if (yearDiff === 0) {
@@ -633,11 +985,11 @@
                         }
                     }
 
-                    // Popularity as secondary factor (normalize to 0-100 scale)
+                    // Popularity as tertiary factor (normalize to 0-100 scale)
                     const popularityScore = Math.min(result.popularity || 0, 100);
                     score += popularityScore;
 
-                    console.log('      Score:', score, '(popularity:', result.popularity?.toFixed(1) + ')');
+                    console.log('      Total Score:', score, '(popularity:', result.popularity?.toFixed(1) + ')');
                     return score;
                 };
 
@@ -668,14 +1020,20 @@
                             // Rank results
                             const scoredResults = validResults.map(result => ({
                                 ...result,
-                                _score: scoreResult(result, targetYear)
+                                _score: scoreResult(result, targetYear, searchQuery)
                             }));
 
                             // Sort by score (highest first)
                             scoredResults.sort((a, b) => b._score - a._score);
 
+                            // Log top 3 results for debugging
+                            console.log('    📊 Top results:');
+                            scoredResults.slice(0, 3).forEach((result, idx) => {
+                                console.log(`      ${idx + 1}. "${result.title || result.name}" (${result.media_type}, ${(result.release_date || result.first_air_date)?.split('-')[0]}) - Score: ${result._score}`);
+                            });
+
                             const best = scoredResults[0];
-                            console.log('    🏆 Best result:', best.title || best.name, '(' + best.media_type + ', ' + (best.release_date || best.first_air_date)?.split('-')[0] + ')');
+                            console.log('    🏆 Selected:', best.title || best.name, '(' + best.media_type + ', ' + (best.release_date || best.first_air_date)?.split('-')[0] + ')');
 
                             return best;
                         } else {
@@ -704,6 +1062,9 @@
 
                     if (!movie) {
                         console.log('❌ No results found with any search strategy');
+                        if (silent) {
+                            return false;
+                        }
                         alert('No results found. Please try:\n\n• Manual search with the exact title\n• Check if the title was detected correctly in the console');
                         setIsProcessing(false);
                         setSearchMode(true);
@@ -756,8 +1117,15 @@
                     setHasScanned(true);
                     setIsProcessing(false);
                     setSearchMode(false);
+
+                    if (silent) {
+                        return true;
+                    }
                 } catch (error) {
                     console.error('Movie search error:', error);
+                    if (silent) {
+                        return false;
+                    }
                     alert('Search error: ' + error.message + '. Please check your TMDB API key.');
                     setIsProcessing(false);
                 }
@@ -782,11 +1150,11 @@
 
             return (
                 <div className="flex items-center justify-center min-h-screen bg-gray-900 md:p-4">
-                    <div className="relative w-full bg-black overflow-hidden md:max-w-sm md:rounded-[3rem] md:shadow-2xl" style={{ height: '100vh', maxHeight: '100vh' }}>
+                    <div className="app-container relative w-full bg-black overflow-hidden md:max-w-sm md:rounded-[3rem] md:shadow-2xl" style={{ height: '100vh', maxHeight: '100vh' }}>
                         {/* Notch - only show on desktop mockup */}
                         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-black rounded-b-3xl z-50 hidden md:block"></div>
 
-                        <div className="relative h-full flex flex-col bg-black safe-area-top safe-area-bottom safe-area-left safe-area-right">
+                        <div className="relative h-full flex flex-col bg-black safe-area-top safe-area-left safe-area-right">
                             <div className="flex-1 relative overflow-hidden">
                                 
                                 {activeTab === 'history' && (
@@ -900,14 +1268,15 @@
                                             <div className="h-full flex flex-col items-center justify-center px-8 bg-gradient-to-b from-gray-900 to-black">
                                                 <Camera className="w-20 h-20 text-gray-400 mb-6" />
                                                 <p className="text-white text-lg font-light text-center mb-8">Snap a movie or TV show title screen</p>
-                                                <button onClick={startCamera} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-xl mb-4 flex items-center justify-center gap-2">
+                                                <button onClick={() => cameraInputRef.current?.click()} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-xl mb-4 flex items-center justify-center gap-2">
                                                     <Camera className="w-5 h-5" />
-                                                    Open Camera
+                                                    Take Photo
                                                 </button>
                                                 <button onClick={() => fileInputRef.current?.click()} className="w-full bg-gray-700 hover:bg-gray-600 text-white py-4 px-6 rounded-xl mb-4 flex items-center justify-center gap-2">
                                                     <Upload className="w-5 h-5" />
                                                     Upload Image
                                                 </button>
+                                                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileUpload} className="hidden" />
                                                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                                                 <button onClick={() => setSearchMode(!searchMode)} className="w-full bg-gray-800 hover:bg-gray-700 text-white py-4 px-6 rounded-xl flex items-center justify-center gap-2">
                                                     <Search className="w-5 h-5" />
@@ -1071,8 +1440,8 @@
                                 )}
                             </div>
 
-                            <div className="bg-black border-t border-gray-800 pb-6 pt-2">
-                                <div className="flex items-center justify-around px-8">
+                            <div className="bg-black border-t border-gray-800 pt-2 safe-area-bottom">
+                                <div className="flex items-center justify-around px-8 safe-area-left safe-area-right">
                                     <button onClick={() => { setActiveTab('history'); setHasScanned(false); stopCamera(); setSwipedItem(null); setSwipeOffset(0); }} className="flex flex-col items-center gap-1 py-2 px-4">
                                         <Clock className={'w-6 h-6 ' + (activeTab === 'history' ? 'text-white' : 'text-gray-500')} />
                                         <span className={'text-xs ' + (activeTab === 'history' ? 'text-white' : 'text-gray-500')}>History</span>

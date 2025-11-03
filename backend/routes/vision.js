@@ -163,7 +163,7 @@ router.post('/detect', async (req, res) => {
 
     console.log('✓ Image format validated (base64)');
 
-    // Prepare Vision API request
+    // Prepare Vision API request with multiple detection features
     const visionRequest = {
       requests: [
         {
@@ -174,6 +174,14 @@ router.post('/detect', async (req, res) => {
             {
               type: 'TEXT_DETECTION',
               maxResults: 10
+            },
+            {
+              type: 'WEB_DETECTION',
+              maxResults: 10
+            },
+            {
+              type: 'LOGO_DETECTION',
+              maxResults: 5
             }
           ]
         }
@@ -205,9 +213,32 @@ router.post('/detect', async (req, res) => {
     const detectedText = response.data.responses?.[0]?.textAnnotations?.[0]?.description;
     if (detectedText) {
       console.log('📝 Detected text preview:', detectedText.substring(0, 100) + (detectedText.length > 100 ? '...' : ''));
-      console.log('Total annotations:', response.data.responses?.[0]?.textAnnotations?.length || 0);
+      console.log('Total text annotations:', response.data.responses?.[0]?.textAnnotations?.length || 0);
     } else {
       console.log('⚠️  No text detected in image');
+    }
+
+    // Log web detection results
+    const webDetection = response.data.responses?.[0]?.webDetection;
+    if (webDetection) {
+      if (webDetection.webEntities && webDetection.webEntities.length > 0) {
+        console.log('🌐 Web entities found:', webDetection.webEntities.length);
+        webDetection.webEntities.slice(0, 3).forEach((entity, i) => {
+          console.log(`   ${i+1}. ${entity.description || 'Unknown'} (score: ${entity.score?.toFixed(2) || 'N/A'})`);
+        });
+      }
+      if (webDetection.bestGuessLabels && webDetection.bestGuessLabels.length > 0) {
+        console.log('🎯 Best guess:', webDetection.bestGuessLabels[0].label);
+      }
+    }
+
+    // Log logo detection results
+    const logoAnnotations = response.data.responses?.[0]?.logoAnnotations;
+    if (logoAnnotations && logoAnnotations.length > 0) {
+      console.log('🏷️  Logos detected:', logoAnnotations.length);
+      logoAnnotations.forEach((logo, i) => {
+        console.log(`   ${i+1}. ${logo.description} (confidence: ${(logo.score * 100).toFixed(1)}%)`);
+      });
     }
 
     console.log('========================================\n');

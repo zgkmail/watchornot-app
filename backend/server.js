@@ -7,6 +7,7 @@ require('dotenv').config();
 // Import routes
 const tmdbRouter = require('./routes/tmdb');
 const visionRouter = require('./routes/vision');
+const claudeRouter = require('./routes/claude');
 
 // Import database utilities
 const { getOrCreateUser } = require('./db/database');
@@ -133,6 +134,7 @@ app.get('/api/session', (req, res) => {
 // Routes
 app.use('/api/tmdb', strictLimiter, tmdbRouter);
 app.use('/api/vision', strictLimiter, visionRouter);
+app.use('/api/claude', strictLimiter, claudeRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
