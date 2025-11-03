@@ -18,6 +18,19 @@ const cleanMovieTitle = (rawText) => {
     console.log('Lines found:', lines.length);
     console.log('Lines:', lines);
 
+    // Extract year if present
+    let extractedYear = null;
+    const yearPattern = /\b(19\d{2}|20\d{2})\b/;
+
+    for (const line of lines) {
+        const yearMatch = line.match(yearPattern);
+        if (yearMatch) {
+            extractedYear = parseInt(yearMatch[1]);
+            console.log('📅 Found year:', extractedYear);
+            break;
+        }
+    }
+
     const uiNoise = [
         'play', 'pause', 'watch', 'trailer', 'resume', 'continue watching',
         'add to list', 'my list', 'more info', 'details', 'info',
@@ -72,7 +85,11 @@ const cleanMovieTitle = (rawText) => {
         .trim();
 
     console.log('✨ Extracted title:', title);
-    return title || null;
+    if (extractedYear) {
+        console.log('✨ Extracted year:', extractedYear);
+    }
+
+    return { title: title || null, year: extractedYear };
 };
 
 // Test cases
@@ -130,7 +147,13 @@ testCases.forEach((testCase, index) => {
 
     const cleaned = cleanMovieTitle(testCase.input);
 
-    console.log('\n✅ RESULT:', cleaned ? `"${cleaned}"` : '(null - failed to extract)');
+    if (cleaned && cleaned.title) {
+        console.log('\n✅ RESULT:');
+        console.log('   Title:', `"${cleaned.title}"`);
+        console.log('   Year:', cleaned.year || '(not detected)');
+    } else {
+        console.log('\n✅ RESULT: (null - failed to extract)');
+    }
     console.log('═'.repeat(60));
 });
 

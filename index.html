@@ -217,8 +217,9 @@
             };
 
             /**
-             * Clean and extract movie/show title from OCR text
+             * Clean and extract movie/show title and year from OCR text
              * Handles streaming interfaces, posters, and title cards
+             * Returns: { title: string, year: number|null }
              */
             const cleanMovieTitle = (rawText) => {
                 console.log('🧹 Cleaning detected text...');
@@ -233,6 +234,19 @@
 
                 console.log('Lines found:', lines.length);
                 console.log('Lines:', lines);
+
+                // Extract year if present (looking for 4-digit years between 1900-2099)
+                let extractedYear = null;
+                const yearPattern = /\b(19\d{2}|20\d{2})\b/;
+
+                for (const line of lines) {
+                    const yearMatch = line.match(yearPattern);
+                    if (yearMatch) {
+                        extractedYear = parseInt(yearMatch[1]);
+                        console.log('📅 Found year:', extractedYear);
+                        break;
+                    }
+                }
 
                 // Common UI elements to remove
                 const uiNoise = [
@@ -299,8 +313,11 @@
                     .trim();
 
                 console.log('✨ Extracted title:', title);
+                if (extractedYear) {
+                    console.log('✨ Extracted year:', extractedYear);
+                }
 
-                return title || null;
+                return { title: title || null, year: extractedYear };
             };
 
             const processImage = async (imageData) => {
@@ -382,10 +399,10 @@
 
                     console.log('📝 Detected text preview:', detectedText.substring(0, 100) + (detectedText.length > 100 ? '...' : ''));
 
-                    // Clean the detected text to extract movie title
-                    const cleanedTitle = cleanMovieTitle(detectedText);
+                    // Clean the detected text to extract movie title and year
+                    const cleanedData = cleanMovieTitle(detectedText);
 
-                    if (!cleanedTitle) {
+                    if (!cleanedData || !cleanedData.title) {
                         alert('Could not extract a movie title from the image. Please try:\n\n• Image with clearer text\n• Just the title (avoid UI elements)\n• Manual search instead');
                         setIsProcessing(false);
                         setSearchMode(true);
@@ -395,7 +412,7 @@
                     console.log('🔍 Searching for movie with cleaned title...');
                     console.log('===============================================\n');
 
-                    await searchMovie(cleanedTitle);
+                    await searchMovie(cleanedData.title, cleanedData.year);
                 } catch (error) {
                     console.error('\n❌❌❌ FRONTEND ERROR ❌❌❌');
                     console.error('Error type:', error.constructor.name);
@@ -430,8 +447,11 @@
                 }
             };
 
-            const searchMovie = async (query) => {
+            const searchMovie = async (query, year = null) => {
                 console.log('🎬 Starting movie search with query:', query);
+                if (year) {
+                    console.log('📅 Using year for filtering/ranking:', year);
+                }
 
                 // Generate alternative search queries as fallbacks
                 const generateAlternatives = (originalQuery) => {
@@ -456,7 +476,37 @@
                     return alternatives;
                 };
 
-                const trySearch = async (searchQuery) => {
+                // Rank/score a result based on year match and popularity
+                const scoreResult = (result, targetYear) => {
+                    let score = 0;
+
+                    // Extract year from result
+                    const releaseDate = result.release_date || result.first_air_date;
+                    const resultYear = releaseDate ? parseInt(releaseDate.split('-')[0]) : null;
+
+                    // Year match scoring (highest priority)
+                    if (targetYear && resultYear) {
+                        const yearDiff = Math.abs(resultYear - targetYear);
+                        if (yearDiff === 0) {
+                            score += 1000; // Exact year match
+                            console.log('      🎯 Exact year match!', resultYear);
+                        } else if (yearDiff === 1) {
+                            score += 500; // Off by 1 year (common for international releases)
+                            console.log('      📅 Year close match:', resultYear, '(target:', targetYear + ')');
+                        } else {
+                            console.log('      ⚠️  Year mismatch:', resultYear, '(target:', targetYear + ')');
+                        }
+                    }
+
+                    // Popularity as secondary factor (normalize to 0-100 scale)
+                    const popularityScore = Math.min(result.popularity || 0, 100);
+                    score += popularityScore;
+
+                    console.log('      Score:', score, '(popularity:', result.popularity?.toFixed(1) + ')');
+                    return score;
+                };
+
+                const trySearch = async (searchQuery, targetYear) => {
                     console.log('  🔎 Trying:', searchQuery);
 
                     const response = await fetch(
@@ -479,8 +529,20 @@
 
                         if (validResults.length > 0) {
                             console.log('    ✓ Found', validResults.length, 'movie/TV results (filtered from', data.results.length, 'total)');
-                            console.log('    First result:', validResults[0].title || validResults[0].name, '(' + validResults[0].media_type + ')');
-                            return validResults[0];
+
+                            // Rank results
+                            const scoredResults = validResults.map(result => ({
+                                ...result,
+                                _score: scoreResult(result, targetYear)
+                            }));
+
+                            // Sort by score (highest first)
+                            scoredResults.sort((a, b) => b._score - a._score);
+
+                            const best = scoredResults[0];
+                            console.log('    🏆 Best result:', best.title || best.name, '(' + best.media_type + ', ' + (best.release_date || best.first_air_date)?.split('-')[0] + ')');
+
+                            return best;
                         } else {
                             console.log('    ✗ No movie/TV results (found', data.results.length, 'other results)');
                             return null;
@@ -497,7 +559,7 @@
 
                     // Try each alternative until we find a match
                     for (const altQuery of alternatives) {
-                        movie = await trySearch(altQuery);
+                        movie = await trySearch(altQuery, year);
                         if (movie) {
                             successfulQuery = altQuery;
                             console.log('✅ Found match with:', successfulQuery);
