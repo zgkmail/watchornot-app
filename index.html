@@ -143,6 +143,11 @@
             const [stream, setStream] = useState(null);
             const [cameraActive, setCameraActive] = useState(false);
 
+            // Swipe-to-delete state
+            const [swipedItem, setSwipedItem] = useState(null);
+            const [swipeOffset, setSwipeOffset] = useState(0);
+            const [touchStart, setTouchStart] = useState(null);
+
             // Backend API configuration
             const BACKEND_URL = 'http://localhost:3001';
 
@@ -169,6 +174,49 @@
                         }
                     };
                 });
+            };
+
+            // Swipe-to-delete handlers
+            const handleTouchStart = (e, movieId) => {
+                setTouchStart(e.touches[0].clientX);
+                setSwipedItem(movieId);
+            };
+
+            const handleTouchMove = (e, movieId) => {
+                if (!touchStart || swipedItem !== movieId) return;
+
+                const currentTouch = e.touches[0].clientX;
+                const diff = touchStart - currentTouch;
+
+                // Only allow left swipe (positive diff) and limit to 100px
+                if (diff > 0) {
+                    setSwipeOffset(Math.min(diff, 100));
+                }
+            };
+
+            const handleTouchEnd = () => {
+                // If swiped more than 50px, keep it revealed
+                if (swipeOffset > 50) {
+                    setSwipeOffset(100);
+                } else {
+                    // Otherwise, snap back
+                    setSwipeOffset(0);
+                    setSwipedItem(null);
+                }
+                setTouchStart(null);
+            };
+
+            const handleDeleteMovie = (movieId, movieTitle) => {
+                // Confirm before deleting
+                if (confirm(`Delete "${movieTitle}" from your history?`)) {
+                    setMovieHistory(prev => {
+                        const newHistory = { ...prev };
+                        delete newHistory[movieId];
+                        return newHistory;
+                    });
+                    setSwipedItem(null);
+                    setSwipeOffset(0);
+                }
             };
 
             const startCamera = async () => {
@@ -679,40 +727,67 @@
                                             ) : (
                                                 <div className="space-y-3">
                                                     {Object.values(movieHistory).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((movie) => (
-                                                        <div key={movie.id} className="bg-gray-800 rounded-xl p-3 flex gap-3">
-                                                            {movie.poster ? (
-                                                                <img
-                                                                    src={movie.poster}
-                                                                    alt={movie.title}
-                                                                    className="w-24 h-36 rounded-lg flex-shrink-0 object-cover"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-24 h-36 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex-shrink-0"></div>
-                                                            )}
-                                                            <div className="flex-1 flex flex-col justify-between">
-                                                                <div>
-                                                                    <h3 className="text-white font-bold text-lg mb-1 line-clamp-2">{movie.title}</h3>
-                                                                    <p className="text-gray-400 text-sm mb-1">{movie.year} • {movie.genre}</p>
-                                                                    <div className="flex items-center gap-1 text-yellow-400 text-sm">
-                                                                        <span>⭐</span>
-                                                                        <span className="font-semibold">{movie.score?.toFixed(1)}/10</span>
+                                                        <div key={movie.id} className="relative overflow-hidden rounded-xl">
+                                                            {/* Delete button background */}
+                                                            <div className="absolute right-0 top-0 bottom-0 w-24 bg-red-600 flex items-center justify-center rounded-xl">
+                                                                <Trash2 className="w-6 h-6 text-white" />
+                                                            </div>
+
+                                                            {/* Movie card */}
+                                                            <div
+                                                                className="bg-gray-800 rounded-xl p-3 flex gap-3 relative"
+                                                                style={{
+                                                                    transform: swipedItem === movie.id ? `translateX(-${swipeOffset}px)` : 'translateX(0)',
+                                                                    transition: touchStart ? 'none' : 'transform 0.3s ease'
+                                                                }}
+                                                                onTouchStart={(e) => handleTouchStart(e, movie.id)}
+                                                                onTouchMove={(e) => handleTouchMove(e, movie.id)}
+                                                                onTouchEnd={handleTouchEnd}
+                                                            >
+                                                                {movie.poster ? (
+                                                                    <img
+                                                                        src={movie.poster}
+                                                                        alt={movie.title}
+                                                                        className="w-24 h-36 rounded-lg flex-shrink-0 object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-24 h-36 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex-shrink-0"></div>
+                                                                )}
+                                                                <div className="flex-1 flex flex-col justify-between">
+                                                                    <div>
+                                                                        <h3 className="text-white font-bold text-lg mb-1 line-clamp-2">{movie.title}</h3>
+                                                                        <p className="text-gray-400 text-sm mb-1">{movie.year} • {movie.genre}</p>
+                                                                        <div className="flex items-center gap-1 text-yellow-400 text-sm">
+                                                                            <span>⭐</span>
+                                                                            <span className="font-semibold">{movie.score?.toFixed(1)}/10</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <button
+                                                                            onClick={() => handleMovieRating(movie.id, 'up')}
+                                                                            className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movie.rating === 'up' ? 'bg-green-500' : 'bg-gray-600')}
+                                                                        >
+                                                                            <ThumbsUp className="w-5 h-5 text-white" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleMovieRating(movie.id, 'down')}
+                                                                            className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movie.rating === 'down' ? 'bg-red-500' : 'bg-gray-600')}
+                                                                        >
+                                                                            <ThumbsDown className="w-5 h-5 text-white" />
+                                                                        </button>
                                                                     </div>
                                                                 </div>
-                                                                <div className="flex gap-2">
-                                                                    <button
-                                                                        onClick={() => handleMovieRating(movie.id, 'up')}
-                                                                        className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movie.rating === 'up' ? 'bg-green-500' : 'bg-gray-600')}
-                                                                    >
-                                                                        <ThumbsUp className="w-5 h-5 text-white" />
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleMovieRating(movie.id, 'down')}
-                                                                        className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movie.rating === 'down' ? 'bg-red-500' : 'bg-gray-600')}
-                                                                    >
-                                                                        <ThumbsDown className="w-5 h-5 text-white" />
-                                                                    </button>
-                                                                </div>
                                                             </div>
+
+                                                            {/* Delete button overlay (clickable when swiped) */}
+                                                            {swipedItem === movie.id && swipeOffset >= 50 && (
+                                                                <div
+                                                                    className="absolute right-0 top-0 bottom-0 w-24 flex items-center justify-center cursor-pointer"
+                                                                    onClick={() => handleDeleteMovie(movie.id, movie.title)}
+                                                                >
+                                                                    <Trash2 className="w-6 h-6 text-white" />
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
@@ -910,15 +985,15 @@
 
                             <div className="bg-black border-t border-gray-800 pb-6 pt-2">
                                 <div className="flex items-center justify-around px-8">
-                                    <button onClick={() => { setActiveTab('history'); setHasScanned(false); stopCamera(); }} className="flex flex-col items-center gap-1 py-2 px-4">
+                                    <button onClick={() => { setActiveTab('history'); setHasScanned(false); stopCamera(); setSwipedItem(null); setSwipeOffset(0); }} className="flex flex-col items-center gap-1 py-2 px-4">
                                         <Clock className={'w-6 h-6 ' + (activeTab === 'history' ? 'text-white' : 'text-gray-500')} />
                                         <span className={'text-xs ' + (activeTab === 'history' ? 'text-white' : 'text-gray-500')}>History</span>
                                     </button>
-                                    <button onClick={() => { setActiveTab('snap'); setHasScanned(false); }} className="flex flex-col items-center gap-1 py-2 px-4">
+                                    <button onClick={() => { setActiveTab('snap'); setHasScanned(false); setSwipedItem(null); setSwipeOffset(0); }} className="flex flex-col items-center gap-1 py-2 px-4">
                                         <Camera className={'w-6 h-6 ' + (activeTab === 'snap' ? 'text-white' : 'text-gray-500')} />
                                         <span className={'text-xs ' + (activeTab === 'snap' ? 'text-white' : 'text-gray-500')}>Snap</span>
                                     </button>
-                                    <button onClick={() => { setActiveTab('profile'); setHasScanned(false); stopCamera(); }} className="flex flex-col items-center gap-1 py-2 px-4">
+                                    <button onClick={() => { setActiveTab('profile'); setHasScanned(false); stopCamera(); setSwipedItem(null); setSwipeOffset(0); }} className="flex flex-col items-center gap-1 py-2 px-4">
                                         <User className={'w-6 h-6 ' + (activeTab === 'profile' ? 'text-white' : 'text-gray-500')} />
                                         <span className={'text-xs ' + (activeTab === 'profile' ? 'text-white' : 'text-gray-500')}>Profile</span>
                                     </button>
