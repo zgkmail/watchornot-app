@@ -1409,9 +1409,8 @@
                                                     return (
                                                         <>
                                                             <div className={`flex items-center justify-center gap-2 mb-3 p-3 bg-gradient-to-r ${tier.bgGradient} rounded-xl border ${tier.borderColor}`}>
-                                                                <span className="text-2xl">{tier.emoji}</span>
                                                                 <div className="text-center">
-                                                                    <p className="text-white font-bold text-lg">{tier.name} Taste Profile</p>
+                                                                    <p className="text-white font-bold text-lg">Taste Profile: {tier.emoji} {tier.name}</p>
                                                                     <p className="text-gray-300 text-xs">{ratedCount} {ratedCount === 1 ? 'rating' : 'ratings'} logged</p>
                                                                 </div>
                                                             </div>
@@ -1421,7 +1420,11 @@
                                                                         <div className={`h-full bg-gradient-to-r ${tier.gradient} rounded-full transition-all duration-300`} style={{ width: tier.progress + '%' }}></div>
                                                                     </div>
                                                                     <p className="text-gray-300 text-center mt-3 text-sm">
-                                                                        {tier.nextTier - ratedCount} more {tier.nextTier - ratedCount === 1 ? 'rating' : 'ratings'} to reach next tier
+                                                                        {tier.nextTier - ratedCount} more {tier.nextTier - ratedCount === 1 ? 'rating' : 'ratings'} to reach {
+                                                                            tier.nextTier === 10 ? '⭐ Strong' :
+                                                                            tier.nextTier === 20 ? '🎓 Expert' :
+                                                                            tier.nextTier === 50 ? '👑 Master' : '🌱 Building'
+                                                                        } tier
                                                                     </p>
                                                                 </>
                                                             )}
