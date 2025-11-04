@@ -215,9 +215,9 @@ function saveMovieRating(userId, movieData) {
     now
   );
 
-  // Update genre preferences
-  if (movieData.genre && movieData.rating) {
-    updateGenrePreferences(userId, movieData.genre, movieData.rating, movieData.imdbRating);
+  // Recalculate genre preferences from scratch to ensure accuracy
+  if (movieData.genre) {
+    recalculateGenrePreferences(userId, movieData.genre);
   }
 }
 
@@ -263,40 +263,6 @@ function deleteMovieRating(userId, movieId) {
   // Update genre preferences after deletion
   if (movie && movie.genre) {
     recalculateGenrePreferences(userId, movie.genre);
-  }
-}
-
-/**
- * Update genre preferences based on rating
- */
-function updateGenrePreferences(userId, genre, rating, imdbRating) {
-  const now = Date.now();
-
-  // Get current preferences
-  const current = db.prepare(`
-    SELECT * FROM user_genre_preferences
-    WHERE user_id = ? AND genre = ?
-  `).get(userId, genre);
-
-  if (current) {
-    // Update existing
-    const newThumbsUp = rating === 'up' ? current.thumbs_up + 1 : current.thumbs_up;
-    const newThumbsDown = rating === 'down' ? current.thumbs_down + 1 : current.thumbs_down;
-
-    db.prepare(`
-      UPDATE user_genre_preferences
-      SET thumbs_up = ?, thumbs_down = ?, last_updated = ?
-      WHERE user_id = ? AND genre = ?
-    `).run(newThumbsUp, newThumbsDown, now, userId, genre);
-  } else {
-    // Insert new
-    const thumbsUp = rating === 'up' ? 1 : 0;
-    const thumbsDown = rating === 'down' ? 1 : 0;
-
-    db.prepare(`
-      INSERT INTO user_genre_preferences (user_id, genre, thumbs_up, thumbs_down, avg_imdb_rating, last_updated)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(userId, genre, thumbsUp, thumbsDown, imdbRating, now);
   }
 }
 
