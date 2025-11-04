@@ -1092,6 +1092,41 @@
 
                     const details = await detailsResponse.json();
 
+                    // Try to fetch OMDb ratings if IMDb ID is available
+                    let omdbRatings = null;
+                    const imdbId = details.external_ids?.imdb_id;
+
+                    if (imdbId) {
+                        console.log('📊 Fetching additional ratings from OMDb...');
+                        console.log('   IMDb ID:', imdbId);
+
+                        try {
+                            const omdbResponse = await fetch(
+                                `${BACKEND_URL}/api/omdb/ratings/${imdbId}`,
+                                { credentials: 'include' }
+                            );
+
+                            if (omdbResponse.ok) {
+                                const omdbData = await omdbResponse.json();
+                                if (omdbData.found) {
+                                    omdbRatings = omdbData.ratings;
+                                    console.log('✅ OMDb ratings fetched:');
+                                    console.log('   IMDb:', omdbRatings.imdb.rating);
+                                    console.log('   Rotten Tomatoes:', omdbRatings.rottenTomatoes);
+                                    console.log('   Metacritic:', omdbRatings.metacritic);
+                                } else {
+                                    console.log('⚠️  Movie not found in OMDb');
+                                }
+                            } else {
+                                console.warn('⚠️  OMDb API request failed:', omdbResponse.status);
+                            }
+                        } catch (omdbError) {
+                            console.warn('⚠️  Could not fetch OMDb ratings:', omdbError.message);
+                        }
+                    } else {
+                        console.log('⚠️  No IMDb ID available, skipping OMDb ratings');
+                    }
+
                     const movieData = {
                         id: movie.id,
                         title: movie.title || movie.name,
@@ -1100,6 +1135,10 @@
                         cast: details.credits?.cast?.slice(0, 3).map(c => c.name).join(', ') || 'N/A',
                         poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
                         score: movie.vote_average,
+                        imdbRating: omdbRatings?.imdb?.rating || null,
+                        imdbVotes: omdbRatings?.imdb?.votes || null,
+                        rottenTomatoes: omdbRatings?.rottenTomatoes || null,
+                        metacritic: omdbRatings?.metacritic || null,
                         rating: null,
                         timestamp: new Date().toISOString()
                     };
@@ -1215,7 +1254,7 @@
                                                                         <p className="text-gray-400 text-sm mb-1">{movie.year} • {movie.genre}</p>
                                                                         <div className="flex items-center gap-1 text-yellow-400 text-sm">
                                                                             <span>⭐</span>
-                                                                            <span className="font-semibold">{movie.score?.toFixed(1)}/10</span>
+                                                                            <span className="font-semibold">{movie.imdbRating ? movie.imdbRating + '/10' : 'N/A'}</span>
                                                                         </div>
                                                                     </div>
                                                                     <div className="flex gap-2">
@@ -1337,7 +1376,7 @@
                                                         </p>
                                                     </div>
                                                 </div>
-                                                {currentMovie.score >= 7.5 && (
+                                                {currentMovie.imdbRating >= 7.5 && (
                                                     <div className="mb-4">
                                                         <div className="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
                                                             <ThumbsUp className="w-4 h-4 mr-1" />
@@ -1345,11 +1384,25 @@
                                                         </div>
                                                     </div>
                                                 )}
-                                                <div className="flex items-center justify-around mb-6 pb-6 border-b border-gray-700">
-                                                    <div className="text-center">
-                                                        <div className="text-white text-2xl font-bold">{currentMovie.score?.toFixed(1)}/10</div>
-                                                        <div className="text-gray-400 text-xs">TMDB Rating</div>
-                                                    </div>
+                                                <div className="flex items-center justify-around mb-6 pb-6 border-b border-gray-700 gap-3">
+                                                    {currentMovie.imdbRating && (
+                                                        <div className="text-center">
+                                                            <div className="text-yellow-400 text-2xl font-bold">{currentMovie.imdbRating}/10</div>
+                                                            <div className="text-gray-400 text-xs">IMDb</div>
+                                                        </div>
+                                                    )}
+                                                    {currentMovie.rottenTomatoes && (
+                                                        <div className="text-center">
+                                                            <div className="text-red-500 text-2xl font-bold">{currentMovie.rottenTomatoes}%</div>
+                                                            <div className="text-gray-400 text-xs">Rotten 🍅</div>
+                                                        </div>
+                                                    )}
+                                                    {currentMovie.metacritic && (
+                                                        <div className="text-center">
+                                                            <div className="text-green-500 text-2xl font-bold">{currentMovie.metacritic}/100</div>
+                                                            <div className="text-gray-400 text-xs">Metacritic</div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="text-center mb-4">
                                                     <p className="text-white text-sm mb-2">What's your take on this title?</p>

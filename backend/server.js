@@ -8,6 +8,7 @@ require('dotenv').config();
 const tmdbRouter = require('./routes/tmdb');
 const visionRouter = require('./routes/vision');
 const claudeRouter = require('./routes/claude');
+const omdbRouter = require('./routes/omdb');
 
 // Import database utilities
 const { getOrCreateUser } = require('./db/database');
@@ -25,10 +26,9 @@ if (!process.env.TMDB_API_KEY) {
   process.exit(1);
 }
 
+// Vision API is optional (we use Claude API for image recognition now)
 if (!process.env.VISION_API_KEY) {
-  console.error('FATAL ERROR: VISION_API_KEY environment variable is not set!');
-  console.error('Please add your Google Vision API key to the .env file');
-  process.exit(1);
+  console.warn('WARNING: VISION_API_KEY not set. Vision API endpoint will not work.');
 }
 
 const app = express();
@@ -135,6 +135,7 @@ app.get('/api/session', (req, res) => {
 app.use('/api/tmdb', strictLimiter, tmdbRouter);
 app.use('/api/vision', strictLimiter, visionRouter);
 app.use('/api/claude', strictLimiter, claudeRouter);
+app.use('/api/omdb', strictLimiter, omdbRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
