@@ -206,8 +206,27 @@ Response:`
     }
 
     // Parse title and year from response
+    // Handle verbose responses like "The title shown in the image is Red Dragon (2002)."
+    let cleanedText = responseText;
+
+    // Remove common verbose prefixes
+    const verbosePrefixes = [
+      /^The title shown in the image is\s+/i,
+      /^The title is\s+/i,
+      /^This is\s+/i,
+      /^The movie is\s+/i,
+      /^The TV show is\s+/i
+    ];
+
+    for (const prefix of verbosePrefixes) {
+      cleanedText = cleanedText.replace(prefix, '');
+    }
+
+    // Remove trailing punctuation
+    cleanedText = cleanedText.replace(/[.!?]+$/, '').trim();
+
     // Format: "Title (Year)" or "Title"
-    const yearMatch = responseText.match(/^(.+?)\s*\((\d{4})\)$/);
+    const yearMatch = cleanedText.match(/^(.+?)\s*\((\d{4})\)$/);
     let title, year;
 
     if (yearMatch) {
@@ -215,7 +234,7 @@ Response:`
       year = parseInt(yearMatch[2]);
       console.log('📝 Parsed - Title:', title, 'Year:', year);
     } else {
-      title = responseText;
+      title = cleanedText;
       year = null;
       console.log('📝 Parsed - Title:', title, '(no year detected)');
     }
