@@ -91,6 +91,10 @@ router.post('/identify', async (req, res) => {
 
     console.log('✓ Image data received, length:', image.length, 'characters');
 
+    // Sanitize base64 data - remove whitespace, newlines, and other invalid characters
+    const sanitizedImage = image.replace(/\s/g, '');
+    console.log('✓ Base64 data sanitized, length:', sanitizedImage.length, 'characters');
+
     // Check authentication
     if (!req.session.userId) {
       console.error('❌ ERROR: User not authenticated');
@@ -134,7 +138,7 @@ router.post('/identify', async (req, res) => {
       return 'image/jpeg';
     };
 
-    const mediaType = detectImageType(image);
+    const mediaType = detectImageType(sanitizedImage);
     console.log('✓ Detected image type:', mediaType);
 
     // Initialize Anthropic client
@@ -157,7 +161,7 @@ router.post('/identify', async (req, res) => {
             source: {
               type: 'base64',
               media_type: mediaType,
-              data: image,
+              data: sanitizedImage,
             },
           },
           {
