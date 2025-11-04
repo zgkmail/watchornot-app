@@ -168,11 +168,14 @@ router.post('/identify', async (req, res) => {
             type: 'text',
             text: `Look at this screenshot from a streaming service. Extract the EXACT title and year (if visible) of the movie or TV show being displayed.
 
-Rules:
-1. Ignore all UI elements (buttons, menus, subtitles, logos)
-2. Ignore actor names, episode numbers, season info, descriptions
-3. If you see multiple titles, return the main/prominent one
-4. Keep the exact capitalization as shown
+CRITICAL RULES:
+1. Pay CLOSE attention to word spacing - preserve ALL spaces in the title
+2. "Red Dragon" should be TWO words, NOT "Reddragon" or "RedDragon"
+3. "Star Wars" should be TWO words, NOT "StarWars"
+4. Ignore all UI elements (buttons, menus, subtitles, logos)
+5. Ignore actor names, episode numbers, season info, descriptions
+6. If you see multiple titles, return the main/prominent one
+7. Keep the exact capitalization and spacing as shown
 
 You MUST respond with ONLY a JSON object in this exact format:
 {

@@ -1037,6 +1037,14 @@
                         alternatives.push('A ' + originalQuery);
                     }
 
+                    // Try splitting compound words (e.g., "Reddragon" -> "Red dragon")
+                    // Look for lowercase letter followed by uppercase letter
+                    const spacedQuery = originalQuery.replace(/([a-z])([A-Z])/g, '$1 $2');
+                    if (spacedQuery !== originalQuery) {
+                        alternatives.push(spacedQuery);
+                        alternatives.push(spacedQuery.charAt(0).toUpperCase() + spacedQuery.slice(1).toLowerCase());
+                    }
+
                     console.log('📋 Search alternatives:', alternatives);
                     return alternatives;
                 };
