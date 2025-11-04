@@ -1335,16 +1335,105 @@
                                             <h1 className="text-white text-3xl font-bold text-center">My Snap History</h1>
                                         </div>
                                         <div className="px-6 pb-6">
-                                            <p className="text-white text-center mb-3 font-semibold">Taste Profile {ratedCount}/{totalNeeded} Complete</p>
-                                            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-                                                <div className="h-full bg-green-500 rounded-full transition-all duration-300" style={{ width: progressPercentage + '%' }}></div>
-                                            </div>
-                                            <p className="text-gray-300 text-center mt-3 text-sm">
-                                                {remainingNeeded > 0 
-                                                    ? `Rate ${remainingNeeded} more ${remainingNeeded === 1 ? 'movie/TV show' : 'movies/TV shows'} to unlock recommendations!`
-                                                    : 'You unlocked personalized recommendations!'
+                                            {(() => {
+                                                // Calculate tier and progress
+                                                const getTierInfo = (count) => {
+                                                    if (count < 5) {
+                                                        return {
+                                                            name: 'Unlocking',
+                                                            emoji: '🔓',
+                                                            progress: (count / 5) * 100,
+                                                            nextTier: 5,
+                                                            gradient: 'from-green-500 to-green-600',
+                                                            bgGradient: 'from-green-900/20 to-green-800/20',
+                                                            borderColor: 'border-green-500/30'
+                                                        };
+                                                    } else if (count < 10) {
+                                                        return {
+                                                            name: 'Building',
+                                                            emoji: '🌱',
+                                                            progress: ((count - 5) / 5) * 100,
+                                                            nextTier: 10,
+                                                            gradient: 'from-purple-500 to-purple-600',
+                                                            bgGradient: 'from-purple-900/20 to-purple-800/20',
+                                                            borderColor: 'border-purple-500/30'
+                                                        };
+                                                    } else if (count < 20) {
+                                                        return {
+                                                            name: 'Strong',
+                                                            emoji: '⭐',
+                                                            progress: ((count - 10) / 10) * 100,
+                                                            nextTier: 20,
+                                                            gradient: 'from-blue-500 to-blue-600',
+                                                            bgGradient: 'from-blue-900/20 to-blue-800/20',
+                                                            borderColor: 'border-blue-500/30'
+                                                        };
+                                                    } else if (count < 50) {
+                                                        return {
+                                                            name: 'Expert',
+                                                            emoji: '🎓',
+                                                            progress: ((count - 20) / 30) * 100,
+                                                            nextTier: 50,
+                                                            gradient: 'from-pink-500 to-pink-600',
+                                                            bgGradient: 'from-pink-900/20 to-pink-800/20',
+                                                            borderColor: 'border-pink-500/30'
+                                                        };
+                                                    } else {
+                                                        return {
+                                                            name: 'Master',
+                                                            emoji: '👑',
+                                                            progress: 100,
+                                                            nextTier: null,
+                                                            gradient: 'from-yellow-400 via-pink-500 to-purple-600',
+                                                            bgGradient: 'from-yellow-900/20 via-pink-900/20 to-purple-900/20',
+                                                            borderColor: 'border-yellow-500/30'
+                                                        };
+                                                    }
+                                                };
+
+                                                const tier = getTierInfo(ratedCount);
+
+                                                if (ratedCount < 5) {
+                                                    return (
+                                                        <>
+                                                            <p className="text-white text-center mb-3 font-semibold">Taste Profile {ratedCount}/{totalNeeded} Complete</p>
+                                                            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                                                                <div className={`h-full bg-gradient-to-r ${tier.gradient} rounded-full transition-all duration-300`} style={{ width: tier.progress + '%' }}></div>
+                                                            </div>
+                                                            <p className="text-gray-300 text-center mt-3 text-sm">
+                                                                Rate {remainingNeeded} more {remainingNeeded === 1 ? 'movie/TV show' : 'movies/TV shows'} to unlock recommendations!
+                                                            </p>
+                                                        </>
+                                                    );
+                                                } else {
+                                                    return (
+                                                        <>
+                                                            <div className={`flex items-center justify-center gap-2 mb-3 p-3 bg-gradient-to-r ${tier.bgGradient} rounded-xl border ${tier.borderColor}`}>
+                                                                <span className="text-2xl">{tier.emoji}</span>
+                                                                <div className="text-center">
+                                                                    <p className="text-white font-bold text-lg">{tier.name} Taste Profile</p>
+                                                                    <p className="text-gray-300 text-xs">{ratedCount} {ratedCount === 1 ? 'rating' : 'ratings'} logged</p>
+                                                                </div>
+                                                            </div>
+                                                            {tier.nextTier && (
+                                                                <>
+                                                                    <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                                                                        <div className={`h-full bg-gradient-to-r ${tier.gradient} rounded-full transition-all duration-300`} style={{ width: tier.progress + '%' }}></div>
+                                                                    </div>
+                                                                    <p className="text-gray-300 text-center mt-3 text-sm">
+                                                                        {tier.nextTier - ratedCount} more {tier.nextTier - ratedCount === 1 ? 'rating' : 'ratings'} to reach next tier
+                                                                    </p>
+                                                                </>
+                                                            )}
+                                                            {!tier.nextTier && (
+                                                                <p className="text-yellow-300 text-center mt-3 text-sm font-semibold">
+                                                                    ✨ Maximum tier achieved! You're a movie expert!
+                                                                </p>
+                                                            )}
+                                                        </>
+                                                    );
                                                 }
-                                            </p>
+                                            })()}
                                         </div>
                                         <div className="px-4 pb-24">
                                             {Object.keys(movieHistory).length === 0 ? (
