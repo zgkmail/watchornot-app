@@ -240,11 +240,7 @@
             const [isProcessing, setIsProcessing] = useState(false);
             const [currentMovie, setCurrentMovie] = useState(null);
             const [currentMovieRating, setCurrentMovieRating] = useState(null);
-            const [movieHistory, setMovieHistory] = useState(() => {
-                // Load history from localStorage on initialization
-                const saved = localStorage.getItem('movieHistory');
-                return saved ? JSON.parse(saved) : {};
-            });
+            const [movieHistory, setMovieHistory] = useState({});
             const [searchQuery, setSearchQuery] = useState('');
             const [searchMode, setSearchMode] = useState(false);
             const fileInputRef = useRef(null);
@@ -261,29 +257,117 @@
             // Backend API configuration
             const BACKEND_URL = 'http://10.0.0.101:3001';
 
-            // Save history to localStorage whenever it changes
+            // Load movie history from backend on mount
             React.useEffect(() => {
-                localStorage.setItem('movieHistory', JSON.stringify(movieHistory));
-            }, [movieHistory]);
+                const loadMovieHistory = async () => {
+                    try {
+                        const response = await fetch(`${BACKEND_URL}/api/ratings`, {
+                            credentials: 'include'
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            // Convert array to object keyed by movie_id for compatibility
+                            const historyObj = {};
+                            data.ratings.forEach(movie => {
+                                historyObj[movie.movie_id] = {
+                                    id: movie.movie_id,
+                                    title: movie.title,
+                                    year: movie.year,
+                                    genre: movie.genre,
+                                    cast: movie.cast,
+                                    poster: movie.poster,
+                                    imdbRating: movie.imdb_rating,
+                                    rottenTomatoes: movie.rotten_tomatoes,
+                                    metacritic: movie.metacritic,
+                                    rating: movie.rating,
+                                    timestamp: movie.timestamp,
+                                    personalScore: movie.personalScore
+                                };
+                            });
+                            setMovieHistory(historyObj);
+                            console.log('✅ Loaded', data.ratings.length, 'movies from backend');
+                        } else {
+                            console.warn('Failed to load movie history from backend');
+                        }
+                    } catch (error) {
+                        console.error('Error loading movie history:', error);
+                    }
+                };
+
+                loadMovieHistory();
+            }, []);
 
             const ratedMovies = Object.values(movieHistory).filter(movie => movie.rating !== null);
             const ratedCount = ratedMovies.length;
-            const totalNeeded = 10;
+            const totalNeeded = 5;
             const remainingNeeded = totalNeeded - ratedCount;
             const progressPercentage = (ratedCount / totalNeeded) * 100;
 
-            const handleMovieRating = (movieId, rating) => {
-                setMovieHistory(prev => {
-                    const movie = prev[movieId];
-                    if (!movie) return prev;
-                    return {
-                        ...prev,
-                        [movieId]: {
-                            ...movie,
-                            rating: movie.rating === rating ? null : rating
+            const handleMovieRating = async (movieId, rating) => {
+                const movie = movieHistory[movieId];
+                if (!movie) return;
+
+                // Toggle rating if same, otherwise set new rating
+                const newRating = movie.rating === rating ? null : rating;
+
+                // Optimistically update UI
+                setMovieHistory(prev => ({
+                    ...prev,
+                    [movieId]: {
+                        ...movie,
+                        rating: newRating
+                    }
+                }));
+
+                // Save to backend
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/ratings`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            id: movie.id,
+                            title: movie.title,
+                            genre: movie.genre,
+                            year: movie.year,
+                            imdbRating: movie.imdbRating,
+                            rottenTomatoes: movie.rottenTomatoes,
+                            metacritic: movie.metacritic,
+                            poster: movie.poster,
+                            cast: movie.cast,
+                            rating: newRating,
+                            timestamp: movie.timestamp
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Update with personal score from backend
+                        setMovieHistory(prev => ({
+                            ...prev,
+                            [movieId]: {
+                                ...prev[movieId],
+                                personalScore: data.personalScore
+                            }
+                        }));
+
+                        // Also update currentMovie if it's the same movie
+                        if (currentMovie && currentMovie.id === movieId) {
+                            setCurrentMovie(prev => ({
+                                ...prev,
+                                rating: newRating,
+                                personalScore: data.personalScore
+                            }));
                         }
-                    };
-                });
+
+                        console.log('✅ Rating saved, personal score:', data.personalScore);
+                    } else {
+                        console.error('Failed to save rating');
+                    }
+                } catch (error) {
+                    console.error('Error saving rating:', error);
+                }
             };
 
             // Swipe-to-delete handlers
@@ -323,8 +407,8 @@
                 setTouchStart(null);
             };
 
-            const handleDeleteMovie = (movieId) => {
-                // Delete immediately - swipe gesture provides intentionality
+            const handleDeleteMovie = async (movieId) => {
+                // Optimistically update UI
                 setMovieHistory(prev => {
                     const newHistory = { ...prev };
                     delete newHistory[movieId];
@@ -332,6 +416,17 @@
                 });
                 setSwipedItem(null);
                 setSwipeOffset(0);
+
+                // Delete from backend
+                try {
+                    await fetch(`${BACKEND_URL}/api/ratings/${movieId}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+                    console.log('✅ Movie deleted from backend');
+                } catch (error) {
+                    console.error('Error deleting movie from backend:', error);
+                }
             };
 
             const startCamera = async () => {
@@ -1145,6 +1240,24 @@
 
                     console.log('🎉 Successfully found movie:', movieData.title);
 
+                    // Calculate personal score from backend
+                    try {
+                        const scoreResponse = await fetch(`${BACKEND_URL}/api/ratings/calculate-score`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify(movieData)
+                        });
+
+                        if (scoreResponse.ok) {
+                            const scoreData = await scoreResponse.json();
+                            movieData.personalScore = scoreData.personalScore;
+                            console.log('🎯 Personal score:', scoreData.personalScore);
+                        }
+                    } catch (error) {
+                        console.warn('Could not calculate personal score:', error);
+                    }
+
                     setCurrentMovie(movieData);
 
                     // Add to history immediately when identified
@@ -1152,6 +1265,18 @@
                         ...prev,
                         [movie.id]: prev[movie.id] ? { ...prev[movie.id], ...movieData, rating: prev[movie.id].rating } : movieData
                     }));
+
+                    // Save to backend (without rating initially)
+                    try {
+                        await fetch(`${BACKEND_URL}/api/ratings`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify(movieData)
+                        });
+                    } catch (error) {
+                        console.warn('Could not save movie to backend:', error);
+                    }
 
                     setHasScanned(true);
                     setIsProcessing(false);
@@ -1252,9 +1377,19 @@
                                                                     <div>
                                                                         <h3 className="text-white font-bold text-lg mb-1 line-clamp-2">{movie.title}</h3>
                                                                         <p className="text-gray-400 text-sm mb-1">{movie.year} • {movie.genre}</p>
-                                                                        <div className="flex items-center gap-1 text-yellow-400 text-sm">
-                                                                            <span>⭐</span>
-                                                                            <span className="font-semibold">{movie.imdbRating ? movie.imdbRating + '/10' : 'N/A'}</span>
+                                                                        <div className="flex items-center gap-3 text-sm">
+                                                                            {movie.personalScore && (
+                                                                                <div className="flex items-center gap-1 text-purple-400">
+                                                                                    <span>🎯</span>
+                                                                                    <span className="font-semibold">{movie.personalScore}/10</span>
+                                                                                </div>
+                                                                            )}
+                                                                            {movie.imdbRating && (
+                                                                                <div className="flex items-center gap-1 text-yellow-400">
+                                                                                    <span>⭐</span>
+                                                                                    <span className="font-semibold">{movie.imdbRating}/10</span>
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                     <div className="flex gap-2">
@@ -1376,14 +1511,58 @@
                                                         </p>
                                                     </div>
                                                 </div>
-                                                {currentMovie.imdbRating >= 7.5 && (
-                                                    <div className="mb-4">
-                                                        <div className="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
-                                                            <ThumbsUp className="w-4 h-4 mr-1" />
-                                                            MUST WATCH
+                                                {(() => {
+                                                    const score = currentMovie.personalScore || currentMovie.imdbRating;
+                                                    if (score >= 9.0) {
+                                                        return (
+                                                            <div className="mb-4">
+                                                                <div className="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
+                                                                    🔥 PERFECT MATCH
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    } else if (score >= 8.5) {
+                                                        return (
+                                                            <div className="mb-4">
+                                                                <div className="inline-flex items-center bg-orange-600 text-white px-3 py-1 rounded text-sm font-semibold">
+                                                                    <ThumbsUp className="w-4 h-4 mr-1" />
+                                                                    HIGHLY RECOMMENDED
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    } else if (score >= 7.5) {
+                                                        return (
+                                                            <div className="mb-4">
+                                                                <div className="inline-flex items-center bg-blue-600 text-white px-3 py-1 rounded text-sm font-semibold">
+                                                                    👍 WORTH WATCHING
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                })()}
+                                                {currentMovie.personalScore ? (
+                                                    <div className="mb-4 p-3 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl border border-purple-500/30">
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <div className="text-purple-300 text-xs mb-1">For You</div>
+                                                                <div className="text-white text-3xl font-bold">{currentMovie.personalScore}<span className="text-gray-400 text-lg">/10</span></div>
+                                                            </div>
+                                                            <div className="text-purple-400">🎯</div>
+                                                        </div>
+                                                        <div className="text-purple-200 text-xs mt-2">Based on your taste profile</div>
+                                                    </div>
+                                                ) : ratedCount < 5 ? (
+                                                    <div className="mb-4 p-3 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-600/30">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="text-gray-400">🔒</div>
+                                                            <div className="flex-1">
+                                                                <div className="text-gray-300 text-sm font-semibold mb-1">Unlock Personal Score</div>
+                                                                <div className="text-gray-400 text-xs">Rate {remainingNeeded} more {remainingNeeded === 1 ? 'title' : 'titles'} to see your personalized recommendations</div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                )}
+                                                ) : null}
                                                 <div className="flex items-center justify-around mb-6 pb-6 border-b border-gray-700 gap-3">
                                                     {currentMovie.imdbRating && (
                                                         <div className="text-center">
@@ -1452,11 +1631,27 @@
                                                 <span className="text-lg">Edit Taste Profile</span>
                                             </button>
                                             <button
-                                                onClick={() => {
+                                                onClick={async () => {
                                                     if (confirm('Are you sure you want to delete all your history? This cannot be undone.')) {
                                                         setMovieHistory({});
-                                                        localStorage.removeItem('movieHistory');
-                                                        alert('History deleted successfully.');
+
+                                                        // Delete all movies from backend
+                                                        try {
+                                                            const movieIds = Object.keys(movieHistory);
+                                                            await Promise.all(
+                                                                movieIds.map(id =>
+                                                                    fetch(`${BACKEND_URL}/api/ratings/${id}`, {
+                                                                        method: 'DELETE',
+                                                                        credentials: 'include'
+                                                                    })
+                                                                )
+                                                            );
+                                                            console.log('✅ All movies deleted from backend');
+                                                            alert('History deleted successfully.');
+                                                        } catch (error) {
+                                                            console.error('Error deleting history:', error);
+                                                            alert('History deleted from UI, but backend deletion may have failed.');
+                                                        }
                                                     }
                                                 }}
                                                 className="w-full bg-gray-800 hover:bg-gray-700 text-white py-4 px-5 rounded-xl flex items-center gap-3 border border-gray-700"
