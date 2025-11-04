@@ -149,7 +149,7 @@ router.post('/identify', async (req, res) => {
     console.log('📤 Sending request to Claude API...');
     console.log('Model: claude-3-haiku-20240307');
 
-    // Create the message with vision
+    // Create the message with vision - request JSON format
     const message = await anthropic.messages.create({
       model: 'claude-3-haiku-20240307',
       max_tokens: 100,
@@ -169,19 +169,30 @@ router.post('/identify', async (req, res) => {
             text: `Look at this screenshot from a streaming service. Extract the EXACT title and year (if visible) of the movie or TV show being displayed.
 
 Rules:
-1. Return ONLY the title and year in this format: "Title (Year)" or just "Title" if year is not visible
-2. Ignore all UI elements (buttons, menus, subtitles, logos)
-3. Ignore actor names, episode numbers, season info, descriptions
-4. If you see multiple titles, return the main/prominent one
-5. Keep the exact capitalization as shown
-6. If no clear title is visible, respond with "NONE"
+1. Ignore all UI elements (buttons, menus, subtitles, logos)
+2. Ignore actor names, episode numbers, season info, descriptions
+3. If you see multiple titles, return the main/prominent one
+4. Keep the exact capitalization as shown
 
-Examples:
-- If you see "The Martian" and "2015", respond: The Martian (2015)
-- If you see "Inception" without a year, respond: Inception
-- If no clear title is visible, respond: NONE
+You MUST respond with ONLY a JSON object in this exact format:
+{
+  "title": "Movie Title Here",
+  "year": 2015
+}
 
-Response:`
+If no year is visible, use null for year:
+{
+  "title": "Movie Title Here",
+  "year": null
+}
+
+If no clear title is visible, respond with:
+{
+  "title": null,
+  "year": null
+}
+
+Do not include any other text, explanations, or formatting - only the JSON object.`
           }
         ]
       }]
@@ -192,10 +203,31 @@ Response:`
     console.log('Response time:', duration, 'ms');
 
     const responseText = message.content[0].text.trim();
-    console.log('📝 Claude identified:', responseText);
+    console.log('📝 Claude raw response:', responseText);
+
+    // Parse JSON response
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ Failed to parse JSON response:', parseError.message);
+      console.error('Raw response:', responseText);
+      return res.status(500).json({
+        error: 'Failed to parse Claude response',
+        debug: {
+          message: 'Claude did not return valid JSON',
+          rawResponse: responseText
+        }
+      });
+    }
+
+    const title = parsedResponse.title;
+    const year = parsedResponse.year;
+
+    console.log('📝 Parsed JSON - Title:', title, 'Year:', year);
 
     // Check if Claude found a title
-    if (responseText === 'NONE' || !responseText) {
+    if (!title) {
       console.log('⚠️  No title detected in image');
       return res.json({
         title: null,
@@ -203,40 +235,6 @@ Response:`
         confidence: 0,
         message: 'No clear movie or TV show title found in image'
       });
-    }
-
-    // Parse title and year from response
-    // Handle verbose responses like "The title shown in the image is Red Dragon (2002)."
-    let cleanedText = responseText;
-
-    // Remove common verbose prefixes
-    const verbosePrefixes = [
-      /^The title shown in the image is\s+/i,
-      /^The title is\s+/i,
-      /^This is\s+/i,
-      /^The movie is\s+/i,
-      /^The TV show is\s+/i
-    ];
-
-    for (const prefix of verbosePrefixes) {
-      cleanedText = cleanedText.replace(prefix, '');
-    }
-
-    // Remove trailing punctuation
-    cleanedText = cleanedText.replace(/[.!?]+$/, '').trim();
-
-    // Format: "Title (Year)" or "Title"
-    const yearMatch = cleanedText.match(/^(.+?)\s*\((\d{4})\)$/);
-    let title, year;
-
-    if (yearMatch) {
-      title = yearMatch[1].trim();
-      year = parseInt(yearMatch[2]);
-      console.log('📝 Parsed - Title:', title, 'Year:', year);
-    } else {
-      title = cleanedText;
-      year = null;
-      console.log('📝 Parsed - Title:', title, '(no year detected)');
     }
 
     console.log('========================================\n');
