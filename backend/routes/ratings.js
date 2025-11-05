@@ -13,13 +13,18 @@ const {
  * Get progressive weights based on total votes
  * Newer users get more weight on IMDb score for stability
  * Experienced users get more weight on taste profile
+ * NOTE: Should only be called when totalVotes >= 5 (personal scores unlocked)
  */
 function getPersonalScoreWeights(totalVotes) {
   if (totalVotes >= 100) return { imdb: 0.50, taste: 0.50, tier: 'Master' };
   if (totalVotes >= 50)  return { imdb: 0.55, taste: 0.45, tier: 'Expert' };
   if (totalVotes >= 20)  return { imdb: 0.65, taste: 0.35, tier: 'Enthusiast' };
   if (totalVotes >= 10)  return { imdb: 0.75, taste: 0.25, tier: 'Explorer' };
-  return { imdb: 0.85, taste: 0.15, tier: 'Newcomer' };
+  if (totalVotes >= 5)   return { imdb: 0.85, taste: 0.15, tier: 'Newcomer' };
+
+  // Should never reach here - personal scores require >= 5 votes
+  // Return null to indicate invalid state
+  return null;
 }
 
 /**
@@ -55,6 +60,11 @@ function calculatePersonalScore(movie, userId, excludeMovieId = null) {
 
   // Get progressive weights based on user experience
   const weights = getPersonalScoreWeights(ratedMovies.length);
+
+  // Safety check - should never happen due to guard above
+  if (!weights) {
+    return null;
+  }
 
   // Get genre preferences for the user
   const genrePrefs = getUserGenrePreferences(userId);
