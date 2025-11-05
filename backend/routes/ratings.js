@@ -14,13 +14,17 @@ const {
  * Newer users get more weight on IMDb score for stability
  * Experienced users get more weight on taste profile
  * NOTE: Should only be called when totalVotes >= 5 (personal scores unlocked)
+ * Tier boundaries:
+ * - Explorer: 5-14 votes
+ * - Enthusiast: 15-29 votes
+ * - Expert: 30-49 votes
+ * - Master: 50+ votes
  */
 function getPersonalScoreWeights(totalVotes) {
-  if (totalVotes >= 100) return { imdb: 0.50, taste: 0.50, tier: 'Master' };
-  if (totalVotes >= 50)  return { imdb: 0.55, taste: 0.45, tier: 'Expert' };
-  if (totalVotes >= 20)  return { imdb: 0.65, taste: 0.35, tier: 'Enthusiast' };
-  if (totalVotes >= 10)  return { imdb: 0.75, taste: 0.25, tier: 'Explorer' };
-  if (totalVotes >= 5)   return { imdb: 0.85, taste: 0.15, tier: 'Newcomer' };
+  if (totalVotes >= 50)  return { imdb: 0.50, taste: 0.50, tier: 'Master' };
+  if (totalVotes >= 30)  return { imdb: 0.60, taste: 0.40, tier: 'Expert' };
+  if (totalVotes >= 15)  return { imdb: 0.70, taste: 0.30, tier: 'Enthusiast' };
+  if (totalVotes >= 5)   return { imdb: 0.85, taste: 0.15, tier: 'Explorer' };
 
   // Should never reach here - personal scores require >= 5 votes
   // Return null to indicate invalid state

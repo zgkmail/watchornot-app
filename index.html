@@ -1351,7 +1351,7 @@
                                                 const getTierInfo = (count) => {
                                                     if (count < 5) {
                                                         return {
-                                                            name: 'Getting Started',
+                                                            name: 'Newcomer',
                                                             emoji: '🎬',
                                                             progress: (count / 5) * 100,
                                                             nextTier: 5,
@@ -1359,45 +1359,35 @@
                                                             bgGradient: 'from-gray-900/20 to-gray-800/20',
                                                             borderColor: 'border-gray-500/30'
                                                         };
-                                                    } else if (count < 10) {
+                                                    } else if (count < 15) {
                                                         return {
-                                                            name: 'Newcomer',
-                                                            emoji: '🎬',
-                                                            progress: ((count - 5) / 5) * 100,
-                                                            nextTier: 10,
+                                                            name: 'Explorer',
+                                                            emoji: '🔍',
+                                                            progress: ((count - 5) / 10) * 100,
+                                                            nextTier: 15,
                                                             gradient: 'from-green-500 to-green-600',
                                                             bgGradient: 'from-green-900/20 to-green-800/20',
                                                             borderColor: 'border-green-500/30'
                                                         };
-                                                    } else if (count < 20) {
+                                                    } else if (count < 30) {
                                                         return {
-                                                            name: 'Explorer',
-                                                            emoji: '🔍',
-                                                            progress: ((count - 10) / 10) * 100,
-                                                            nextTier: 20,
+                                                            name: 'Enthusiast',
+                                                            emoji: '⭐',
+                                                            progress: ((count - 15) / 15) * 100,
+                                                            nextTier: 30,
                                                             gradient: 'from-purple-500 to-purple-600',
                                                             bgGradient: 'from-purple-900/20 to-purple-800/20',
                                                             borderColor: 'border-purple-500/30'
                                                         };
                                                     } else if (count < 50) {
                                                         return {
-                                                            name: 'Enthusiast',
-                                                            emoji: '⭐',
-                                                            progress: ((count - 20) / 30) * 100,
+                                                            name: 'Expert',
+                                                            emoji: '🎓',
+                                                            progress: ((count - 30) / 20) * 100,
                                                             nextTier: 50,
                                                             gradient: 'from-blue-500 to-blue-600',
                                                             bgGradient: 'from-blue-900/20 to-blue-800/20',
                                                             borderColor: 'border-blue-500/30'
-                                                        };
-                                                    } else if (count < 100) {
-                                                        return {
-                                                            name: 'Expert',
-                                                            emoji: '🎓',
-                                                            progress: ((count - 50) / 50) * 100,
-                                                            nextTier: 100,
-                                                            gradient: 'from-pink-500 to-pink-600',
-                                                            bgGradient: 'from-pink-900/20 to-pink-800/20',
-                                                            borderColor: 'border-pink-500/30'
                                                         };
                                                     } else {
                                                         return {
@@ -1431,15 +1421,14 @@
                                                                 <p className="text-gray-300 text-center mt-3 text-sm">
                                                                     {votedCount < 5 ? (
                                                                         <>
-                                                                            {tier.nextTier - votedCount} more {tier.nextTier - votedCount === 1 ? 'vote' : 'votes'} to reach 🎬 Newcomer tier and unlock <span className="text-purple-400 font-semibold">✨ Personal Score</span>.
+                                                                            {tier.nextTier - votedCount} more {tier.nextTier - votedCount === 1 ? 'vote' : 'votes'} to reach 🔍 Explorer tier and unlock <span className="text-purple-400 font-semibold">✨ Personal Score</span>.
                                                                         </>
                                                                     ) : (
                                                                         <>
                                                                             {tier.nextTier - votedCount} more {tier.nextTier - votedCount === 1 ? 'vote' : 'votes'} to reach {
-                                                                                tier.nextTier === 10 ? '🔍 Explorer' :
-                                                                                tier.nextTier === 20 ? '⭐ Enthusiast' :
-                                                                                tier.nextTier === 50 ? '🎓 Expert' :
-                                                                                tier.nextTier === 100 ? '👑 Master' : 'next'
+                                                                                tier.nextTier === 15 ? '⭐ Enthusiast' :
+                                                                                tier.nextTier === 30 ? '🎓 Expert' :
+                                                                                tier.nextTier === 50 ? '👑 Master' : 'next'
                                                                             } tier
                                                                         </>
                                                                     )}
@@ -1737,48 +1726,39 @@
                                                 const getTierInfo = (count) => {
                                                     if (count < 5) {
                                                         return {
-                                                            name: 'Getting Started',
+                                                            name: 'Newcomer',
                                                             emoji: '🎬',
                                                             progress: (count / 5) * 100,
                                                             nextTier: 5,
                                                             ringColor: '#6b7280', // gray-500
                                                             glowColor: 'rgba(107, 114, 128, 0.3)'
                                                         };
-                                                    } else if (count < 10) {
-                                                        return {
-                                                            name: 'Newcomer',
-                                                            emoji: '🎬',
-                                                            progress: ((count - 5) / 5) * 100,
-                                                            nextTier: 10,
-                                                            ringColor: '#10b981', // green-500
-                                                            glowColor: 'rgba(16, 185, 129, 0.3)'
-                                                        };
-                                                    } else if (count < 20) {
+                                                    } else if (count < 15) {
                                                         return {
                                                             name: 'Explorer',
                                                             emoji: '🔍',
-                                                            progress: ((count - 10) / 10) * 100,
-                                                            nextTier: 20,
+                                                            progress: ((count - 5) / 10) * 100,
+                                                            nextTier: 15,
+                                                            ringColor: '#10b981', // green-500
+                                                            glowColor: 'rgba(16, 185, 129, 0.3)'
+                                                        };
+                                                    } else if (count < 30) {
+                                                        return {
+                                                            name: 'Enthusiast',
+                                                            emoji: '⭐',
+                                                            progress: ((count - 15) / 15) * 100,
+                                                            nextTier: 30,
                                                             ringColor: '#a855f7', // purple-500
                                                             glowColor: 'rgba(168, 85, 247, 0.3)'
                                                         };
                                                     } else if (count < 50) {
                                                         return {
-                                                            name: 'Enthusiast',
-                                                            emoji: '⭐',
-                                                            progress: ((count - 20) / 30) * 100,
+                                                            name: 'Expert',
+                                                            emoji: '🎓',
+                                                            progress: ((count - 30) / 20) * 100,
                                                             nextTier: 50,
                                                             ringColor: '#3b82f6', // blue-500
                                                             glowColor: 'rgba(59, 130, 246, 0.3)'
-                                                        };
-                                                    } else if (count < 100) {
-                                                        return {
-                                                            name: 'Expert',
-                                                            emoji: '🎓',
-                                                            progress: ((count - 50) / 50) * 100,
-                                                            nextTier: 100,
-                                                            ringColor: '#ec4899', // pink-500
-                                                            glowColor: 'rgba(236, 72, 153, 0.3)'
                                                         };
                                                     } else {
                                                         return {
@@ -1826,11 +1806,10 @@
                                                         {tier.nextTier ? (
                                                             <p className="text-gray-300 text-center text-sm">
                                                                 {tier.nextTier - votedCount} more {tier.nextTier - votedCount === 1 ? 'vote' : 'votes'} to reach <span className="text-white font-semibold">{
-                                                                    tier.nextTier === 5 ? 'Newcomer' :
-                                                                    tier.nextTier === 10 ? 'Explorer' :
-                                                                    tier.nextTier === 20 ? 'Enthusiast' :
-                                                                    tier.nextTier === 50 ? 'Expert' :
-                                                                    tier.nextTier === 100 ? 'Master' : 'next'
+                                                                    tier.nextTier === 5 ? 'Explorer' :
+                                                                    tier.nextTier === 15 ? 'Enthusiast' :
+                                                                    tier.nextTier === 30 ? 'Expert' :
+                                                                    tier.nextTier === 50 ? 'Master' : 'next'
                                                                 }</span> tier
                                                             </p>
                                                         ) : (
@@ -1848,21 +1827,18 @@
                                                             {(() => {
                                                                 // Get current weights based on vote count (aligned with backend)
                                                                 let imdbPct, tastePct, nextImdbPct, nextTastePct, nextMilestone, tierName;
-                                                                if (votedCount >= 100) {
+                                                                if (votedCount >= 50) {
                                                                     imdbPct = 50; tastePct = 50; tierName = 'Master';
                                                                     nextImdbPct = null; nextTastePct = null; nextMilestone = null;
-                                                                } else if (votedCount >= 50) {
-                                                                    imdbPct = 55; tastePct = 45; tierName = 'Expert';
-                                                                    nextImdbPct = 50; nextTastePct = 50; nextMilestone = 100;
-                                                                } else if (votedCount >= 20) {
-                                                                    imdbPct = 65; tastePct = 35; tierName = 'Enthusiast';
-                                                                    nextImdbPct = 55; nextTastePct = 45; nextMilestone = 50;
-                                                                } else if (votedCount >= 10) {
-                                                                    imdbPct = 75; tastePct = 25; tierName = 'Explorer';
-                                                                    nextImdbPct = 65; nextTastePct = 35; nextMilestone = 20;
+                                                                } else if (votedCount >= 30) {
+                                                                    imdbPct = 60; tastePct = 40; tierName = 'Expert';
+                                                                    nextImdbPct = 50; nextTastePct = 50; nextMilestone = 50;
+                                                                } else if (votedCount >= 15) {
+                                                                    imdbPct = 70; tastePct = 30; tierName = 'Enthusiast';
+                                                                    nextImdbPct = 60; nextTastePct = 40; nextMilestone = 30;
                                                                 } else if (votedCount >= 5) {
-                                                                    imdbPct = 85; tastePct = 15; tierName = 'Newcomer';
-                                                                    nextImdbPct = 75; nextTastePct = 25; nextMilestone = 10;
+                                                                    imdbPct = 85; tastePct = 15; tierName = 'Explorer';
+                                                                    nextImdbPct = 70; nextTastePct = 30; nextMilestone = 15;
                                                                 } else {
                                                                     return (
                                                                         <div className="text-gray-400 text-xs text-center">
