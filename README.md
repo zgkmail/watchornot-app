@@ -23,7 +23,7 @@ A modern movie and TV show discovery app with secure backend API key storage. Sn
 ### Backend (NEW!)
 - **Server**: Node.js + Express.js
 - **Database**: SQLite for session management
-- **API Proxy**: Secure proxy for TMDB and Google Vision APIs
+- **API Proxy**: Secure proxy for TMDB API
 - **Authentication**: Session-based with express-session
 - **Security**: Rate limiting, CORS protection, environment-based API keys
 
@@ -32,9 +32,8 @@ A modern movie and TV show discovery app with secure backend API key storage. Sn
 ### Prerequisites
 - Node.js 18+ and npm
 - A modern web browser
-- **For server admin**: API keys from:
+- **For server admin**: API key from:
   - [TMDB](https://www.themoviedb.org/settings/api)
-  - [Google Cloud Vision](https://console.cloud.google.com/)
 
 ### 1. Setup Backend
 
@@ -54,7 +53,6 @@ node -e "console.log('SESSION_SECRET=' + require('crypto').randomBytes(32).toStr
 # Edit .env and add:
 # - Generated SESSION_SECRET
 # - Your TMDB_API_KEY
-# - Your VISION_API_KEY
 nano .env
 
 # Start the backend server
@@ -109,7 +107,9 @@ cinesense-app/
     │   └── cinesense.db    # Database (auto-created)
     └── routes/
         ├── tmdb.js         # TMDB proxy
-        └── vision.js       # Vision API proxy
+        ├── claude.js       # Claude API proxy
+        ├── omdb.js         # OMDB proxy
+        └── ratings.js      # Ratings endpoints
 ```
 
 ## API Endpoints
@@ -120,7 +120,6 @@ cinesense-app/
 - `GET /api/session` - Session info
 - `GET /api/tmdb/search?query=name` - Search movies/TV
 - `GET /api/tmdb/:type/:id` - Get movie/TV details
-- `POST /api/vision/detect` - Detect text in image
 
 See [backend/README.md](backend/README.md) for detailed API documentation.
 
@@ -171,7 +170,6 @@ NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
 SESSION_SECRET=your_session_secret
 TMDB_API_KEY=your_tmdb_api_key
-VISION_API_KEY=your_vision_api_key
 ```
 
 ### Frontend Backend URL
@@ -224,7 +222,7 @@ Deploy to any Node.js hosting platform:
 - Tailwind CSS
 - Babel Standalone
 - TMDB API
-- Google Cloud Vision API
+- Claude API (for image recognition)
 
 ### Backend
 - Node.js
@@ -251,7 +249,7 @@ MIT License - feel free to use this project for learning or production!
 ## Acknowledgments
 
 - [TMDB](https://www.themoviedb.org/) for movie data
-- [Google Cloud Vision](https://cloud.google.com/vision) for OCR
+- [Claude API](https://www.anthropic.com/) for image recognition
 - All open source contributors
 
 ## Support

@@ -1,12 +1,12 @@
 # CineSense Backend
 
-Secure backend server for CineSense app that provides proxy endpoints for TMDB and Google Vision APIs, keeping API keys secure on the server.
+Secure backend server for CineSense app that provides proxy endpoints for TMDB API, keeping API keys secure on the server.
 
 ## Features
 
 - **Secure API Key Storage**: API keys stored in server environment variables, never exposed to clients
 - **Session-based Authentication**: Automatic user session management
-- **Proxy Endpoints**: Backend proxies requests to TMDB and Google Vision APIs
+- **Proxy Endpoints**: Backend proxies requests to TMDB API
 - **Rate Limiting**: Built-in rate limiting to prevent API abuse
 - **SQLite Database**: Lightweight database for user session management
 - **Automatic Cleanup**: Removes old sessions (30+ days) automatically
@@ -23,7 +23,9 @@ backend/
 │   └── cinesense.db       # SQLite database file (auto-created)
 └── routes/
     ├── tmdb.js            # TMDB proxy endpoints
-    └── vision.js          # Google Vision proxy endpoints
+    ├── claude.js          # Claude API proxy endpoints
+    ├── omdb.js            # OMDB proxy endpoints
+    └── ratings.js         # Ratings endpoints
 ```
 
 ## Setup Instructions
@@ -57,12 +59,10 @@ NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
 SESSION_SECRET=your_generated_session_secret_here
 TMDB_API_KEY=your_tmdb_api_key_here
-VISION_API_KEY=your_google_vision_api_key_here
 ```
 
-Get your API keys:
+Get your API key:
 - **TMDB**: https://www.themoviedb.org/settings/api
-- **Google Vision**: https://console.cloud.google.com/
 
 **IMPORTANT**: Never commit your `.env` file to version control!
 
@@ -106,18 +106,6 @@ GET /api/tmdb/search?query=movie_name
 GET /api/tmdb/:mediaType/:id
 ```
 Where `mediaType` is either "movie" or "tv".
-
-### Google Vision Proxy Endpoint
-
-#### Detect Text in Image
-```
-POST /api/vision/detect
-Content-Type: application/json
-
-{
-  "image": "base64_encoded_image_data"
-}
-```
 
 ## Security Features
 
