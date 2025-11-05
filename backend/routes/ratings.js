@@ -29,7 +29,7 @@ function calculatePersonalScore(movie, userId, excludeMovieId = null) {
 
   // Filter out the current movie being scored to prevent circular dependency
   const ratedMovies = userRatings.filter(m => {
-    return m.rating !== null && (!excludeMovieId || m.id !== excludeMovieId);
+    return m.rating !== null && (!excludeMovieId || m.movie_id !== excludeMovieId);
   });
 
   // Require at least 5 rated movies before showing personal score
@@ -54,7 +54,7 @@ function calculatePersonalScore(movie, userId, excludeMovieId = null) {
 
       // If excluding current movie, adjust genre counts to prevent circular dependency
       if (excludeMovieId) {
-        const currentMovie = userRatings.find(m => m.id === excludeMovieId);
+        const currentMovie = userRatings.find(m => m.movie_id === excludeMovieId);
         if (currentMovie && currentMovie.genre === movieGenre && currentMovie.rating) {
           if (currentMovie.rating === 'up') thumbsUp = Math.max(0, thumbsUp - 1);
           if (currentMovie.rating === 'down') thumbsDown = Math.max(0, thumbsDown - 1);
@@ -135,7 +135,7 @@ router.get('/', async (req, res) => {
     // Calculate personal scores for each movie (exclude itself from calculation)
     const ratingsWithScores = ratings.map(movie => ({
       ...movie,
-      personalScore: calculatePersonalScore(movie, req.session.userId, movie.id)
+      personalScore: calculatePersonalScore(movie, req.session.userId, movie.movie_id)
     }));
 
     res.json({
@@ -199,7 +199,7 @@ router.get('/:movieId', async (req, res) => {
     }
 
     // Calculate personal score (exclude itself from calculation)
-    const personalScore = calculatePersonalScore(movie, req.session.userId, movie.id);
+    const personalScore = calculatePersonalScore(movie, req.session.userId, movie.movie_id);
 
     res.json({
       ...movie,
