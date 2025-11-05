@@ -57,7 +57,6 @@ NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
 SESSION_SECRET=paste_your_generated_secret_here
 TMDB_API_KEY=paste_your_tmdb_api_key_here
-VISION_API_KEY=paste_your_google_vision_api_key_here
 ```
 
 **Important**: Replace the placeholder values with your actual keys!
@@ -160,7 +159,6 @@ In the terminal where the backend is running, you should see requests like:
 ```
 GET /api/session 200
 GET /api/tmdb/search?query=inception 200
-POST /api/vision/detect 200
 ```
 
 If you see any errors, check:
@@ -174,11 +172,6 @@ If you see any errors, check:
 - Check that `TMDB_API_KEY` is set in `backend/.env`
 - Restart the backend server after changing `.env`
 - Verify your TMDB API key is valid
-
-### Error: "Google Vision API key not configured"
-- Check that `VISION_API_KEY` is set in `backend/.env`
-- Restart the backend server
-- Verify your Vision API key is valid and has Vision API enabled
 
 ### CORS errors in browser console
 - Ensure backend `FRONTEND_URL` is set to `http://localhost:3000`

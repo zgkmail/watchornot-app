@@ -6,7 +6,6 @@ require('dotenv').config();
 
 // Import routes
 const tmdbRouter = require('./routes/tmdb');
-const visionRouter = require('./routes/vision');
 const claudeRouter = require('./routes/claude');
 const omdbRouter = require('./routes/omdb');
 const ratingsRouter = require('./routes/ratings');
@@ -25,11 +24,6 @@ if (!process.env.TMDB_API_KEY) {
   console.error('FATAL ERROR: TMDB_API_KEY environment variable is not set!');
   console.error('Please add your TMDB API key to the .env file');
   process.exit(1);
-}
-
-// Vision API is optional (we use Claude API for image recognition now)
-if (!process.env.VISION_API_KEY) {
-  console.warn('WARNING: VISION_API_KEY not set. Vision API endpoint will not work.');
 }
 
 const app = express();
@@ -134,7 +128,6 @@ app.get('/api/session', (req, res) => {
 
 // Routes
 app.use('/api/tmdb', strictLimiter, tmdbRouter);
-app.use('/api/vision', strictLimiter, visionRouter);
 app.use('/api/claude', strictLimiter, claudeRouter);
 app.use('/api/omdb', strictLimiter, omdbRouter);
 app.use('/api/ratings', ratingsRouter); // No strict limiter for ratings (internal data)

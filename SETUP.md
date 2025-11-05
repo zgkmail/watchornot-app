@@ -19,9 +19,9 @@ Before you begin, make sure you have:
 
 3. **A modern web browser** (Chrome, Firefox, Safari, or Edge)
 
-## Step 1: Get API Keys (Do This First!)
+## Step 1: Get API Key (Do This First!)
 
-You'll need two API keys. Get them now while they're processing:
+You'll need a TMDB API key. Get it now:
 
 ### TMDB API Key
 1. Go to https://www.themoviedb.org/
@@ -30,15 +30,7 @@ You'll need two API keys. Get them now while they're processing:
 4. Request an API key (choose "Developer")
 5. Copy your API key (v3 auth key)
 
-### Google Vision API Key
-1. Go to https://console.cloud.google.com/
-2. Create a new project (or use existing)
-3. Enable the "Cloud Vision API"
-4. Go to "Credentials" > "Create Credentials" > "API Key"
-5. Copy your API key
-6. (Optional but recommended) Restrict the key to Cloud Vision API only
-
-**Keep these keys handy!** You'll need them in Step 4.
+**Keep this key handy!** You'll need it in Step 4.
 
 ## Step 2: Clone the Repository
 
@@ -137,9 +129,6 @@ SESSION_SECRET=a7f3e9b2c4d8e1f0a3b5c7d9e2f4a6b8c1d3e5f7a9b2c4d6e8f1a3b5c7d9e2f4
 
 # Paste your TMDB API key from step 1
 TMDB_API_KEY=your_actual_tmdb_api_key_here
-
-# Paste your Google Vision API key from step 1
-VISION_API_KEY=your_actual_google_vision_api_key_here
 ```
 
 **Save and close the file.**
@@ -304,7 +293,7 @@ When everything is working, you should have:
 
 1. ✅ **Backend server** running on `http://localhost:3001`
    - Terminal window showing "CineSense Backend Server"
-   - Handling API requests to TMDB and Google Vision
+   - Handling API requests to TMDB
 
 2. ✅ **Frontend server** running on `http://localhost:3000`
    - Terminal window showing "Serving HTTP"
@@ -347,7 +336,6 @@ python3 -m http.server 3000
 
 - [x] Cloned the repository
 - [x] Obtained TMDB API key
-- [x] Obtained Google Vision API key
 - [x] Installed backend dependencies (`npm install`)
 - [x] Created and configured `.env` file
 - [x] Backend starts without errors
