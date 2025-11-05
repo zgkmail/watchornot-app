@@ -1834,26 +1834,25 @@
                                                                 <h3 className="text-white text-sm font-semibold mb-1">How recommendation badge works</h3>
                                                                 <p className="text-gray-400 text-xs">Badge based on IMDb score + your genre, director, and cast preferences</p>
                                                             </div>
-                                                            {votedCount >= 5 ? (
-                                                                <div className="text-gray-300 text-xs space-y-2">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span>🎯</span>
-                                                                        <span>Perfect Match - IMDb 8.0+ with loved genres</span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span>⭐</span>
-                                                                        <span>Great Pick - IMDb 6.5+ with liked genres</span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span>👍</span>
-                                                                        <span>Worth a Try - IMDb 5.0+ decent match</span>
-                                                                    </div>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="text-gray-400 text-xs text-center">
-                                                                    Vote on {5 - votedCount} more {(5 - votedCount) === 1 ? 'title' : 'titles'} to unlock personalized recommendations
+                                                            {votedCount < 5 && (
+                                                                <div className="text-gray-400 text-xs text-center mb-3">
+                                                                    Vote on {5 - votedCount} more {(5 - votedCount) === 1 ? 'title' : 'titles'} to unlock recommendation badge.
                                                                 </div>
                                                             )}
+                                                            <div className="text-gray-300 text-xs space-y-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span>🎯</span>
+                                                                    <span>Perfect Match - IMDb 8.0+ with loved genres</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span>⭐</span>
+                                                                    <span>Great Pick - IMDb 6.5+ with liked genres</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span>👍</span>
+                                                                    <span>Worth a Try - IMDb 5.0+ decent match</span>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </>
                                                 );
