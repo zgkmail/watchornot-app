@@ -192,6 +192,13 @@
             </svg>
         );
 
+        const ImdbLogo = ({ className }) => (
+            <svg className={className} width="16" height="16" viewBox="0 0 48 24" fill="none">
+                <rect width="48" height="24" rx="2" fill="#F5C518"/>
+                <text x="24" y="17" fontFamily="Arial, sans-serif" fontSize="12" fontWeight="bold" fill="#000000" textAnchor="middle">IMDb</text>
+            </svg>
+        );
+
         const Palette = ({ className }) => (
             <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="13.5" cy="6.5" r=".5"></circle>
@@ -1492,9 +1499,9 @@
                                                                                 </div>
                                                                             )}
                                                                             {movie.imdbRating && (
-                                                                                <div className="flex items-center gap-1 text-yellow-400">
-                                                                                    <span>🟨</span>
-                                                                                    <span className="font-semibold">{movie.imdbRating}/10</span>
+                                                                                <div className="flex items-center gap-1">
+                                                                                    <ImdbLogo />
+                                                                                    <span className="font-semibold text-gray-300">{movie.imdbRating}/10</span>
                                                                                 </div>
                                                                             )}
                                                                             {movie.rottenTomatoes && (
