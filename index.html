@@ -1418,9 +1418,10 @@
                                                                     ) : (
                                                                         <>
                                                                             {tier.nextTier - votedCount} more {tier.nextTier - votedCount === 1 ? 'vote' : 'votes'} to reach {
-                                                                                tier.nextTier === 10 ? '⭐ Strong' :
+                                                                                tier.nextTier === 5 ? '🔍 Explorer' :
+                                                                                tier.nextTier === 10 ? '⭐ Enthusiast' :
                                                                                 tier.nextTier === 20 ? '🎓 Expert' :
-                                                                                tier.nextTier === 50 ? '👑 Master' : '🌱 Building'
+                                                                                tier.nextTier === 50 ? '👑 Master' : '🌱 Newcomer'
                                                                             } tier
                                                                         </>
                                                                     )}
@@ -1789,8 +1790,8 @@
                                                         {tier.nextTier ? (
                                                             <p className="text-gray-300 text-center text-sm">
                                                                 {tier.nextTier - votedCount} more {tier.nextTier - votedCount === 1 ? 'vote' : 'votes'} to reach <span className="text-white font-semibold">{
-                                                                    tier.nextTier === 5 ? 'Building' :
-                                                                    tier.nextTier === 10 ? 'Strong' :
+                                                                    tier.nextTier === 5 ? 'Explorer' :
+                                                                    tier.nextTier === 10 ? 'Enthusiast' :
                                                                     tier.nextTier === 20 ? 'Expert' :
                                                                     tier.nextTier === 50 ? 'Master' : 'Master'
                                                                 }</span> tier
