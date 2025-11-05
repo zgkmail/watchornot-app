@@ -12,8 +12,11 @@ const {
  * Calculate personal score for a movie
  * Formula: Personal Score = (IMDb Score × 0.6) + (Taste Match × 0.4)
  * Requires at least 5 rated movies to generate a personal score
+ * @param {Object} movie - The movie to calculate score for
+ * @param {string} userId - The user ID
+ * @param {string|null} excludeMovieId - Optional movie ID to exclude from calculations (prevents circular dependency)
  */
-function calculatePersonalScore(movie, userId) {
+function calculatePersonalScore(movie, userId, excludeMovieId = null) {
   const imdbScore = movie.imdbRating || movie.imdb_rating || 0;
 
   // If no IMDb score, return null
@@ -23,9 +26,14 @@ function calculatePersonalScore(movie, userId) {
 
   // Get all user ratings to check count
   const userRatings = getUserMovieRatings(userId);
-  const ratedMovies = userRatings.filter(m => m.rating !== null);
+
+  // Filter out the current movie being scored to prevent circular dependency
+  const ratedMovies = userRatings.filter(m => {
+    return m.rating !== null && (!excludeMovieId || m.id !== excludeMovieId);
+  });
 
   // Require at least 5 rated movies before showing personal score
+  // If excluding current movie, we need at least 5 OTHER movies
   if (ratedMovies.length < 5) {
     return null;
   }
@@ -41,15 +49,29 @@ function calculatePersonalScore(movie, userId) {
   if (movieGenre) {
     const genrePref = genrePrefs.find(g => g.genre === movieGenre);
     if (genrePref) {
-      const totalRatings = genrePref.thumbs_up + genrePref.thumbs_down;
-      const positiveRatio = genrePref.thumbs_up / totalRatings;
+      let thumbsUp = genrePref.thumbs_up;
+      let thumbsDown = genrePref.thumbs_down;
 
-      // Add up to 3 points based on positive ratio
-      tasteMatch += (positiveRatio * 3);
+      // If excluding current movie, adjust genre counts to prevent circular dependency
+      if (excludeMovieId) {
+        const currentMovie = userRatings.find(m => m.id === excludeMovieId);
+        if (currentMovie && currentMovie.genre === movieGenre && currentMovie.rating) {
+          if (currentMovie.rating === 'up') thumbsUp = Math.max(0, thumbsUp - 1);
+          if (currentMovie.rating === 'down') thumbsDown = Math.max(0, thumbsDown - 1);
+        }
+      }
 
-      // Subtract up to 2 points if negative ratio is high
-      if (positiveRatio < 0.5) {
-        tasteMatch -= ((1 - positiveRatio) * 2);
+      const totalRatings = thumbsUp + thumbsDown;
+      if (totalRatings > 0) {
+        const positiveRatio = thumbsUp / totalRatings;
+
+        // Add up to 3 points based on positive ratio
+        tasteMatch += (positiveRatio * 3);
+
+        // Subtract up to 2 points if negative ratio is high
+        if (positiveRatio < 0.5) {
+          tasteMatch -= ((1 - positiveRatio) * 2);
+        }
       }
     }
   }
@@ -110,10 +132,10 @@ router.get('/', async (req, res) => {
 
     const ratings = getUserMovieRatings(req.session.userId);
 
-    // Calculate personal scores for each movie
+    // Calculate personal scores for each movie (exclude itself from calculation)
     const ratingsWithScores = ratings.map(movie => ({
       ...movie,
-      personalScore: calculatePersonalScore(movie, req.session.userId)
+      personalScore: calculatePersonalScore(movie, req.session.userId, movie.id)
     }));
 
     res.json({
@@ -145,8 +167,8 @@ router.post('/', async (req, res) => {
     // Save the rating
     saveMovieRating(req.session.userId, movieData);
 
-    // Calculate personal score for this movie
-    const personalScore = calculatePersonalScore(movieData, req.session.userId);
+    // Calculate personal score for this movie (exclude itself from calculation)
+    const personalScore = calculatePersonalScore(movieData, req.session.userId, movieData.id);
 
     res.json({
       success: true,
@@ -176,7 +198,8 @@ router.get('/:movieId', async (req, res) => {
       return res.status(404).json({ error: 'Movie not found' });
     }
 
-    const personalScore = calculatePersonalScore(movie, req.session.userId);
+    // Calculate personal score (exclude itself from calculation)
+    const personalScore = calculatePersonalScore(movie, req.session.userId, movie.id);
 
     res.json({
       ...movie,
@@ -200,7 +223,8 @@ router.post('/calculate-score', async (req, res) => {
 
     const movieData = req.body;
 
-    const personalScore = calculatePersonalScore(movieData, req.session.userId);
+    // Calculate personal score (exclude itself from calculation to prevent circular dependency)
+    const personalScore = calculatePersonalScore(movieData, req.session.userId, movieData.id);
 
     res.json({
       personalScore: personalScore,
