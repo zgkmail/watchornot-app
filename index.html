@@ -292,8 +292,9 @@
                                     metacritic: movie.metacritic,
                                     rating: movie.rating,
                                     timestamp: movie.timestamp,
-                                    personalScore: movie.personalScore,
-                                    scoreWeights: movie.scoreWeights,
+                                    badge: movie.badge,
+                                    badgeEmoji: movie.badgeEmoji,
+                                    badgeDescription: movie.badgeDescription,
                                     tier: movie.tier
                                 };
                             });
@@ -355,13 +356,14 @@
 
                     if (response.ok) {
                         const data = await response.json();
-                        // Update with personal score and weight data from backend
+                        // Update with badge data from backend
                         setMovieHistory(prev => ({
                             ...prev,
                             [movieId]: {
                                 ...prev[movieId],
-                                personalScore: data.personalScore,
-                                scoreWeights: data.scoreWeights,
+                                badge: data.badge,
+                                badgeEmoji: data.badgeEmoji,
+                                badgeDescription: data.badgeDescription,
                                 tier: data.tier
                             }
                         }));
@@ -371,13 +373,14 @@
                             setCurrentMovie(prev => ({
                                 ...prev,
                                 rating: newRating,
-                                personalScore: data.personalScore,
-                                scoreWeights: data.scoreWeights,
+                                badge: data.badge,
+                                badgeEmoji: data.badgeEmoji,
+                                badgeDescription: data.badgeDescription,
                                 tier: data.tier
                             }));
                         }
 
-                        console.log('✅ Rating saved, personal score:', data.personalScore, 'Tier:', data.tier);
+                        console.log('✅ Rating saved, badge:', data.badge, data.badgeEmoji, data.badgeDescription);
                     } else {
                         console.error('Failed to save rating');
                     }
@@ -1264,24 +1267,25 @@
 
                     console.log('🎉 Successfully found movie:', movieData.title);
 
-                    // Calculate personal score from backend
+                    // Calculate recommendation badge from backend
                     try {
-                        const scoreResponse = await fetch(`${BACKEND_URL}/api/ratings/calculate-score`, {
+                        const badgeResponse = await fetch(`${BACKEND_URL}/api/ratings/calculate-badge`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             credentials: 'include',
                             body: JSON.stringify(movieData)
                         });
 
-                        if (scoreResponse.ok) {
-                            const scoreData = await scoreResponse.json();
-                            movieData.personalScore = scoreData.personalScore;
-                            movieData.scoreWeights = scoreData.scoreWeights;
-                            movieData.tier = scoreData.tier;
-                            console.log('🎯 Personal score:', scoreData.personalScore, 'Tier:', scoreData.tier);
+                        if (badgeResponse.ok) {
+                            const badgeData = await badgeResponse.json();
+                            movieData.badge = badgeData.badge;
+                            movieData.badgeEmoji = badgeData.badgeEmoji;
+                            movieData.badgeDescription = badgeData.badgeDescription;
+                            movieData.tier = badgeData.tier;
+                            console.log('🎯 Badge:', badgeData.badge, badgeData.badgeEmoji, badgeData.badgeDescription);
                         }
                     } catch (error) {
-                        console.warn('Could not calculate personal score:', error);
+                        console.warn('Could not calculate badge:', error);
                     }
 
                     setCurrentMovie(movieData);
@@ -1491,13 +1495,7 @@
                                                                     <div>
                                                                         <h3 className="text-white font-bold text-lg mb-1 line-clamp-2">{movie.title}</h3>
                                                                         <p className="text-gray-400 text-sm mb-1">{movie.year} • {movie.genre}</p>
-                                                                        <div className="flex items-center gap-3 text-sm">
-                                                                            {movie.personalScore && (
-                                                                                <div className="flex items-center gap-1 text-purple-400">
-                                                                                    <span>✨</span>
-                                                                                    <span className="font-semibold">{movie.personalScore}/10</span>
-                                                                                </div>
-                                                                            )}
+                                                                        <div className="flex items-center gap-3 text-sm mb-2">
                                                                             {movie.imdbRating && (
                                                                                 <div className="flex items-center gap-1">
                                                                                     <ImdbLogo />
@@ -1511,6 +1509,12 @@
                                                                                 </div>
                                                                             )}
                                                                         </div>
+                                                                        {movie.badge && (
+                                                                            <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-900/30 rounded-lg border border-purple-500/30 text-xs">
+                                                                                <span>{movie.badgeEmoji}</span>
+                                                                                <span className="text-purple-300 font-semibold">{movie.badgeDescription}</span>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                     <div className="flex gap-2">
                                                                         <button
@@ -1653,32 +1657,25 @@
                                                     }
                                                     return null;
                                                 })()}
-                                                {currentMovie.personalScore ? (
+                                                {currentMovie.badge ? (
                                                     <div className="mb-4 p-3 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl border border-purple-500/30">
-                                                        <div className="flex items-baseline gap-2 mb-1">
-                                                            <span className="text-2xl">✨</span>
-                                                            <span className="text-white text-3xl font-bold">{currentMovie.personalScore}</span>
-                                                            <span className="text-gray-400 text-lg">/10</span>
-                                                            <span className="text-purple-300 text-sm ml-1">For You</span>
-                                                        </div>
-                                                        {currentMovie.scoreWeights ? (
-                                                            <div className="text-purple-200 text-xs">
-                                                                {currentMovie.scoreWeights.imdbPercentage}% IMDb + {currentMovie.scoreWeights.tastePercentage}% Your Taste
+                                                        <div className="flex items-center gap-3 mb-1">
+                                                            <span className="text-3xl">{currentMovie.badgeEmoji}</span>
+                                                            <div>
+                                                                <div className="text-white text-xl font-bold">{currentMovie.badgeDescription}</div>
                                                                 {currentMovie.tier && (
-                                                                    <span className="ml-1 text-purple-300">• {currentMovie.tier}</span>
+                                                                    <div className="text-purple-300 text-xs">Based on your {currentMovie.tier} taste profile</div>
                                                                 )}
                                                             </div>
-                                                        ) : (
-                                                            <div className="text-purple-200 text-xs">Based on your taste profile</div>
-                                                        )}
+                                                        </div>
                                                     </div>
                                                 ) : votedCount < 5 ? (
                                                     <div className="mb-4 p-3 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-600/30">
                                                         <div className="flex items-center gap-3">
                                                             <div className="text-gray-400">🔒</div>
                                                             <div className="flex-1">
-                                                                <div className="text-gray-300 text-sm font-semibold mb-1">Unlock Personal Score</div>
-                                                                <div className="text-gray-400 text-xs">Vote on {remainingNeeded} more {remainingNeeded === 1 ? 'title' : 'titles'} to see your personalized recommendations</div>
+                                                                <div className="text-gray-300 text-sm font-semibold mb-1">Unlock Recommendations</div>
+                                                                <div className="text-gray-400 text-xs">Vote on {remainingNeeded} more {remainingNeeded === 1 ? 'title' : 'titles'} to see personalized recommendations</div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1831,53 +1828,32 @@
                                                             </p>
                                                         )}
 
-                                                        {/* Personalization Weight Progress */}
+                                                        {/* Recommendation Info */}
                                                         <div className="mt-6 w-full max-w-md bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                                             <div className="text-center mb-3">
-                                                                <h3 className="text-white text-sm font-semibold mb-1">Personalization Level</h3>
-                                                                <p className="text-gray-400 text-xs">How your scores are calculated</p>
+                                                                <h3 className="text-white text-sm font-semibold mb-1">How Recommendations Work</h3>
+                                                                <p className="text-gray-400 text-xs">Badges based on IMDb score + your genre preferences</p>
                                                             </div>
-                                                            {(() => {
-                                                                // Get current weights based on vote count (aligned with backend)
-                                                                let imdbPct, tastePct, nextImdbPct, nextTastePct, nextMilestone, tierName;
-                                                                if (votedCount >= 50) {
-                                                                    imdbPct = 50; tastePct = 50; tierName = 'Master';
-                                                                    nextImdbPct = null; nextTastePct = null; nextMilestone = null;
-                                                                } else if (votedCount >= 30) {
-                                                                    imdbPct = 60; tastePct = 40; tierName = 'Expert';
-                                                                    nextImdbPct = 50; nextTastePct = 50; nextMilestone = 50;
-                                                                } else if (votedCount >= 15) {
-                                                                    imdbPct = 70; tastePct = 30; tierName = 'Enthusiast';
-                                                                    nextImdbPct = 60; nextTastePct = 40; nextMilestone = 30;
-                                                                } else if (votedCount >= 5) {
-                                                                    imdbPct = 85; tastePct = 15; tierName = 'Explorer';
-                                                                    nextImdbPct = 70; nextTastePct = 30; nextMilestone = 15;
-                                                                } else {
-                                                                    return (
-                                                                        <div className="text-gray-400 text-xs text-center">
-                                                                            Vote on {5 - votedCount} more {(5 - votedCount) === 1 ? 'title' : 'titles'} to unlock personalized scores
-                                                                        </div>
-                                                                    );
-                                                                }
-
-                                                                return (
-                                                                    <>
-                                                                        <div className="flex items-center gap-2 mb-2">
-                                                                            <div className="flex-1 bg-blue-500 h-8 rounded-l flex items-center justify-center text-white text-xs font-semibold" style={{width: `${imdbPct}%`}}>
-                                                                                {imdbPct}% IMDb
-                                                                            </div>
-                                                                            <div className="flex-1 bg-purple-500 h-8 rounded-r flex items-center justify-center text-white text-xs font-semibold" style={{width: `${tastePct}%`}}>
-                                                                                {tastePct}% Your Taste
-                                                                            </div>
-                                                                        </div>
-                                                                        {nextMilestone && (
-                                                                            <p className="text-gray-400 text-xs text-center">
-                                                                                At {nextMilestone} votes: {nextImdbPct}% IMDb + {nextTastePct}% Your Taste
-                                                                            </p>
-                                                                        )}
-                                                                    </>
-                                                                );
-                                                            })()}
+                                                            {votedCount >= 5 ? (
+                                                                <div className="text-gray-300 text-xs space-y-2">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span>🎯</span>
+                                                                        <span>Perfect Match - IMDb 8.0+ with loved genres</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span>⭐</span>
+                                                                        <span>Great Pick - IMDb 6.5+ with liked genres</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span>👍</span>
+                                                                        <span>Worth a Try - IMDb 5.0+ decent match</span>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="text-gray-400 text-xs text-center">
+                                                                    Vote on {5 - votedCount} more {(5 - votedCount) === 1 ? 'title' : 'titles'} to unlock personalized recommendations
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </>
                                                 );
@@ -2003,13 +1979,12 @@
                                         <div className="mb-6">
                                             <h4 className="text-white font-semibold mb-3">Ratings</h4>
                                             <div className="grid grid-cols-2 gap-3">
-                                                {detailModalMovie.personalScore && (
-                                                    <div className="bg-purple-900/30 p-3 rounded-lg border border-purple-500/30">
-                                                        <div className="text-purple-300 text-xs mb-1">Personal Score</div>
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="text-xl">✨</span>
-                                                            <span className="text-white text-2xl font-bold">{detailModalMovie.personalScore}</span>
-                                                            <span className="text-gray-400 text-sm">/10</span>
+                                                {detailModalMovie.badge && (
+                                                    <div className="bg-purple-900/30 p-3 rounded-lg border border-purple-500/30 col-span-2">
+                                                        <div className="text-purple-300 text-xs mb-2">Recommendation</div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-2xl">{detailModalMovie.badgeEmoji}</span>
+                                                            <span className="text-white text-lg font-bold">{detailModalMovie.badgeDescription}</span>
                                                         </div>
                                                     </div>
                                                 )}
