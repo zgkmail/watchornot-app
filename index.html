@@ -1343,8 +1343,8 @@
                                                 const getTierInfo = (count) => {
                                                     if (count < 5) {
                                                         return {
-                                                            name: 'Unlocking',
-                                                            emoji: '🔓',
+                                                            name: 'Newcomer',
+                                                            emoji: '🎬',
                                                             progress: (count / 5) * 100,
                                                             nextTier: 5,
                                                             gradient: 'from-green-500 to-green-600',
@@ -1353,8 +1353,8 @@
                                                         };
                                                     } else if (count < 10) {
                                                         return {
-                                                            name: 'Building',
-                                                            emoji: '🌱',
+                                                            name: 'Explorer',
+                                                            emoji: '🔍',
                                                             progress: ((count - 5) / 5) * 100,
                                                             nextTier: 10,
                                                             gradient: 'from-purple-500 to-purple-600',
@@ -1363,7 +1363,7 @@
                                                         };
                                                     } else if (count < 20) {
                                                         return {
-                                                            name: 'Strong',
+                                                            name: 'Enthusiast',
                                                             emoji: '⭐',
                                                             progress: ((count - 10) / 10) * 100,
                                                             nextTier: 20,
@@ -1709,8 +1709,8 @@
                                                 const getTierInfo = (count) => {
                                                     if (count < 5) {
                                                         return {
-                                                            name: 'Unlocking',
-                                                            emoji: '🔓',
+                                                            name: 'Newcomer',
+                                                            emoji: '🎬',
                                                             progress: (count / 5) * 100,
                                                             nextTier: 5,
                                                             ringColor: '#10b981', // green-500
@@ -1718,8 +1718,8 @@
                                                         };
                                                     } else if (count < 10) {
                                                         return {
-                                                            name: 'Building',
-                                                            emoji: '🌱',
+                                                            name: 'Explorer',
+                                                            emoji: '🔍',
                                                             progress: ((count - 5) / 5) * 100,
                                                             nextTier: 10,
                                                             ringColor: '#a855f7', // purple-500
@@ -1727,7 +1727,7 @@
                                                         };
                                                     } else if (count < 20) {
                                                         return {
-                                                            name: 'Strong',
+                                                            name: 'Enthusiast',
                                                             emoji: '⭐',
                                                             progress: ((count - 10) / 10) * 100,
                                                             nextTier: 20,
