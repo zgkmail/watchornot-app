@@ -5,12 +5,32 @@ const {
   getUserMovieRatings,
   getMovieRating,
   deleteMovieRating,
-  getUserGenrePreferences
+  getUserGenrePreferences,
+  getMovieGenres
 } = require('../db/database');
 
 /**
- * Calculate personal score for a movie
- * Formula: Personal Score = (IMDb Score × 0.6) + (Taste Match × 0.4)
+ * Get progressive weights based on total votes
+ * Newer users get more weight on IMDb score for stability
+ * Experienced users get more weight on taste profile
+ * NOTE: Should only be called when totalVotes >= 5 (personal scores unlocked)
+ */
+function getPersonalScoreWeights(totalVotes) {
+  if (totalVotes >= 100) return { imdb: 0.50, taste: 0.50, tier: 'Master' };
+  if (totalVotes >= 50)  return { imdb: 0.55, taste: 0.45, tier: 'Expert' };
+  if (totalVotes >= 20)  return { imdb: 0.65, taste: 0.35, tier: 'Enthusiast' };
+  if (totalVotes >= 10)  return { imdb: 0.75, taste: 0.25, tier: 'Explorer' };
+  if (totalVotes >= 5)   return { imdb: 0.85, taste: 0.15, tier: 'Newcomer' };
+
+  // Should never reach here - personal scores require >= 5 votes
+  // Return null to indicate invalid state
+  return null;
+}
+
+/**
+ * Calculate personal score for a movie with progressive weighting
+ * Formula: Personal Score = (IMDb Score × imdbWeight) + (Taste Match × tasteWeight)
+ * Weights adjust based on user experience level
  * Requires at least 5 rated movies to generate a personal score
  * @param {Object} movie - The movie to calculate score for
  * @param {string} userId - The user ID
@@ -38,41 +58,80 @@ function calculatePersonalScore(movie, userId, excludeMovieId = null) {
     return null;
   }
 
+  // Get progressive weights based on user experience
+  const weights = getPersonalScoreWeights(ratedMovies.length);
+
+  // Safety check - should never happen due to guard above
+  if (!weights) {
+    return null;
+  }
+
   // Get genre preferences for the user
   const genrePrefs = getUserGenrePreferences(userId);
 
   // Calculate taste match (0-10 scale)
   let tasteMatch = 5.0; // Start neutral
 
-  // Genre preference match (0-3 points)
-  const movieGenre = movie.genre;
-  if (movieGenre) {
-    const genrePref = genrePrefs.find(g => g.genre === movieGenre);
-    if (genrePref) {
-      let thumbsUp = genrePref.thumbs_up;
-      let thumbsDown = genrePref.thumbs_down;
+  // Bayesian smoothing priors to prevent extreme ratios for new users
+  const PRIOR_POSITIVE = 1;
+  const PRIOR_NEGATIVE = 1;
 
-      // If excluding current movie, adjust genre counts to prevent circular dependency
-      if (excludeMovieId) {
-        const currentMovie = userRatings.find(m => m.movie_id === excludeMovieId);
-        if (currentMovie && currentMovie.genre === movieGenre && currentMovie.rating) {
-          if (currentMovie.rating === 'up') thumbsUp = Math.max(0, thumbsUp - 1);
-          if (currentMovie.rating === 'down') thumbsDown = Math.max(0, thumbsDown - 1);
+  // Genre preference match (0-3 points) - now handles multiple genres
+  // Get all genres for this movie from the junction table
+  const movieGenres = getMovieGenres(userId, movie.id || movie.movie_id);
+
+  // If no genres in junction table yet, fall back to parsing the genre string
+  let genresToCheck = movieGenres;
+  if (genresToCheck.length === 0 && movie.genre) {
+    genresToCheck = movie.genre.split(',').map(g => g.trim()).filter(g => g);
+  }
+
+  if (genresToCheck.length > 0) {
+    let genreMatchSum = 0;
+    let genresMatched = 0;
+
+    genresToCheck.forEach(genre => {
+      const genrePref = genrePrefs.find(g => g.genre === genre);
+
+      if (genrePref) {
+        let thumbsUp = genrePref.thumbs_up;
+        let thumbsDown = genrePref.thumbs_down;
+
+        // If excluding current movie, adjust genre counts to prevent circular dependency
+        if (excludeMovieId) {
+          const currentMovieGenres = getMovieGenres(userId, excludeMovieId);
+          if (currentMovieGenres.includes(genre)) {
+            const currentMovie = userRatings.find(m => m.movie_id === excludeMovieId);
+            if (currentMovie && currentMovie.rating) {
+              if (currentMovie.rating === 'up') thumbsUp = Math.max(0, thumbsUp - 1);
+              if (currentMovie.rating === 'down') thumbsDown = Math.max(0, thumbsDown - 1);
+            }
+          }
         }
-      }
 
-      const totalRatings = thumbsUp + thumbsDown;
-      if (totalRatings > 0) {
-        const positiveRatio = thumbsUp / totalRatings;
+        // Apply Bayesian smoothing to prevent extreme ratios
+        const smoothedUp = thumbsUp + PRIOR_POSITIVE;
+        const smoothedDown = thumbsDown + PRIOR_NEGATIVE;
+        const totalRatings = smoothedUp + smoothedDown;
 
-        // Add up to 3 points based on positive ratio
-        tasteMatch += (positiveRatio * 3);
+        const positiveRatio = smoothedUp / totalRatings;
+
+        // Calculate contribution for this genre (0-3 points)
+        let genreContribution = (positiveRatio * 3);
 
         // Subtract up to 2 points if negative ratio is high
         if (positiveRatio < 0.5) {
-          tasteMatch -= ((1 - positiveRatio) * 2);
+          genreContribution -= ((1 - positiveRatio) * 2);
         }
+
+        genreMatchSum += genreContribution;
+        genresMatched++;
       }
+    });
+
+    // Average the genre contributions if we found any matches
+    if (genresMatched > 0) {
+      tasteMatch += (genreMatchSum / genresMatched);
     }
   }
 
@@ -113,11 +172,21 @@ function calculatePersonalScore(movie, userId, excludeMovieId = null) {
   // Clamp taste match to 0-10 range
   tasteMatch = Math.max(0, Math.min(10, tasteMatch));
 
-  // Calculate final personal score
-  const personalScore = (imdbScore * 0.6) + (tasteMatch * 0.4);
+  // Calculate final personal score with progressive weights
+  const personalScore = (imdbScore * weights.imdb) + (tasteMatch * weights.taste);
 
-  // Round to 1 decimal place
-  return Math.round(personalScore * 10) / 10;
+  // Round to 1 decimal place and return with metadata
+  return {
+    score: Math.round(personalScore * 10) / 10,
+    weights: {
+      imdb: weights.imdb,
+      taste: weights.taste,
+      imdbPercentage: Math.round(weights.imdb * 100),
+      tastePercentage: Math.round(weights.taste * 100)
+    },
+    tier: weights.tier,
+    totalVotes: ratedMovies.length
+  };
 }
 
 /**
@@ -133,10 +202,15 @@ router.get('/', async (req, res) => {
     const ratings = getUserMovieRatings(req.session.userId);
 
     // Calculate personal scores for each movie (exclude itself from calculation)
-    const ratingsWithScores = ratings.map(movie => ({
-      ...movie,
-      personalScore: calculatePersonalScore(movie, req.session.userId, movie.movie_id)
-    }));
+    const ratingsWithScores = ratings.map(movie => {
+      const scoreData = calculatePersonalScore(movie, req.session.userId, movie.movie_id);
+      return {
+        ...movie,
+        personalScore: scoreData ? scoreData.score : null,
+        scoreWeights: scoreData ? scoreData.weights : null,
+        tier: scoreData ? scoreData.tier : null
+      };
+    });
 
     res.json({
       ratings: ratingsWithScores,
@@ -168,12 +242,15 @@ router.post('/', async (req, res) => {
     saveMovieRating(req.session.userId, movieData);
 
     // Calculate personal score for this movie (exclude itself from calculation)
-    const personalScore = calculatePersonalScore(movieData, req.session.userId, movieData.id);
+    const scoreData = calculatePersonalScore(movieData, req.session.userId, movieData.id);
 
     res.json({
       success: true,
       movieId: movieData.id,
-      personalScore: personalScore
+      personalScore: scoreData ? scoreData.score : null,
+      scoreWeights: scoreData ? scoreData.weights : null,
+      tier: scoreData ? scoreData.tier : null,
+      totalVotes: scoreData ? scoreData.totalVotes : 0
     });
   } catch (error) {
     console.error('Save rating error:', error);
@@ -199,11 +276,13 @@ router.get('/:movieId', async (req, res) => {
     }
 
     // Calculate personal score (exclude itself from calculation)
-    const personalScore = calculatePersonalScore(movie, req.session.userId, movie.movie_id);
+    const scoreData = calculatePersonalScore(movie, req.session.userId, movie.movie_id);
 
     res.json({
       ...movie,
-      personalScore: personalScore
+      personalScore: scoreData ? scoreData.score : null,
+      scoreWeights: scoreData ? scoreData.weights : null,
+      tier: scoreData ? scoreData.tier : null
     });
   } catch (error) {
     console.error('Get movie rating error:', error);
@@ -224,10 +303,13 @@ router.post('/calculate-score', async (req, res) => {
     const movieData = req.body;
 
     // Calculate personal score (exclude itself from calculation to prevent circular dependency)
-    const personalScore = calculatePersonalScore(movieData, req.session.userId, movieData.id);
+    const scoreData = calculatePersonalScore(movieData, req.session.userId, movieData.id);
 
     res.json({
-      personalScore: personalScore,
+      personalScore: scoreData ? scoreData.score : null,
+      scoreWeights: scoreData ? scoreData.weights : null,
+      tier: scoreData ? scoreData.tier : null,
+      totalVotes: scoreData ? scoreData.totalVotes : 0,
       imdbRating: movieData.imdbRating || movieData.imdb_rating
     });
   } catch (error) {

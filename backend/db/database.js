@@ -77,6 +77,17 @@ function initDatabase() {
     )
   `);
 
+  // Movie-Genre junction table - many-to-many relationship
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS movie_genre_mappings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      movie_id TEXT NOT NULL,
+      genre TEXT NOT NULL,
+      FOREIGN KEY (user_id, movie_id) REFERENCES movie_ratings(user_id, movie_id) ON DELETE CASCADE
+    )
+  `);
+
   // Create indexes for faster lookups
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_users_session ON users(session_id);
@@ -84,9 +95,137 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_movie_ratings_user ON movie_ratings(user_id);
     CREATE INDEX IF NOT EXISTS idx_movie_ratings_timestamp ON movie_ratings(timestamp);
     CREATE INDEX IF NOT EXISTS idx_genre_prefs_user ON user_genre_preferences(user_id);
+    CREATE INDEX IF NOT EXISTS idx_genre_mappings_movie ON movie_genre_mappings(user_id, movie_id);
+    CREATE INDEX IF NOT EXISTS idx_genre_mappings_genre ON movie_genre_mappings(genre);
   `);
 
   console.log('Database initialized successfully');
+
+  // Run migration to populate genre mappings if needed
+  migrateGenreData();
+}
+
+/**
+ * Migrate existing genre data to the new junction table
+ * This runs once to split comma-separated genres into individual rows
+ */
+function migrateGenreData() {
+  // Check if migration is needed by seeing if any movie has genres but no mappings
+  const needsMigration = db.prepare(`
+    SELECT COUNT(*) as count FROM movie_ratings mr
+    WHERE mr.genre IS NOT NULL AND mr.genre != ''
+    AND NOT EXISTS (
+      SELECT 1 FROM movie_genre_mappings mgm
+      WHERE mgm.user_id = mr.user_id AND mgm.movie_id = mr.movie_id
+    )
+  `).get();
+
+  if (needsMigration.count === 0) {
+    return; // Already migrated
+  }
+
+  console.log(`🔄 Migrating ${needsMigration.count} movies to new genre system...`);
+
+  // Get all movies with genres
+  const movies = db.prepare(`
+    SELECT user_id, movie_id, genre FROM movie_ratings
+    WHERE genre IS NOT NULL AND genre != ''
+  `).all();
+
+  const insertMapping = db.prepare(`
+    INSERT OR IGNORE INTO movie_genre_mappings (user_id, movie_id, genre)
+    VALUES (?, ?, ?)
+  `);
+
+  const transaction = db.transaction(() => {
+    let genresAdded = 0;
+
+    movies.forEach(movie => {
+      // Split genres by comma and trim whitespace
+      const genres = movie.genre.split(',').map(g => g.trim()).filter(g => g);
+
+      genres.forEach(genre => {
+        insertMapping.run(movie.user_id, movie.movie_id, genre);
+        genresAdded++;
+      });
+    });
+
+    console.log(`✅ Migration complete: ${genresAdded} genre mappings created`);
+  });
+
+  transaction();
+
+  // Recalculate all genre preferences to ensure accuracy
+  console.log('🔄 Recalculating genre preferences...');
+  recalculateAllGenrePreferences();
+  console.log('✅ Genre preferences updated');
+}
+
+/**
+ * Save genre mappings for a movie
+ */
+function saveMovieGenreMappings(userId, movieId, genreString) {
+  // Delete existing mappings for this movie
+  db.prepare('DELETE FROM movie_genre_mappings WHERE user_id = ? AND movie_id = ?')
+    .run(userId, movieId);
+
+  if (!genreString) return;
+
+  // Split genres and insert each one
+  const genres = genreString.split(',').map(g => g.trim()).filter(g => g);
+  const insertStmt = db.prepare(`
+    INSERT INTO movie_genre_mappings (user_id, movie_id, genre)
+    VALUES (?, ?, ?)
+  `);
+
+  genres.forEach(genre => {
+    insertStmt.run(userId, movieId, genre);
+  });
+}
+
+/**
+ * Get all genres for a specific movie
+ */
+function getMovieGenres(userId, movieId) {
+  const stmt = db.prepare(`
+    SELECT genre FROM movie_genre_mappings
+    WHERE user_id = ? AND movie_id = ?
+  `);
+
+  return stmt.all(userId, movieId).map(row => row.genre);
+}
+
+/**
+ * Delete genre mappings for a movie
+ */
+function deleteMovieGenreMappings(userId, movieId) {
+  db.prepare('DELETE FROM movie_genre_mappings WHERE user_id = ? AND movie_id = ?')
+    .run(userId, movieId);
+}
+
+/**
+ * Recalculate ALL genre preferences for all users
+ * Used during migration
+ */
+function recalculateAllGenrePreferences() {
+  // Get all unique user/genre combinations
+  const userGenres = db.prepare(`
+    SELECT DISTINCT user_id, genre FROM movie_genre_mappings
+  `).all();
+
+  userGenres.forEach(({ user_id, genre }) => {
+    recalculateGenrePreferences(user_id, genre);
+  });
+
+  // Clean up preferences for genres that no longer have any ratings
+  db.prepare(`
+    DELETE FROM user_genre_preferences
+    WHERE NOT EXISTS (
+      SELECT 1 FROM movie_genre_mappings mgm
+      WHERE mgm.user_id = user_genre_preferences.user_id
+      AND mgm.genre = user_genre_preferences.genre
+    )
+  `).run();
 }
 
 /**
@@ -215,9 +354,15 @@ function saveMovieRating(userId, movieData) {
     now
   );
 
-  // Recalculate genre preferences from scratch to ensure accuracy
+  // Save individual genre mappings
   if (movieData.genre) {
-    recalculateGenrePreferences(userId, movieData.genre);
+    saveMovieGenreMappings(userId, movieData.id, movieData.genre);
+
+    // Recalculate preferences for each genre
+    const genres = movieData.genre.split(',').map(g => g.trim()).filter(g => g);
+    genres.forEach(genre => {
+      recalculateGenrePreferences(userId, genre);
+    });
   }
 }
 
@@ -250,8 +395,8 @@ function getMovieRating(userId, movieId) {
  * Delete a movie rating
  */
 function deleteMovieRating(userId, movieId) {
-  // Get the movie before deleting to update genre preferences
-  const movie = getMovieRating(userId, movieId);
+  // Get the genres before deleting to update preferences
+  const genres = getMovieGenres(userId, movieId);
 
   const stmt = db.prepare(`
     DELETE FROM movie_ratings
@@ -260,19 +405,26 @@ function deleteMovieRating(userId, movieId) {
 
   stmt.run(userId, movieId);
 
-  // Update genre preferences after deletion
-  if (movie && movie.genre) {
-    recalculateGenrePreferences(userId, movie.genre);
-  }
+  // Delete genre mappings (cascade should handle this, but let's be explicit)
+  deleteMovieGenreMappings(userId, movieId);
+
+  // Update genre preferences after deletion for each genre
+  genres.forEach(genre => {
+    recalculateGenrePreferences(userId, genre);
+  });
 }
 
 /**
  * Recalculate genre preferences from scratch
+ * Now uses the junction table to correctly handle multi-genre movies
  */
 function recalculateGenrePreferences(userId, genre) {
+  // Get all ratings for movies that have this genre
   const ratings = db.prepare(`
-    SELECT rating, imdb_rating FROM movie_ratings
-    WHERE user_id = ? AND genre = ? AND rating IS NOT NULL
+    SELECT DISTINCT mr.rating, mr.imdb_rating
+    FROM movie_ratings mr
+    JOIN movie_genre_mappings mgm ON mr.user_id = mgm.user_id AND mr.movie_id = mgm.movie_id
+    WHERE mr.user_id = ? AND mgm.genre = ? AND mr.rating IS NOT NULL
   `).all(userId, genre);
 
   if (ratings.length === 0) {
@@ -334,5 +486,8 @@ module.exports = {
   getUserMovieRatings,
   getMovieRating,
   deleteMovieRating,
-  getUserGenrePreferences
+  getUserGenrePreferences,
+  getMovieGenres,
+  saveMovieGenreMappings,
+  deleteMovieGenreMappings
 };
