@@ -1491,6 +1491,12 @@
                                                                                     <span className="font-semibold">{movie.personalScore}/10</span>
                                                                                 </div>
                                                                             )}
+                                                                            {movie.imdbRating && (
+                                                                                <div className="flex items-center gap-1 text-yellow-400">
+                                                                                    <span>⭐</span>
+                                                                                    <span className="font-semibold">{movie.imdbRating}/10</span>
+                                                                                </div>
+                                                                            )}
                                                                             {movie.rottenTomatoes && (
                                                                                 <div className="flex items-center gap-1 text-red-400">
                                                                                     <span>🍅</span>
