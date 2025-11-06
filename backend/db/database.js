@@ -8,7 +8,7 @@ if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 
-const dbPath = path.join(dbDir, 'cinesense.db');
+const dbPath = path.join(dbDir, 'watchornot.db');
 const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrent access

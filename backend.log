@@ -1,0 +1,120 @@
+
+> cinesense-backend@1.0.0 start
+> node server.js
+
+Database initialized successfully
+==================================================
+🎬 CineSense Backend Server
+==================================================
+✓ Server running on port 3001
+✓ Environment: development
+✓ CORS enabled for: http://10.0.0.101:3000
+✓ API endpoint: http://localhost:3001/api
+✓ Health check: http://localhost:3001/health
+==================================================
+[2025-11-06T03:09:10.996Z] OPTIONS /api/ratings/578
+  Headers: { 'content-type': undefined, 'content-length': undefined }
+[2025-11-06T03:09:11.005Z] DELETE /api/ratings/578
+  Headers: { 'content-type': undefined, 'content-length': undefined }
+[2025-11-06T03:09:18.241Z] OPTIONS /api/claude/identify
+  Headers: { 'content-type': undefined, 'content-length': undefined }
+[2025-11-06T03:09:18.260Z] POST /api/claude/identify
+  Headers: { 'content-type': 'application/json', 'content-length': '96312' }
+  Body: { image: <base64 data, length: 96300 > }
+
+========== CLAUDE VISION REQUEST ==========
+Timestamp: 2025-11-06T03:09:18.264Z
+Session ID: Gmv7a67ntWSK1NW2dzssIW2Y4qbfpx7M
+User ID: 16570a0e-4f2c-4a04-b4af-7e8fe1834956
+✓ Image data received, length: 96300 characters
+✓ Base64 data sanitized, length: 96300 characters
+✓ User authenticated
+✓ API key configured (length: 108 characters)
+✓ Detected image type: image/jpeg
+📤 Sending request to Claude API...
+Model: claude-3-haiku-20240307
+✅ Claude API responded successfully
+Response time: 1127 ms
+📝 Claude raw response: {
+  "title": "JAWS",
+  "year": 1975
+}
+📝 Parsed JSON - Title: JAWS Year: 1975
+========================================
+
+[2025-11-06T03:09:19.400Z] GET /api/tmdb/search
+  Headers: { 'content-type': undefined, 'content-length': undefined }
+[2025-11-06T03:09:19.493Z] GET /api/tmdb/movie/578
+  Headers: { 'content-type': undefined, 'content-length': undefined }
+[2025-11-06T03:09:19.511Z] GET /api/omdb/ratings/tt0073195
+  Headers: { 'content-type': undefined, 'content-length': undefined }
+
+========== OMDB RATINGS REQUEST ==========
+Timestamp: 2025-11-06T03:09:19.512Z
+IMDb ID: tt0073195
+Session ID: Gmv7a67ntWSK1NW2dzssIW2Y4qbfpx7M
+User ID: 16570a0e-4f2c-4a04-b4af-7e8fe1834956
+✓ IMDb ID validated
+✓ User authenticated
+✓ API key configured (length: 8 characters)
+📤 Fetching ratings from OMDb API...
+
+❌❌❌ OMDB API ERROR ❌❌❌
+Duration: 10005 ms
+Error type: AxiosError
+Error message: timeout of 10000ms exceeded
+❌ No response received from OMDb API
+[2025-11-06T03:09:29.524Z] OPTIONS /api/ratings/calculate-badge
+  Headers: { 'content-type': undefined, 'content-length': undefined }
+[2025-11-06T03:09:29.527Z] POST /api/ratings/calculate-badge
+  Headers: { 'content-type': 'application/json', 'content-length': '362' }
+  Body: {
+  "id": 578,
+  "title": "Jaws",
+  "year": "1975",
+  "genre": "Horror, Thriller, Adventure",
+  "director": null,
+  "cast": "Roy Scheider, Robert Shaw, Richard Dreyfuss",
+  "poster": "https://image.tmdb.org/t/p/w500/lxM6kqilAdpdhqUl2biYp5frUxE.jpg",
+  "score": 7.68,
+  "imdbRating": null,
+  "imdbVotes": null,
+  "rottenTomatoes": null,
+  "metacritic": null,
+  "rating": null,
+  "timestamp": "2025-11-06T03:09:29.520Z"
+}
+[2025-11-06T03:09:29.534Z] OPTIONS /api/ratings
+  Headers: { 'content-type': undefined, 'content-length': undefined }
+[2025-11-06T03:09:29.537Z] POST /api/ratings
+  Headers: { 'content-type': 'application/json', 'content-length': '429' }
+  Body: {
+  "id": 578,
+  "title": "Jaws",
+  "year": "1975",
+  "genre": "Horror, Thriller, Adventure",
+  "director": null,
+  "cast": "Roy Scheider, Robert Shaw, Richard Dreyfuss",
+  "poster": "https://image.tmdb.org/t/p/w500/lxM6kqilAdpdhqUl2biYp5frUxE.jpg",
+  "score": 7.68,
+  "imdbRating": null,
+  "imdbVotes": null,
+  "rottenTomatoes": null,
+  "metacritic": null,
+  "rating": null,
+  "timestamp": "2025-11-06T03:09:29.520Z",
+  "badge": null,
+  "badgeEmoji": null,
+  "badgeDescription": null,
+  "tier": null
+}
+SIGTERM signal received: closing HTTP server
+/Users/gekaizou/git_repo/cinesense-app/backend/server.js:165
+  app.close(() => {
+      ^
+
+TypeError: app.close is not a function
+    at process.<anonymous> (/Users/gekaizou/git_repo/cinesense-app/backend/server.js:165:7)
+    at process.emit (node:events:524:28)
+
+Node.js v20.19.5

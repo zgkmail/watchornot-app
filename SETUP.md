@@ -38,10 +38,10 @@ Open your terminal and clone the repository:
 
 ```bash
 # Clone the repository
-git clone https://github.com/zgkmail/cinesense-app.git
+git clone https://github.com/zgkmail/watchornot.git
 
 # Navigate into the project directory
-cd cinesense-app
+cd watchornot
 
 # Switch to the backend branch
 git checkout claude/backend-api-key-storage-011CUi1MkeVrAeayyVip2Ysh
@@ -49,7 +49,7 @@ git checkout claude/backend-api-key-storage-011CUi1MkeVrAeayyVip2Ysh
 
 You should see a folder structure like:
 ```
-cinesense-app/
+watchornot/
 ├── index.html
 ├── README.md
 ├── SETUP.md (this file)
@@ -164,10 +164,10 @@ You should see output like:
 ### 4.2 Navigate to the project root
 
 ```bash
-cd /path/to/cinesense-app
+cd /path/to/watchornot
 ```
 
-Replace `/path/to/cinesense-app` with the actual path where you cloned the repo.
+Replace `/path/to/watchornot` with the actual path where you cloned the repo.
 
 ### 4.3 Start a web server
 
@@ -316,11 +316,11 @@ You don't need to reinstall or reconfigure! Just:
 
 ```bash
 # Terminal 1: Start backend
-cd cinesense-app/backend
+cd watchornot/backend
 npm start
 
 # Terminal 2: Start frontend
-cd cinesense-app
+cd watchornot
 python3 -m http.server 3000
 
 # Then open http://localhost:3000 in browser

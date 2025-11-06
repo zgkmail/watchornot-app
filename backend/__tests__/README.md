@@ -166,7 +166,7 @@ Ensure previous test processes are fully closed before running new tests.
 Set `TMDB_API_KEY` environment variable (automatically mocked in tests).
 
 ### Test database path issues
-Test database is created at `backend/db/test-cinesense.db` and cleaned up after each test.
+Test database is created at `backend/db/test-watchornot.db` and cleaned up after each test.
 
 ## Future Enhancements
 

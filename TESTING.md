@@ -88,7 +88,7 @@ Leave the backend running and open a new terminal.
 
 ### 2.2 Navigate to project root
 ```bash
-cd /path/to/cinesense-app
+cd /path/to/watchornot
 ```
 
 ### 2.3 Start a simple HTTP server
@@ -184,9 +184,9 @@ If you see any errors, check:
 - Check firewall isn't blocking port 3001
 
 ### Database errors
-- The database is created automatically in `backend/db/cinesense.db`
+- The database is created automatically in `backend/db/watchornot.db`
 - Ensure the backend has write permissions in the `backend/db/` directory
-- Delete `cinesense.db` and restart if corrupted
+- Delete `watchornot.db` and restart if corrupted
 
 ### Session not persisting
 - Clear browser cookies and try again

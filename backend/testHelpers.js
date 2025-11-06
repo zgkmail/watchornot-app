@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Test database path (in backend/db directory)
-const TEST_DB_PATH = path.join(__dirname, 'db', 'test-cinesense.db');
+const TEST_DB_PATH = path.join(__dirname, 'db', 'test-watchornot.db');
 
 /**
  * Create a fresh test database

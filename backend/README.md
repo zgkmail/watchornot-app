@@ -128,7 +128,7 @@ Where `mediaType` is either "movie" or "tv".
 
 The backend uses SQLite for data storage:
 
-- **File location**: `backend/db/cinesense.db`
+- **File location**: `backend/db/watchornot.db`
 - **Auto-created** on first run
 - **Schema**:
   - `users`: Stores user sessions and IDs
@@ -207,7 +207,7 @@ server {
 
 ### Database errors
 - Ensure `backend/db/` directory exists
-- Check file permissions on `cinesense.db`
+- Check file permissions on `watchornot.db`
 
 ### CORS errors
 - Verify `FRONTEND_URL` in `.env` matches your frontend URL
