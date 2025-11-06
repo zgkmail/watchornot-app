@@ -329,6 +329,85 @@
             const remainingNeeded = totalNeeded - votedCount;
             const progressPercentage = (votedCount / totalNeeded) * 100;
 
+            // Recalculate badges for all movies when user becomes eligible
+            React.useEffect(() => {
+                const recalculateAllBadges = async () => {
+                    if (votedCount < 5) return;
+
+                    // Check if any movies are missing badge data
+                    const moviesNeedingBadges = Object.values(movieHistory).filter(movie => !movie.badge);
+                    if (moviesNeedingBadges.length === 0) return;
+
+                    console.log(`🔄 User is now eligible! Recalculating badges for ${moviesNeedingBadges.length} movies...`);
+
+                    try {
+                        // Calculate badges for all movies that don't have them
+                        const badgePromises = moviesNeedingBadges.map(async (movie) => {
+                            try {
+                                const response = await fetch(`${BACKEND_URL}/api/ratings/calculate-badge`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({
+                                        id: movie.id,
+                                        title: movie.title,
+                                        genre: movie.genre,
+                                        year: movie.year,
+                                        imdbRating: movie.imdbRating,
+                                        rottenTomatoes: movie.rottenTomatoes,
+                                        metacritic: movie.metacritic,
+                                        poster: movie.poster,
+                                        cast: movie.cast,
+                                        rating: movie.rating,
+                                        timestamp: movie.timestamp
+                                    })
+                                });
+
+                                if (response.ok) {
+                                    const badgeData = await response.json();
+                                    return {
+                                        movieId: movie.id,
+                                        badge: badgeData.badge,
+                                        badgeEmoji: badgeData.badgeEmoji,
+                                        badgeDescription: badgeData.badgeDescription,
+                                        tier: badgeData.tier
+                                    };
+                                }
+                                return null;
+                            } catch (error) {
+                                console.error(`Error calculating badge for ${movie.title}:`, error);
+                                return null;
+                            }
+                        });
+
+                        const badgeResults = await Promise.all(badgePromises);
+
+                        // Update movieHistory with all the new badge data
+                        setMovieHistory(prev => {
+                            const updated = { ...prev };
+                            badgeResults.forEach(result => {
+                                if (result && updated[result.movieId]) {
+                                    updated[result.movieId] = {
+                                        ...updated[result.movieId],
+                                        badge: result.badge,
+                                        badgeEmoji: result.badgeEmoji,
+                                        badgeDescription: result.badgeDescription,
+                                        tier: result.tier
+                                    };
+                                }
+                            });
+                            return updated;
+                        });
+
+                        console.log('✅ All badges recalculated successfully!');
+                    } catch (error) {
+                        console.error('Error recalculating badges:', error);
+                    }
+                };
+
+                recalculateAllBadges();
+            }, [votedCount, movieHistory]);
+
             const handleMovieRating = async (movieId, rating) => {
                 const movie = movieHistory[movieId];
                 if (!movie) return;
