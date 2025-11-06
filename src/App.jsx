@@ -156,7 +156,15 @@ import React, { useState, useRef } from 'react';
             });
 
             // Backend API configuration
-            const BACKEND_URL = 'http://10.0.0.101:3001';
+            // Automatically use the same host as the frontend (for network testing on iPhone/devices)
+            // If accessing via IP (e.g., http://192.168.1.5:3000), backend will be http://192.168.1.5:3001
+            // If accessing via localhost, backend will be http://localhost:3001
+            const getBackendUrl = () => {
+                const hostname = window.location.hostname;
+                const backendPort = '3001';
+                return `http://${hostname}:${backendPort}`;
+            };
+            const BACKEND_URL = getBackendUrl();
 
             // Helper function to get badge display name
             const getBadgeDisplayName = (badgeType) => {

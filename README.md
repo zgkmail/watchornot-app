@@ -213,6 +213,20 @@ In `src/App.jsx`, update the backend URL if needed:
 const BACKEND_URL = 'http://localhost:3001';
 ```
 
+## Mobile Testing
+
+Want to test the app on your iPhone while the servers run on your computer? It's easy!
+
+Both the frontend and backend are configured to work on your local network automatically. Just:
+
+1. Find your computer's IP address (e.g., `192.168.1.5`)
+2. Start both servers with `npm run dev` (frontend) and `cd backend && npm start`
+3. Open `http://YOUR-IP:3000` on your iPhone's Safari
+
+The app automatically detects the network URL and connects to the backend on the same IP!
+
+📱 **See [MOBILE_TESTING.md](MOBILE_TESTING.md) for detailed instructions.**
+
 ## Deployment
 
 ### Frontend

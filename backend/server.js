@@ -61,7 +61,30 @@ app.use((req, res, next) => {
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // In development, allow localhost and local network IPs
+    if (process.env.NODE_ENV !== 'production') {
+      // Allow localhost on any port
+      if (origin.match(/^http:\/\/localhost(:\d+)?$/)) {
+        return callback(null, true);
+      }
+      // Allow local network IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+      if (origin.match(/^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/)) {
+        return callback(null, true);
+      }
+    }
+
+    // In production, only allow the configured frontend URL
+    const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:3000';
+    if (origin === allowedOrigin) {
+      return callback(null, true);
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -147,15 +170,34 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
+  const os = require('os');
+  const networkInterfaces = os.networkInterfaces();
+  let localIp = 'localhost';
+
+  // Find the local network IP
+  for (const name of Object.keys(networkInterfaces)) {
+    for (const net of networkInterfaces[name]) {
+      // Skip internal (loopback) and non-IPv4 addresses
+      if (net.family === 'IPv4' && !net.internal) {
+        localIp = net.address;
+        break;
+      }
+    }
+  }
+
   console.log('='.repeat(50));
   console.log(`🎬 WatchOrNot Backend Server`);
   console.log('='.repeat(50));
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`✓ CORS enabled for: ${corsOptions.origin}`);
-  console.log(`✓ API endpoint: http://localhost:${PORT}/api`);
-  console.log(`✓ Health check: http://localhost:${PORT}/health`);
+  console.log(`✓ CORS enabled for development (localhost + local network)`);
+  console.log(`\n📍 Local:    http://localhost:${PORT}`);
+  console.log(`📍 Network:  http://${localIp}:${PORT}`);
+  console.log(`\n✓ API endpoint: /api`);
+  console.log(`✓ Health check: /health`);
+  console.log('='.repeat(50));
+  console.log(`\n💡 To test on iPhone: Use http://${localIp}:3000 in Safari`);
   console.log('='.repeat(50));
 });
 

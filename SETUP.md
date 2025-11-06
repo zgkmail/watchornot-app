@@ -351,6 +351,7 @@ npm run preview
 
 ## Need More Help?
 
+- Check **MOBILE_TESTING.md** for testing on iPhone/mobile devices
 - Check **TESTING.md** for detailed testing scenarios
 - Check **backend/README.md** for API documentation
 - Check **README.md** for project overview
