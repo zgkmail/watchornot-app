@@ -2007,20 +2007,24 @@
                                             </div>
                                         </div>
 
+                                        {/* Recommendation */}
+                                        {detailModalMovie.badge && (
+                                            <div className="mb-6">
+                                                <div className="bg-purple-900/30 p-3 rounded-lg border border-purple-500/30">
+                                                    <div className="text-purple-300 text-xs mb-2">Recommendation</div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-2xl">{detailModalMovie.badgeEmoji}</span>
+                                                        <span className="text-white text-lg font-bold">{getBadgeDisplayName(detailModalMovie.badge)}</span>
+                                                    </div>
+                                                    <div className="text-purple-200 text-sm ml-9">{detailModalMovie.badgeDescription}</div>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* Ratings */}
                                         <div className="mb-6">
                                             <h4 className="text-white font-semibold mb-3">Ratings</h4>
                                             <div className="grid grid-cols-2 gap-3">
-                                                {detailModalMovie.badge && (
-                                                    <div className="bg-purple-900/30 p-3 rounded-lg border border-purple-500/30 col-span-2">
-                                                        <div className="text-purple-300 text-xs mb-2">Recommendation</div>
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="text-2xl">{detailModalMovie.badgeEmoji}</span>
-                                                            <span className="text-white text-lg font-bold">{getBadgeDisplayName(detailModalMovie.badge)}</span>
-                                                        </div>
-                                                        <div className="text-purple-200 text-sm ml-9">{detailModalMovie.badgeDescription}</div>
-                                                    </div>
-                                                )}
                                                 {detailModalMovie.imdbRating && (
                                                     <div className="bg-gray-800 p-3 rounded-lg">
                                                         <div className="text-gray-400 text-xs mb-1">IMDb</div>
