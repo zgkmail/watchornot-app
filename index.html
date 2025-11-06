@@ -1523,7 +1523,7 @@
                             <div className="flex-1 relative overflow-hidden">
                                 
                                 {activeTab === 'history' && (
-                                    <div className={`h-full overflow-y-auto ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
+                                    <div className={`h-full overflow-y-auto ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
                                         <div className="pt-4 pb-8 px-6">
                                             <h1 className={`text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Your Snap History</h1>
                                         </div>
@@ -1643,7 +1643,7 @@
 
                                                             {/* Movie card */}
                                                             <div
-                                                                className={`rounded-xl p-3 flex gap-3 relative cursor-pointer ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
+                                                                className={`rounded-xl p-3 flex gap-3 relative cursor-pointer ${isDarkMode ? 'bg-gray-800' : 'bg-white border border-gray-200 shadow-md'}`}
                                                                 style={{
                                                                     transform: swipedItem === movie.id ? `translateX(-${swipeOffset}px)` : 'translateX(0)',
                                                                     transition: touchStart ? 'none' : 'transform 0.3s ease'
@@ -1667,9 +1667,9 @@
                                                                         <h3 className={`font-bold text-lg mb-1 line-clamp-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{movie.title}</h3>
                                                                         <p className={`text-sm mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{movie.year} • {movie.genre}</p>
                                                                         {movie.badge && votedCount >= 5 && (
-                                                                            <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-900/30 rounded-lg border border-purple-500/30 text-xs mb-2">
+                                                                            <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-xs mb-2 ${isDarkMode ? 'bg-purple-900/30 border-purple-500/30' : 'bg-purple-50 border-purple-200'}`}>
                                                                                 <span>{movie.badgeEmoji}</span>
-                                                                                <span className="text-purple-300 font-semibold">{getBadgeDisplayName(movie.badge)}</span>
+                                                                                <span className={`font-semibold ${isDarkMode ? 'text-purple-300' : 'text-purple-700'}`}>{getBadgeDisplayName(movie.badge)}</span>
                                                                             </div>
                                                                         )}
                                                                         <div className="flex items-center gap-3 text-sm mb-2">
@@ -1690,15 +1690,15 @@
                                                                     <div className="flex gap-2">
                                                                         <button
                                                                             onClick={(e) => { e.stopPropagation(); handleMovieRating(movie.id, 'up'); }}
-                                                                            className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movie.rating === 'up' ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-300'))}
+                                                                            className={'w-10 h-10 rounded-lg flex items-center justify-center transition-all ' + (movie.rating === 'up' ? 'bg-green-500 shadow-md' : (isDarkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300 shadow-sm'))}
                                                                         >
-                                                                            <ThumbsUp className="w-5 h-5 text-white" />
+                                                                            <ThumbsUp className={`w-5 h-5 ${movie.rating === 'up' || isDarkMode ? 'text-white' : 'text-gray-600'}`} />
                                                                         </button>
                                                                         <button
                                                                             onClick={(e) => { e.stopPropagation(); handleMovieRating(movie.id, 'down'); }}
-                                                                            className={'w-10 h-10 rounded-lg flex items-center justify-center ' + (movie.rating === 'down' ? 'bg-red-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-300'))}
+                                                                            className={'w-10 h-10 rounded-lg flex items-center justify-center transition-all ' + (movie.rating === 'down' ? 'bg-red-500 shadow-md' : (isDarkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300 shadow-sm'))}
                                                                         >
-                                                                            <ThumbsDown className="w-5 h-5 text-white" />
+                                                                            <ThumbsDown className={`w-5 h-5 ${movie.rating === 'down' || isDarkMode ? 'text-white' : 'text-gray-600'}`} />
                                                                         </button>
                                                                     </div>
                                                                 </div>
@@ -1782,7 +1782,7 @@
                                         <div className={`absolute inset-0 ${isDarkMode ? 'bg-gradient-to-b from-gray-800 via-gray-900 to-black' : 'bg-gradient-to-b from-gray-200 via-gray-300 to-gray-400'}`}>
                                         </div>
                                         <div className="absolute bottom-0 left-0 right-0 px-4 pb-2">
-                                            <div className={`rounded-2xl p-5 relative z-10 max-h-[70vh] overflow-y-auto ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                                            <div className={`rounded-2xl p-5 relative z-10 max-h-[70vh] overflow-y-auto ${isDarkMode ? 'bg-gray-800' : 'bg-white shadow-2xl'}`}>
                                                 <div className="flex gap-4 mb-4">
                                                     {currentMovie.poster && (
                                                         <img 
@@ -1825,7 +1825,7 @@
                                                         </div>
                                                     </div>
                                                 ) : votedCount < 5 ? (
-                                                    <div className={`mb-4 p-3 rounded-xl border ${isDarkMode ? 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-600/30' : 'bg-gradient-to-r from-gray-100 to-gray-200 border-gray-400'}`}>
+                                                    <div className={`mb-4 p-3 rounded-xl border ${isDarkMode ? 'bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-gray-600/30' : 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200'}`}>
                                                         <div className="flex items-center gap-3">
                                                             <div className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>🔒</div>
                                                             <div className="flex-1">
@@ -1863,15 +1863,15 @@
                                                 <div className="flex gap-3">
                                                     <button
                                                         onClick={() => handleRating('up')}
-                                                        className={'flex-1 py-4 rounded-xl flex items-center justify-center ' + (currentMovieRating === 'up' ? 'bg-green-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-300'))}
+                                                        className={'flex-1 py-4 rounded-xl flex items-center justify-center transition-all ' + (currentMovieRating === 'up' ? 'bg-green-500 shadow-lg' : (isDarkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300 shadow-md'))}
                                                     >
-                                                        <ThumbsUp className="w-8 h-8 text-white" />
+                                                        <ThumbsUp className={`w-8 h-8 ${currentMovieRating === 'up' || isDarkMode ? 'text-white' : 'text-gray-600'}`} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleRating('down')}
-                                                        className={'flex-1 py-4 rounded-xl flex items-center justify-center ' + (currentMovieRating === 'down' ? 'bg-red-500' : (isDarkMode ? 'bg-gray-600' : 'bg-gray-300'))}
+                                                        className={'flex-1 py-4 rounded-xl flex items-center justify-center transition-all ' + (currentMovieRating === 'down' ? 'bg-red-500 shadow-lg' : (isDarkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300 shadow-md'))}
                                                     >
-                                                        <ThumbsDown className="w-8 h-8 text-white" />
+                                                        <ThumbsDown className={`w-8 h-8 ${currentMovieRating === 'down' || isDarkMode ? 'text-white' : 'text-gray-600'}`} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -1880,7 +1880,7 @@
                                 )}
 
                                 {activeTab === 'profile' && (
-                                    <div className={`h-full overflow-y-auto px-6 ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
+                                    <div className={`h-full overflow-y-auto px-6 ${isDarkMode ? 'bg-black' : 'bg-gray-50'}`}>
                                         <div className="pt-4 pb-8">
                                             <h1 className={`text-3xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Your Taste Profile</h1>
                                         </div>
@@ -1984,7 +1984,7 @@
                                                         )}
 
                                                         {/* Recommendation Info */}
-                                                        <div className={`mt-6 w-full max-w-md rounded-lg p-4 border ${isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-100 border-gray-300'}`}>
+                                                        <div className={`mt-6 w-full max-w-md rounded-lg p-4 border ${isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200 shadow-sm'}`}>
                                                             <div className="text-center mb-3">
                                                                 <h3 className={`text-sm font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>How Recommendation Badge Works</h3>
                                                                 <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Based on IMDb score + your genre, director, and cast preferences</p>
@@ -2041,7 +2041,7 @@
                                                         }
                                                     }
                                                 }}
-                                                className={`w-full py-4 px-5 rounded-xl flex items-center gap-3 border ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white border-gray-700' : 'bg-gray-200 hover:bg-gray-300 text-gray-900 border-gray-400'}`}
+                                                className={`w-full py-4 px-5 rounded-xl flex items-center gap-3 border transition-all ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white border-gray-700' : 'bg-white hover:bg-gray-50 text-gray-900 border-gray-300 shadow-sm'}`}
                                             >
                                                 <Trash2 className="w-6 h-6 text-red-500" />
                                                 <span className="text-lg">Delete Taste Profile</span>
@@ -2173,7 +2173,7 @@
                                             </div>
                                         ) : votedCount < 5 ? (
                                             <div className="mb-6">
-                                                <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-800/50 border-gray-600/30' : 'bg-gray-100 border-gray-300'}`}>
+                                                <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-800/50 border-gray-600/30' : 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200'}`}>
                                                     <div className="flex items-center gap-3">
                                                         <div className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>🔒</div>
                                                         <div className="flex-1">
@@ -2216,15 +2216,15 @@
                                             <div className="flex gap-3">
                                                 <button
                                                     onClick={() => handleMovieRating(detailModalMovie.id, 'up')}
-                                                    className={'flex-1 py-4 rounded-xl flex items-center justify-center ' + (detailModalMovie.rating === 'up' ? 'bg-green-500' : (isDarkMode ? 'bg-gray-700' : 'bg-gray-300'))}
+                                                    className={'flex-1 py-4 rounded-xl flex items-center justify-center transition-all ' + (detailModalMovie.rating === 'up' ? 'bg-green-500 shadow-md' : (isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300 shadow-sm'))}
                                                 >
-                                                    <ThumbsUp className="w-6 h-6 text-white" />
+                                                    <ThumbsUp className={`w-6 h-6 ${detailModalMovie.rating === 'up' || isDarkMode ? 'text-white' : 'text-gray-600'}`} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleMovieRating(detailModalMovie.id, 'down')}
-                                                    className={'flex-1 py-4 rounded-xl flex items-center justify-center ' + (detailModalMovie.rating === 'down' ? 'bg-red-500' : (isDarkMode ? 'bg-gray-700' : 'bg-gray-300'))}
+                                                    className={'flex-1 py-4 rounded-xl flex items-center justify-center transition-all ' + (detailModalMovie.rating === 'down' ? 'bg-red-500 shadow-md' : (isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300 shadow-sm'))}
                                                 >
-                                                    <ThumbsDown className="w-6 h-6 text-white" />
+                                                    <ThumbsDown className={`w-6 h-6 ${detailModalMovie.rating === 'down' || isDarkMode ? 'text-white' : 'text-gray-600'}`} />
                                                 </button>
                                             </div>
                                         </div>
