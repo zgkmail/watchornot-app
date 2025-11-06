@@ -38,10 +38,10 @@ Open your terminal and clone the repository:
 
 ```bash
 # Clone the repository
-git clone https://github.com/zgkmail/watchornot.git
+git clone https://github.com/zgkmail/watchornot-app.git
 
 # Navigate into the project directory
-cd watchornot
+cd watchornot-app
 
 # Switch to the backend branch
 git checkout claude/backend-api-key-storage-011CUi1MkeVrAeayyVip2Ysh
@@ -320,7 +320,7 @@ cd watchornot/backend
 npm start
 
 # Terminal 2: Start frontend
-cd watchornot
+cd watchornot-app
 python3 -m http.server 3000
 
 # Then open http://localhost:3000 in browser
