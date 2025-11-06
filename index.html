@@ -333,6 +333,14 @@
                     }
                 }));
 
+                // Also optimistically update detailModalMovie if it's the same movie
+                if (detailModalMovie && detailModalMovie.id === movieId) {
+                    setDetailModalMovie(prev => ({
+                        ...prev,
+                        rating: newRating
+                    }));
+                }
+
                 // Save to backend
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/ratings`, {
@@ -371,6 +379,18 @@
                         // Also update currentMovie if it's the same movie
                         if (currentMovie && currentMovie.id === movieId) {
                             setCurrentMovie(prev => ({
+                                ...prev,
+                                rating: newRating,
+                                badge: data.badge,
+                                badgeEmoji: data.badgeEmoji,
+                                badgeDescription: data.badgeDescription,
+                                tier: data.tier
+                            }));
+                        }
+
+                        // Also update detailModalMovie if it's the same movie
+                        if (detailModalMovie && detailModalMovie.id === movieId) {
+                            setDetailModalMovie(prev => ({
                                 ...prev,
                                 rating: newRating,
                                 badge: data.badge,
