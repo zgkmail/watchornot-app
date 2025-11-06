@@ -1,7 +1,7 @@
 {
-  "name": "cinesense-backend",
+  "name": "watchornot-backend",
   "version": "1.0.0",
-  "description": "Backend server for CineSense app with secure API key storage",
+  "description": "Backend server for WatchOrNot app with secure API key storage",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -22,7 +22,7 @@
     ]
   },
   "keywords": [
-    "cinesense",
+    "watchornot",
     "api",
     "backend"
   ],

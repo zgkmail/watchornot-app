@@ -1,7 +1,7 @@
 {
-  "name": "CineSense - Snap & Rate Movies",
-  "short_name": "CineSense",
-  "description": "Snap movie and TV show titles, rate them, and build your personalized taste profile",
+  "name": "WatchOrNot - One Snap. One Answer.",
+  "short_name": "WatchOrNot",
+  "description": "Snap any movie title on TV and get an instant personalized recommendation—should you watch it or not?",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

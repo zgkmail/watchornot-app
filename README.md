@@ -1,6 +1,6 @@
-# CineSense - Snap & Rate Movies
+# WatchOrNot - One Snap. One Answer.
 
-A modern movie and TV show discovery app with secure backend API key storage. Snap photos of movie titles, get instant details, and build your taste profile!
+See a movie on TV? Just snap the title. WatchOrNot gives you a personalized yes-or-no recommendation based on your taste profile—instantly. No more endless scrolling or wondering if that movie is worth your time.
 
 ## Features
 
@@ -94,7 +94,7 @@ The frontend will be available at `http://localhost:3000`
 ## Project Structure
 
 ```
-cinesense-app/
+watchornot-app/
 ├── index.html              # Frontend (React app in single file)
 ├── README.md               # This file
 └── backend/
@@ -104,7 +104,7 @@ cinesense-app/
     ├── README.md           # Backend documentation
     ├── db/
     │   ├── database.js     # SQLite setup & queries
-    │   └── cinesense.db    # Database (auto-created)
+    │   └── watchornot.db   # Database (auto-created)
     └── routes/
         ├── tmdb.js         # TMDB proxy
         ├── claude.js       # Claude API proxy

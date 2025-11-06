@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>CineSense - Snap & Vote Movies</title>
+    <title>WatchOrNot - One Snap. One Answer.</title>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -14,7 +14,7 @@
     <!-- iOS Specific Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="CineSense">
+    <meta name="apple-mobile-web-app-title" content="WatchOrNot">
 
     <!-- App Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
@@ -1734,40 +1734,93 @@
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className={`h-full flex flex-col items-center justify-center px-8 ${isDarkMode ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-100 to-gray-200'}`}>
-                                                <Camera className={`w-20 h-20 mb-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                                                <p className={`text-lg font-light text-center mb-8 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Snap a movie or TV show title screen</p>
-                                                <button onClick={() => cameraInputRef.current?.click()} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-xl mb-4 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
-                                                    <Camera className="w-5 h-5" />
-                                                    Take Photo
-                                                </button>
-                                                <button onClick={() => fileInputRef.current?.click()} className={`w-full py-4 px-6 rounded-xl mb-4 flex items-center justify-center gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50'}`}>
-                                                    <Upload className="w-5 h-5" />
-                                                    Upload Image
-                                                </button>
-                                                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileUpload} className="hidden" />
-                                                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-                                                <button onClick={() => setSearchMode(!searchMode)} className={`w-full py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white focus:ring-gray-500' : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 focus:ring-gray-400'}`}>
-                                                    <Search className="w-5 h-5" />
-                                                    Manual Search
-                                                </button>
+                                            <div className={`h-full flex flex-col px-6 py-6 overflow-y-auto ${isDarkMode ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-50 to-white'}`}>
+                                                {/* App Branding */}
+                                                <div className="text-center mb-8">
+                                                    <h1 className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>WatchOrNot</h1>
+                                                    <p className={`text-lg font-light ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>One Snap. One Answer.</p>
+                                                </div>
+
+                                                {/* How It Works Section */}
+                                                <div className={`rounded-2xl p-6 mb-8 ${isDarkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200 shadow-sm'}`}>
+                                                    <h2 className={`text-xl font-semibold mb-6 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>How It Works</h2>
+
+                                                    {/* Step 1 */}
+                                                    <div className="flex gap-4 mb-6">
+                                                        <div className="flex-shrink-0">
+                                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-blue-600' : 'bg-blue-500'}`}>
+                                                                <Camera className="w-6 h-6 text-white" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Snap</h3>
+                                                            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Point your camera at any movie title on TV or streaming</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Step 2 */}
+                                                    <div className="flex gap-4 mb-6">
+                                                        <div className="flex-shrink-0">
+                                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-purple-600' : 'bg-purple-500'}`}>
+                                                                <span className="text-2xl">🤖</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Analyze</h3>
+                                                            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>AI reads the title and checks it against your taste profile</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Step 3 */}
+                                                    <div className="flex gap-4">
+                                                        <div className="flex-shrink-0">
+                                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-green-600' : 'bg-green-500'}`}>
+                                                                <span className="text-2xl">✓</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Decide</h3>
+                                                            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Get an instant personalized recommendation</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Action Buttons */}
+                                                <div className="space-y-3 mb-6">
+                                                    <button onClick={() => cameraInputRef.current?.click()} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-xl flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all shadow-lg">
+                                                        <Camera className="w-5 h-5" />
+                                                        Take Photo
+                                                    </button>
+                                                    <button onClick={() => fileInputRef.current?.click()} className={`w-full py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50'}`}>
+                                                        <Upload className="w-5 h-5" />
+                                                        Upload Image
+                                                    </button>
+                                                    <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileUpload} className="hidden" />
+                                                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                                                    <button onClick={() => setSearchMode(!searchMode)} className={`w-full py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white focus:ring-gray-500' : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 focus:ring-gray-400'}`}>
+                                                        <Search className="w-5 h-5" />
+                                                        Manual Search
+                                                    </button>
+                                                </div>
+
                                                 {searchMode && (
-                                                    <div className="w-full mt-4">
+                                                    <div className="space-y-3 mb-6">
                                                         <input
                                                             type="text"
                                                             value={searchQuery}
                                                             onChange={(e) => setSearchQuery(e.target.value)}
                                                             onKeyPress={(e) => e.key === 'Enter' && searchQuery.trim() && (setIsProcessing(true), searchMovie(searchQuery))}
                                                             placeholder="Enter movie or TV show name..."
-                                                            className={`w-full py-3 px-4 rounded-xl mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${isDarkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'}`}
+                                                            className={`w-full py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${isDarkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'}`}
                                                         />
                                                         <button onClick={() => searchQuery.trim() && (setIsProcessing(true), searchMovie(searchQuery))} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
                                                             Search
                                                         </button>
                                                     </div>
                                                 )}
+
                                                 {isProcessing && (
-                                                    <div className="mt-6 text-center">
+                                                    <div className="text-center">
                                                         <div className={`animate-spin rounded-full h-12 w-12 border-4 border-t-transparent mx-auto mb-3 ${isDarkMode ? 'border-white' : 'border-gray-900'}`}></div>
                                                         <p className={isDarkMode ? 'text-white' : 'text-gray-900'}>Processing...</p>
                                                     </div>

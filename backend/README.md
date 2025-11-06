@@ -1,6 +1,6 @@
-# CineSense Backend
+# WatchOrNot Backend
 
-Secure backend server for CineSense app that provides proxy endpoints for TMDB API, keeping API keys secure on the server.
+Secure backend server for WatchOrNot app that provides proxy endpoints for TMDB API, keeping API keys secure on the server.
 
 ## Features
 
@@ -20,7 +20,7 @@ backend/
 ├── .env                   # Environment configuration (create from .env.example)
 ├── db/
 │   ├── database.js        # SQLite database setup and queries
-│   └── cinesense.db       # SQLite database file (auto-created)
+│   └── watchornot.db      # SQLite database file (auto-created)
 └── routes/
     ├── tmdb.js            # TMDB proxy endpoints
     ├── claude.js          # Claude API proxy endpoints
