@@ -2118,7 +2118,7 @@
                                         </div>
 
                                         {/* Recommendation */}
-                                        {detailModalMovie.badge && (
+                                        {detailModalMovie.badge ? (
                                             <div className="mb-6">
                                                 <div className="bg-purple-900/30 p-3 rounded-lg border border-purple-500/30">
                                                     <div className="text-purple-300 text-xs mb-2">Recommendation</div>
@@ -2129,7 +2129,19 @@
                                                     <div className="text-purple-200 text-sm ml-9">{detailModalMovie.badgeDescription}</div>
                                                 </div>
                                             </div>
-                                        )}
+                                        ) : votedCount < 5 ? (
+                                            <div className="mb-6">
+                                                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-600/30">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="text-gray-400">🔒</div>
+                                                        <div className="flex-1">
+                                                            <div className="text-gray-300 text-sm font-semibold mb-1">Unlock Recommendations</div>
+                                                            <div className="text-gray-400 text-xs">Vote on {remainingNeeded} more {remainingNeeded === 1 ? 'title' : 'titles'} to see personalized recommendations</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : null}
 
                                         {/* Ratings */}
                                         <div className="mb-6">
