@@ -1,6 +1,6 @@
-# CineSense Debugging Guide
+# WatchOrNot Debugging Guide
 
-This guide will help you debug issues in CineSense.
+This guide will help you debug issues in WatchOrNot.
 
 ## Enhanced Error Handling
 
@@ -61,7 +61,7 @@ node server.js
 
 **Watch for:**
 - ✅ Server should start without errors
-- ✅ Should see "CineSense Backend Server" banner
+- ✅ Should see "WatchOrNot Backend Server" banner
 - ✅ Should show port and CORS configuration
 - ❌ If it exits with "FATAL ERROR", check your .env file
 
@@ -117,7 +117,7 @@ Look for:
 curl http://localhost:3001/health
 
 # Expected response:
-# {"status":"ok","message":"CineSense Backend is running"}
+# {"status":"ok","message":"WatchOrNot Backend is running"}
 ```
 
 #### Issue: "No text detected in image"

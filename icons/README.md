@@ -1,6 +1,6 @@
-# CineSense App Icons
+# WatchOrNot App Icons
 
-This directory contains app icons for the CineSense PWA (Progressive Web App).
+This directory contains app icons for the WatchOrNot PWA (Progressive Web App).
 
 ## Required Icon Sizes
 
@@ -28,7 +28,7 @@ The following icon sizes are needed for full iOS and Android support:
 
 Use a service like [RealFaviconGenerator](https://realfavicongenerator.net/) or [PWA Asset Generator](https://www.pwabuilder.com/imageGenerator):
 
-1. Create a 512x512 source image with the CineSense camera logo
+1. Create a 512x512 source image with the WatchOrNot camera logo
 2. Upload to the service
 3. Download the generated icons
 4. Place them in this directory

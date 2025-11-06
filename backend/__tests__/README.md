@@ -1,6 +1,6 @@
-# CineSense Backend Test Suite
+# WatchOrNot Backend Test Suite
 
-This directory contains automated tests for the CineSense backend application. The tests eliminate the need for manual data entry during development and testing.
+This directory contains automated tests for the WatchOrNot backend application. The tests eliminate the need for manual data entry during development and testing.
 
 ## Test Structure
 

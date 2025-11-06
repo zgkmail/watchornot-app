@@ -114,7 +114,7 @@ app.use('/api/', ensureAuthenticated);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'CineSense Backend is running' });
+  res.json({ status: 'ok', message: 'WatchOrNot Backend is running' });
 });
 
 // Session info endpoint
@@ -149,7 +149,7 @@ app.use((req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log('='.repeat(50));
-  console.log(`🎬 CineSense Backend Server`);
+  console.log(`🎬 WatchOrNot Backend Server`);
   console.log('='.repeat(50));
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);

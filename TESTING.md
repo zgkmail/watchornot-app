@@ -1,6 +1,6 @@
-# Testing CineSense Locally
+# Testing WatchOrNot Locally
 
-Follow these steps to test the CineSense app on your local computer.
+Follow these steps to test the WatchOrNot app on your local computer.
 
 ## Prerequisites
 
@@ -69,7 +69,7 @@ npm start
 You should see:
 ```
 ==================================================
-🎬 CineSense Backend Server
+🎬 WatchOrNot Backend Server
 ==================================================
 ✓ Server running on port 3001
 ✓ Environment: development
@@ -127,7 +127,7 @@ curl http://localhost:3001/health
 
 Expected response:
 ```json
-{"status":"ok","message":"CineSense Backend is running"}
+{"status":"ok","message":"WatchOrNot Backend is running"}
 ```
 
 ### 3.3 Test Manual Search

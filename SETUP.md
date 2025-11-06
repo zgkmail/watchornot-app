@@ -1,6 +1,6 @@
 # Complete Setup Guide - From Clone to Running
 
-This guide walks you through getting the CineSense app running on your local computer from scratch.
+This guide walks you through getting the WatchOrNot app running on your local computer from scratch.
 
 ## Prerequisites
 
@@ -141,7 +141,7 @@ npm start
 You should see output like:
 ```
 ==================================================
-🎬 CineSense Backend Server
+🎬 WatchOrNot Backend Server
 ==================================================
 ✓ Server running on port 3001
 ✓ Environment: development
@@ -202,7 +202,7 @@ Serving HTTP on 0.0.0.0 port 3000 (http://0.0.0.0:3000/) ...
 1. Open your web browser
 2. Go to: **http://localhost:3000**
 
-You should see the CineSense app with three tabs at the bottom:
+You should see the WatchOrNot app with three tabs at the bottom:
 - 📜 History
 - 📷 Snap
 - 👤 Profile
@@ -255,7 +255,7 @@ GET /api/tmdb/search?query=inception 200
 **Solution:**
 1. Make sure backend is running (check the backend terminal)
 2. Test: `curl http://localhost:3001/health` in a new terminal
-3. You should get: `{"status":"ok","message":"CineSense Backend is running"}`
+3. You should get: `{"status":"ok","message":"WatchOrNot Backend is running"}`
 
 ### Problem: CORS error in browser console
 
@@ -292,7 +292,7 @@ GET /api/tmdb/search?query=inception 200
 When everything is working, you should have:
 
 1. ✅ **Backend server** running on `http://localhost:3001`
-   - Terminal window showing "CineSense Backend Server"
+   - Terminal window showing "WatchOrNot Backend Server"
    - Handling API requests to TMDB
 
 2. ✅ **Frontend server** running on `http://localhost:3000`
@@ -300,7 +300,7 @@ When everything is working, you should have:
    - Serving the index.html React app
 
 3. ✅ **Browser tab** open at `http://localhost:3000`
-   - CineSense app interface
+   - WatchOrNot app interface
    - Ready to snap and rate movies!
 
 ## Stopping the App
@@ -345,4 +345,4 @@ python3 -m http.server 3000
 - [x] Rating movies works
 - [x] History shows rated movies
 
-🎉 **Congratulations! You're ready to start using CineSense!**
+🎉 **Congratulations! You're ready to start using WatchOrNot!**
