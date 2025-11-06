@@ -1362,12 +1362,25 @@
                         console.log('⚠️  No IMDb ID available, skipping OMDb ratings');
                     }
 
+                    // Extract trailer URL from videos
+                    let trailerUrl = null;
+                    if (details.videos?.results?.length > 0) {
+                        // Find YouTube trailer (prefer "Trailer" type, fallback to "Teaser")
+                        const trailer = details.videos.results.find(v =>
+                            v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
+                        );
+                        if (trailer) {
+                            trailerUrl = `https://www.youtube.com/watch?v=${trailer.key}`;
+                            console.log('🎬 Trailer found:', trailerUrl);
+                        }
+                    }
+
                     const movieData = {
                         id: movie.id,
                         title: movie.title || movie.name,
                         year: (movie.release_date || movie.first_air_date || '').split('-')[0],
                         genre: details.genres?.slice(0, 3).map(g => g.name).join(', ') || 'Drama',
-                        director: omdbRatings?.director || null,
+                        director: omdbRatings?.director || details.credits?.crew?.find(c => c.job === 'Director')?.name || null,
                         cast: omdbRatings?.actors || details.credits?.cast?.slice(0, 3).map(c => c.name).join(', ') || 'N/A',
                         poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
                         score: movie.vote_average,
@@ -1375,6 +1388,7 @@
                         imdbVotes: omdbRatings?.ratings?.imdb?.votes || null,
                         rottenTomatoes: omdbRatings?.ratings?.rottenTomatoes || null,
                         metacritic: omdbRatings?.ratings?.metacritic || null,
+                        trailerUrl: trailerUrl,
                         rating: null,
                         timestamp: new Date().toISOString()
                     };
@@ -1755,9 +1769,24 @@
                                                     <div className="flex-1">
                                                         <h2 className="text-white text-2xl font-bold mb-1">{currentMovie.title}</h2>
                                                         <p className="text-gray-400 text-sm mb-2">{currentMovie.year} • {currentMovie.genre}</p>
+                                                        {currentMovie.director && (
+                                                            <p className="text-gray-300 text-xs mb-1">
+                                                                <span className="text-gray-400">Director:</span> {currentMovie.director}
+                                                            </p>
+                                                        )}
                                                         <p className="text-gray-300 text-xs">
                                                             <span className="text-gray-400">Starring:</span> {currentMovie.cast}
                                                         </p>
+                                                        {currentMovie.trailerUrl && (
+                                                            <a
+                                                                href={currentMovie.trailerUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1 mt-2 text-blue-400 hover:text-blue-300 text-xs"
+                                                            >
+                                                                <span>🎬</span> Watch Trailer
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 {currentMovie.badge ? (
@@ -1804,7 +1833,7 @@
                                                 <div className="text-center mb-4">
                                                     <p className="text-white text-sm mb-2">What's your take on this title?</p>
                                                     <p className="text-white text-sm mb-3">Vote to build your taste profile!</p>
-                                                    <button onClick={handleNotNow} className="text-gray-400 text-sm hover:text-gray-300">Skip for Now</button>
+                                                    <button onClick={handleNotNow} className="text-gray-400 text-sm hover:text-gray-300">Skip For Now | Vote in History later</button>
                                                 </div>
                                                 <div className="flex gap-3">
                                                     <button
@@ -1921,7 +1950,7 @@
                                                                     tier.nextTier === 15 ? 'Enthusiast' :
                                                                     tier.nextTier === 30 ? 'Expert' :
                                                                     tier.nextTier === 50 ? 'Master' : 'next'
-                                                                }</span> tier
+                                                                }</span> tier{tier.nextTier === 5 ? ' and unlock personalized recommendation badge' : ''}
                                                             </p>
                                                         ) : (
                                                             <p className="text-yellow-300 text-center text-sm font-semibold">
@@ -1932,14 +1961,9 @@
                                                         {/* Recommendation Info */}
                                                         <div className="mt-6 w-full max-w-md bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                                             <div className="text-center mb-3">
-                                                                <h3 className="text-white text-sm font-semibold mb-1">Recommendation Badges</h3>
+                                                                <h3 className="text-white text-sm font-semibold mb-1">How Recommendation Badge Works</h3>
                                                                 <p className="text-gray-400 text-xs">Based on IMDb score + your genre, director, and cast preferences</p>
                                                             </div>
-                                                            {votedCount < 5 && (
-                                                                <div className="text-gray-400 text-xs text-center mb-3">
-                                                                    Vote on {5 - votedCount} more {(5 - votedCount) === 1 ? 'title' : 'titles'} to unlock recommendation badge.
-                                                                </div>
-                                                            )}
                                                             <div className="text-gray-300 text-xs space-y-2">
                                                                 <div className="flex items-center gap-2">
                                                                     <span>🎯</span>
@@ -2075,16 +2099,31 @@
                                             <div className="flex-1">
                                                 <h3 className="text-white text-2xl font-bold mb-2">{detailModalMovie.title}</h3>
                                                 <p className="text-gray-400 text-sm mb-3">{detailModalMovie.year} • {detailModalMovie.genre}</p>
+                                                {detailModalMovie.director && (
+                                                    <p className="text-gray-300 text-sm mb-2">
+                                                        <span className="text-gray-400">Director:</span> {detailModalMovie.director}
+                                                    </p>
+                                                )}
                                                 {detailModalMovie.cast && (
-                                                    <p className="text-gray-300 text-sm">
+                                                    <p className="text-gray-300 text-sm mb-2">
                                                         <span className="text-gray-400">Cast:</span> {detailModalMovie.cast}
                                                     </p>
+                                                )}
+                                                {detailModalMovie.trailerUrl && (
+                                                    <a
+                                                        href={detailModalMovie.trailerUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 mt-1 text-blue-400 hover:text-blue-300 text-sm"
+                                                    >
+                                                        <span>🎬</span> Watch Trailer
+                                                    </a>
                                                 )}
                                             </div>
                                         </div>
 
                                         {/* Recommendation */}
-                                        {detailModalMovie.badge && (
+                                        {detailModalMovie.badge ? (
                                             <div className="mb-6">
                                                 <div className="bg-purple-900/30 p-3 rounded-lg border border-purple-500/30">
                                                     <div className="text-purple-300 text-xs mb-2">Recommendation</div>
@@ -2095,7 +2134,19 @@
                                                     <div className="text-purple-200 text-sm ml-9">{detailModalMovie.badgeDescription}</div>
                                                 </div>
                                             </div>
-                                        )}
+                                        ) : votedCount < 5 ? (
+                                            <div className="mb-6">
+                                                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-600/30">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="text-gray-400">🔒</div>
+                                                        <div className="flex-1">
+                                                            <div className="text-gray-300 text-sm font-semibold mb-1">Unlock Recommendations</div>
+                                                            <div className="text-gray-400 text-xs">Vote on {remainingNeeded} more {remainingNeeded === 1 ? 'title' : 'titles'} to see personalized recommendations</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : null}
 
                                         {/* Ratings */}
                                         <div className="mb-6">
@@ -2153,7 +2204,7 @@
                                                 className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2"
                                             >
                                                 <Trash2 className="w-5 h-5" />
-                                                <span>Remove from Profile</span>
+                                                <span>Remove from History</span>
                                             </button>
                                             <button
                                                 onClick={() => setDetailModalMovie(null)}
