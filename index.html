@@ -1548,6 +1548,12 @@
                                                                     <div>
                                                                         <h3 className="text-white font-bold text-lg mb-1 line-clamp-2">{movie.title}</h3>
                                                                         <p className="text-gray-400 text-sm mb-1">{movie.year} • {movie.genre}</p>
+                                                                        {movie.badge && votedCount >= 5 && (
+                                                                            <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-900/30 rounded-lg border border-purple-500/30 text-xs mb-2">
+                                                                                <span>{movie.badgeEmoji}</span>
+                                                                                <span className="text-purple-300 font-semibold">{getBadgeDisplayName(movie.badge)}</span>
+                                                                            </div>
+                                                                        )}
                                                                         <div className="flex items-center gap-3 text-sm mb-2">
                                                                             {movie.imdbRating && (
                                                                                 <div className="flex items-center gap-1">
@@ -1562,12 +1568,6 @@
                                                                                 </div>
                                                                             )}
                                                                         </div>
-                                                                        {movie.badge && votedCount >= 5 && (
-                                                                            <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-900/30 rounded-lg border border-purple-500/30 text-xs">
-                                                                                <span>{movie.badgeEmoji}</span>
-                                                                                <span className="text-purple-300 font-semibold">{getBadgeDisplayName(movie.badge)}</span>
-                                                                            </div>
-                                                                        )}
                                                                     </div>
                                                                     <div className="flex gap-2">
                                                                         <button
