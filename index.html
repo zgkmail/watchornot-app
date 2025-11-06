@@ -1362,6 +1362,19 @@
                         console.log('⚠️  No IMDb ID available, skipping OMDb ratings');
                     }
 
+                    // Extract trailer URL from videos
+                    let trailerUrl = null;
+                    if (details.videos?.results?.length > 0) {
+                        // Find YouTube trailer (prefer "Trailer" type, fallback to "Teaser")
+                        const trailer = details.videos.results.find(v =>
+                            v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')
+                        );
+                        if (trailer) {
+                            trailerUrl = `https://www.youtube.com/watch?v=${trailer.key}`;
+                            console.log('🎬 Trailer found:', trailerUrl);
+                        }
+                    }
+
                     const movieData = {
                         id: movie.id,
                         title: movie.title || movie.name,
@@ -1375,6 +1388,7 @@
                         imdbVotes: omdbRatings?.ratings?.imdb?.votes || null,
                         rottenTomatoes: omdbRatings?.ratings?.rottenTomatoes || null,
                         metacritic: omdbRatings?.ratings?.metacritic || null,
+                        trailerUrl: trailerUrl,
                         rating: null,
                         timestamp: new Date().toISOString()
                     };
@@ -1758,6 +1772,16 @@
                                                         <p className="text-gray-300 text-xs">
                                                             <span className="text-gray-400">Starring:</span> {currentMovie.cast}
                                                         </p>
+                                                        {currentMovie.trailerUrl && (
+                                                            <a
+                                                                href={currentMovie.trailerUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-1 mt-2 text-blue-400 hover:text-blue-300 text-xs"
+                                                            >
+                                                                <span>🎬</span> Watch Trailer
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 {currentMovie.badge ? (
@@ -1804,7 +1828,7 @@
                                                 <div className="text-center mb-4">
                                                     <p className="text-white text-sm mb-2">What's your take on this title?</p>
                                                     <p className="text-white text-sm mb-3">Vote to build your taste profile!</p>
-                                                    <button onClick={handleNotNow} className="text-gray-400 text-sm hover:text-gray-300">Skip for Now</button>
+                                                    <button onClick={handleNotNow} className="text-gray-400 text-sm hover:text-gray-300">Skip For Now | Vote in History later</button>
                                                 </div>
                                                 <div className="flex gap-3">
                                                     <button

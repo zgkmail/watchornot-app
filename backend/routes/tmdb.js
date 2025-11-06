@@ -77,11 +77,11 @@ router.get('/:mediaType/:id', async (req, res) => {
       return res.status(500).json({ error: 'TMDB API key not configured on server. Please contact administrator.' });
     }
 
-    // Make request to TMDB API with credits and external_ids appended
+    // Make request to TMDB API with credits, external_ids, and videos appended
     const response = await axios.get(`${TMDB_BASE_URL}/${mediaType}/${id}`, {
       params: {
         api_key: apiKey,
-        append_to_response: 'credits,external_ids'
+        append_to_response: 'credits,external_ids,videos'
       }
     });
 
