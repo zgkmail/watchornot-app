@@ -126,6 +126,39 @@ import React, { useState, useRef } from 'react';
             </svg>
         );
 
+        const WatchOrNotIcon = ({ className, size = 80 }) => (
+            <svg className={className} width={size} height={size} viewBox="0 0 100 100" fill="none">
+                {/* Circular background with gradient */}
+                <defs>
+                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#3B82F6" />
+                        <stop offset="100%" stopColor="#8B5CF6" />
+                    </linearGradient>
+                </defs>
+
+                {/* Main circle */}
+                <circle cx="50" cy="50" r="45" fill="url(#iconGradient)" />
+
+                {/* Camera body */}
+                <rect x="30" y="40" width="40" height="28" rx="4" fill="white" fillOpacity="0.9" />
+
+                {/* Camera lens */}
+                <circle cx="50" cy="54" r="10" fill="url(#iconGradient)" />
+                <circle cx="50" cy="54" r="6" fill="white" fillOpacity="0.3" />
+
+                {/* Camera viewfinder */}
+                <rect x="42" y="36" width="6" height="4" rx="1" fill="white" fillOpacity="0.9" />
+
+                {/* Thumbs up indicator */}
+                <path d="M 65 48 L 68 48 L 68 58 L 65 58 Z M 68 48 L 68 45 C 68 43 70 43 70 45 L 70 48 L 72 48 L 72 58 L 68 58"
+                      fill="#10B981" stroke="#10B981" strokeWidth="0.5" />
+
+                {/* Thumbs down indicator */}
+                <path d="M 32 58 L 35 58 L 35 48 L 32 48 Z M 32 58 L 32 61 C 32 63 30 63 30 61 L 30 58 L 28 58 L 28 48 L 32 48"
+                      fill="#EF4444" stroke="#EF4444" strokeWidth="0.5" />
+            </svg>
+        );
+
         const App = () => {
             const [activeTab, setActiveTab] = useState('snap');
             const [hasScanned, setHasScanned] = useState(false);
@@ -145,6 +178,9 @@ import React, { useState, useRef } from 'react';
             const [swipedItem, setSwipedItem] = useState(null);
             const [swipeOffset, setSwipeOffset] = useState(0);
             const [touchStart, setTouchStart] = useState(null);
+
+            // How It Works collapsible state
+            const [howItWorksExpanded, setHowItWorksExpanded] = useState(false);
 
             // Movie detail modal state
             const [detailModalMovie, setDetailModalMovie] = useState(null);
@@ -1394,7 +1430,7 @@ import React, { useState, useRef } from 'react';
 
             return (
                 <div className="flex items-center justify-center min-h-screen bg-gray-900 md:p-4">
-                    <div className="app-container fixed md:relative top-0 left-0 md:top-auto md:left-auto w-full bg-black overflow-hidden md:max-w-sm md:rounded-[3rem] md:shadow-2xl" style={{ height: '100vh', maxHeight: '100vh' }}>
+                    <div className="app-container fixed md:relative top-0 left-0 md:top-auto md:left-auto w-full bg-black overflow-hidden md:max-w-sm md:rounded-[3rem] md:shadow-2xl" style={{ height: '100dvh', maxHeight: '100dvh' }}>
                         {/* Notch - only show on desktop mockup */}
                         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-7 bg-black rounded-b-3xl z-50 hidden md:block"></div>
 
@@ -1616,52 +1652,65 @@ import React, { useState, useRef } from 'react';
                                             <div className={`h-full flex flex-col px-6 py-6 overflow-y-auto ${isDarkMode ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-50 to-white'}`}>
                                                 {/* App Branding */}
                                                 <div className="text-center mb-8">
+                                                    <div className="flex justify-center mb-4">
+                                                        <WatchOrNotIcon size={100} />
+                                                    </div>
                                                     <h1 className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>WatchOrNot</h1>
                                                     <p className={`text-lg font-light ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>One Snap. One Answer.</p>
                                                 </div>
 
                                                 {/* How It Works Section */}
-                                                <div className={`rounded-2xl p-6 mb-8 ${isDarkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200 shadow-sm'}`}>
-                                                    <h2 className={`text-xl font-semibold mb-6 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>How It Works</h2>
+                                                <div className={`rounded-2xl mb-8 ${isDarkMode ? 'bg-gray-800/50 border border-gray-700' : 'bg-white border border-gray-200 shadow-sm'}`}>
+                                                    <button
+                                                        onClick={() => setHowItWorksExpanded(!howItWorksExpanded)}
+                                                        className="w-full p-6 flex items-center justify-between focus:outline-none"
+                                                    >
+                                                        <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>How It Works</h2>
+                                                        <ChevronRight className={`w-5 h-5 transition-transform ${howItWorksExpanded ? 'rotate-90' : ''} ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
+                                                    </button>
 
-                                                    {/* Step 1 */}
-                                                    <div className="flex gap-4 mb-6">
-                                                        <div className="flex-shrink-0">
-                                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-blue-600' : 'bg-blue-500'}`}>
-                                                                <Camera className="w-6 h-6 text-white" />
+                                                    {howItWorksExpanded && (
+                                                        <div className="px-6 pb-6">
+                                                            {/* Step 1 */}
+                                                            <div className="flex gap-4 mb-6">
+                                                                <div className="flex-shrink-0">
+                                                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-blue-600' : 'bg-blue-500'}`}>
+                                                                        <Camera className="w-6 h-6 text-white" />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Snap</h3>
+                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Point your camera at any movie title on TV or streaming</p>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Step 2 */}
+                                                            <div className="flex gap-4 mb-6">
+                                                                <div className="flex-shrink-0">
+                                                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-purple-600' : 'bg-purple-500'}`}>
+                                                                        <span className="text-2xl">🤖</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Analyze</h3>
+                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>AI reads the title and checks it against your taste profile</p>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Step 3 */}
+                                                            <div className="flex gap-4">
+                                                                <div className="flex-shrink-0">
+                                                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-green-600' : 'bg-green-500'}`}>
+                                                                        <span className="text-2xl">✓</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Decide</h3>
+                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Get an instant personalized recommendation</p>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="flex-1">
-                                                            <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Snap</h3>
-                                                            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Point your camera at any movie title on TV or streaming</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Step 2 */}
-                                                    <div className="flex gap-4 mb-6">
-                                                        <div className="flex-shrink-0">
-                                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-purple-600' : 'bg-purple-500'}`}>
-                                                                <span className="text-2xl">🤖</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Analyze</h3>
-                                                            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>AI reads the title and checks it against your taste profile</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Step 3 */}
-                                                    <div className="flex gap-4">
-                                                        <div className="flex-shrink-0">
-                                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-green-600' : 'bg-green-500'}`}>
-                                                                <span className="text-2xl">✓</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Decide</h3>
-                                                            <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Get an instant personalized recommendation</p>
-                                                        </div>
-                                                    </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Action Buttons */}
