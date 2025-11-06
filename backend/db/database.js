@@ -55,6 +55,7 @@ function initDatabase() {
       rotten_tomatoes INTEGER,
       metacritic INTEGER,
       poster TEXT,
+      director TEXT,
       cast TEXT,
       rating TEXT CHECK(rating IN ('up', 'down')),
       timestamp INTEGER NOT NULL,
@@ -77,6 +78,34 @@ function initDatabase() {
     )
   `);
 
+  // Director preferences table - aggregated director stats
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS user_director_preferences (
+      user_id TEXT NOT NULL,
+      director TEXT NOT NULL,
+      thumbs_up INTEGER DEFAULT 0,
+      thumbs_down INTEGER DEFAULT 0,
+      avg_imdb_rating REAL,
+      last_updated INTEGER,
+      PRIMARY KEY (user_id, director),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Cast preferences table - aggregated cast stats
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS user_cast_preferences (
+      user_id TEXT NOT NULL,
+      cast_member TEXT NOT NULL,
+      thumbs_up INTEGER DEFAULT 0,
+      thumbs_down INTEGER DEFAULT 0,
+      avg_imdb_rating REAL,
+      last_updated INTEGER,
+      PRIMARY KEY (user_id, cast_member),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+
   // Movie-Genre junction table - many-to-many relationship
   db.exec(`
     CREATE TABLE IF NOT EXISTS movie_genre_mappings (
@@ -95,14 +124,38 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_movie_ratings_user ON movie_ratings(user_id);
     CREATE INDEX IF NOT EXISTS idx_movie_ratings_timestamp ON movie_ratings(timestamp);
     CREATE INDEX IF NOT EXISTS idx_genre_prefs_user ON user_genre_preferences(user_id);
+    CREATE INDEX IF NOT EXISTS idx_director_prefs_user ON user_director_preferences(user_id);
+    CREATE INDEX IF NOT EXISTS idx_cast_prefs_user ON user_cast_preferences(user_id);
     CREATE INDEX IF NOT EXISTS idx_genre_mappings_movie ON movie_genre_mappings(user_id, movie_id);
     CREATE INDEX IF NOT EXISTS idx_genre_mappings_genre ON movie_genre_mappings(genre);
   `);
 
   console.log('Database initialized successfully');
 
+  // Run migration to add director column if needed
+  migrateAddDirectorColumn();
+
   // Run migration to populate genre mappings if needed
   migrateGenreData();
+}
+
+/**
+ * Migrate to add director column to movie_ratings table
+ */
+function migrateAddDirectorColumn() {
+  try {
+    // Check if director column exists
+    const columns = db.prepare("PRAGMA table_info(movie_ratings)").all();
+    const hasDirectorColumn = columns.some(col => col.name === 'director');
+
+    if (!hasDirectorColumn) {
+      console.log('🔄 Adding director column to movie_ratings table...');
+      db.exec('ALTER TABLE movie_ratings ADD COLUMN director TEXT');
+      console.log('✅ Director column added successfully');
+    }
+  } catch (error) {
+    console.error('Error checking/adding director column:', error);
+  }
 }
 
 /**
@@ -328,9 +381,9 @@ function saveMovieRating(userId, movieData) {
   const stmt = db.prepare(`
     INSERT INTO movie_ratings (
       user_id, movie_id, title, genre, year, imdb_rating,
-      rotten_tomatoes, metacritic, poster, cast, rating, timestamp
+      rotten_tomatoes, metacritic, poster, director, cast, rating, timestamp
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(user_id, movie_id)
     DO UPDATE SET
       rating = ?,
@@ -347,6 +400,7 @@ function saveMovieRating(userId, movieData) {
     movieData.rottenTomatoes,
     movieData.metacritic,
     movieData.poster,
+    movieData.director,
     movieData.cast,
     movieData.rating,
     movieData.timestamp || now,
@@ -363,6 +417,26 @@ function saveMovieRating(userId, movieData) {
     genres.forEach(genre => {
       recalculateGenrePreferences(userId, genre);
     });
+  }
+
+  // Recalculate director preferences
+  if (movieData.director && movieData.director !== 'N/A') {
+    const directors = movieData.director.split(',').map(d => d.trim()).filter(d => d);
+    directors.forEach(director => {
+      recalculateDirectorPreferences(userId, director);
+    });
+  }
+
+  // Recalculate cast preferences
+  if (movieData.cast && movieData.cast !== 'N/A') {
+    try {
+      const castMembers = movieData.cast.split(',').map(c => c.trim()).filter(c => c);
+      castMembers.forEach(castMember => {
+        recalculateCastPreferences(userId, castMember);
+      });
+    } catch (error) {
+      console.error('Error recalculating cast preferences:', error.message);
+    }
   }
 }
 
@@ -468,6 +542,110 @@ function getUserGenrePreferences(userId) {
   return stmt.all(userId);
 }
 
+/**
+ * Recalculate director preferences from scratch
+ */
+function recalculateDirectorPreferences(userId, director) {
+  // Get all ratings for movies with this director
+  const ratings = db.prepare(`
+    SELECT rating, imdb_rating
+    FROM movie_ratings
+    WHERE user_id = ? AND "director" LIKE ? AND rating IS NOT NULL
+  `).all(userId, `%${director}%`);
+
+  if (ratings.length === 0) {
+    // Delete if no ratings
+    db.prepare(`
+      DELETE FROM user_director_preferences
+      WHERE user_id = ? AND director = ?
+    `).run(userId, director);
+    return;
+  }
+
+  const thumbsUp = ratings.filter(r => r.rating === 'up').length;
+  const thumbsDown = ratings.filter(r => r.rating === 'down').length;
+  const avgImdb = ratings.reduce((sum, r) => sum + (r.imdb_rating || 0), 0) / ratings.length;
+
+  db.prepare(`
+    INSERT INTO user_director_preferences (user_id, director, thumbs_up, thumbs_down, avg_imdb_rating, last_updated)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(user_id, director)
+    DO UPDATE SET
+      thumbs_up = ?,
+      thumbs_down = ?,
+      avg_imdb_rating = ?,
+      last_updated = ?
+  `).run(
+    userId, director, thumbsUp, thumbsDown, avgImdb, Date.now(),
+    thumbsUp, thumbsDown, avgImdb, Date.now()
+  );
+}
+
+/**
+ * Get user director preferences
+ */
+function getUserDirectorPreferences(userId) {
+  const stmt = db.prepare(`
+    SELECT * FROM user_director_preferences
+    WHERE user_id = ?
+    ORDER BY (thumbs_up - thumbs_down) DESC
+  `);
+
+  return stmt.all(userId);
+}
+
+/**
+ * Recalculate cast preferences from scratch
+ */
+function recalculateCastPreferences(userId, castMember) {
+  // Get all ratings for movies with this cast member
+  const ratings = db.prepare(`
+    SELECT rating, imdb_rating
+    FROM movie_ratings
+    WHERE user_id = ? AND "cast" LIKE ? AND rating IS NOT NULL
+  `).all(userId, `%${castMember}%`);
+
+  if (ratings.length === 0) {
+    // Delete if no ratings
+    db.prepare(`
+      DELETE FROM user_cast_preferences
+      WHERE user_id = ? AND cast_member = ?
+    `).run(userId, castMember);
+    return;
+  }
+
+  const thumbsUp = ratings.filter(r => r.rating === 'up').length;
+  const thumbsDown = ratings.filter(r => r.rating === 'down').length;
+  const avgImdb = ratings.reduce((sum, r) => sum + (r.imdb_rating || 0), 0) / ratings.length;
+
+  db.prepare(`
+    INSERT INTO user_cast_preferences (user_id, cast_member, thumbs_up, thumbs_down, avg_imdb_rating, last_updated)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(user_id, cast_member)
+    DO UPDATE SET
+      thumbs_up = ?,
+      thumbs_down = ?,
+      avg_imdb_rating = ?,
+      last_updated = ?
+  `).run(
+    userId, castMember, thumbsUp, thumbsDown, avgImdb, Date.now(),
+    thumbsUp, thumbsDown, avgImdb, Date.now()
+  );
+}
+
+/**
+ * Get user cast preferences
+ */
+function getUserCastPreferences(userId) {
+  const stmt = db.prepare(`
+    SELECT * FROM user_cast_preferences
+    WHERE user_id = ?
+    ORDER BY (thumbs_up - thumbs_down) DESC
+  `);
+
+  return stmt.all(userId);
+}
+
 // Initialize database on module load
 initDatabase();
 
@@ -487,6 +665,8 @@ module.exports = {
   getMovieRating,
   deleteMovieRating,
   getUserGenrePreferences,
+  getUserDirectorPreferences,
+  getUserCastPreferences,
   getMovieGenres,
   saveMovieGenreMappings,
   deleteMovieGenreMappings

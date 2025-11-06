@@ -188,12 +188,16 @@ router.get('/ratings/:imdbId', async (req, res) => {
     console.log('   IMDb:', ratings.imdb.rating, '(' + ratings.imdb.votes, 'votes)');
     console.log('   Rotten Tomatoes:', ratings.rottenTomatoes ? ratings.rottenTomatoes + '%' : 'N/A');
     console.log('   Metacritic:', ratings.metacritic ? ratings.metacritic + '/100' : 'N/A');
+    console.log('   Director:', data.Director || 'N/A');
+    console.log('   Actors:', data.Actors || 'N/A');
     console.log('========================================\n');
 
     res.json({
       found: true,
       title: data.Title,
       year: data.Year,
+      director: data.Director !== 'N/A' ? data.Director : null,
+      actors: data.Actors !== 'N/A' ? data.Actors : null,
       ratings: ratings,
       responseTime: duration
     });

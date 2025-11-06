@@ -267,6 +267,18 @@
             // Backend API configuration
             const BACKEND_URL = 'http://10.0.0.101:3001';
 
+            // Helper function to get badge display name
+            const getBadgeDisplayName = (badgeType) => {
+                const badgeNames = {
+                    'perfect-match': 'Perfect Match',
+                    'great-pick': 'Great Pick',
+                    'worth-a-try': 'Worth a Try',
+                    'mixed-feelings': 'Mixed Feelings',
+                    'not-your-style': 'Not Your Style'
+                };
+                return badgeNames[badgeType] || badgeType;
+            };
+
             // Load movie history from backend on mount
             React.useEffect(() => {
                 const loadMovieHistory = async () => {
@@ -1231,11 +1243,13 @@
                             if (omdbResponse.ok) {
                                 const omdbData = await omdbResponse.json();
                                 if (omdbData.found) {
-                                    omdbRatings = omdbData.ratings;
-                                    console.log('✅ OMDb ratings fetched:');
-                                    console.log('   IMDb:', omdbRatings.imdb.rating);
-                                    console.log('   Rotten Tomatoes:', omdbRatings.rottenTomatoes);
-                                    console.log('   Metacritic:', omdbRatings.metacritic);
+                                    omdbRatings = omdbData;
+                                    console.log('✅ OMDb data fetched:');
+                                    console.log('   IMDb:', omdbRatings.ratings.imdb.rating);
+                                    console.log('   Rotten Tomatoes:', omdbRatings.ratings.rottenTomatoes);
+                                    console.log('   Metacritic:', omdbRatings.ratings.metacritic);
+                                    console.log('   Director:', omdbRatings.director);
+                                    console.log('   Actors:', omdbRatings.actors);
                                 } else {
                                     console.log('⚠️  Movie not found in OMDb');
                                 }
@@ -1254,13 +1268,14 @@
                         title: movie.title || movie.name,
                         year: (movie.release_date || movie.first_air_date || '').split('-')[0],
                         genre: details.genres?.slice(0, 3).map(g => g.name).join(', ') || 'Drama',
-                        cast: details.credits?.cast?.slice(0, 3).map(c => c.name).join(', ') || 'N/A',
+                        director: omdbRatings?.director || null,
+                        cast: omdbRatings?.actors || details.credits?.cast?.slice(0, 3).map(c => c.name).join(', ') || 'N/A',
                         poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
                         score: movie.vote_average,
-                        imdbRating: omdbRatings?.imdb?.rating || null,
-                        imdbVotes: omdbRatings?.imdb?.votes || null,
-                        rottenTomatoes: omdbRatings?.rottenTomatoes || null,
-                        metacritic: omdbRatings?.metacritic || null,
+                        imdbRating: omdbRatings?.ratings?.imdb?.rating || null,
+                        imdbVotes: omdbRatings?.ratings?.imdb?.votes || null,
+                        rottenTomatoes: omdbRatings?.ratings?.rottenTomatoes || null,
+                        metacritic: omdbRatings?.ratings?.metacritic || null,
                         rating: null,
                         timestamp: new Date().toISOString()
                     };
@@ -1278,11 +1293,29 @@
 
                         if (badgeResponse.ok) {
                             const badgeData = await badgeResponse.json();
+
+                            // Log the raw response for debugging
+                            console.log('📦 Raw Badge Response:', badgeData);
+
                             movieData.badge = badgeData.badge;
                             movieData.badgeEmoji = badgeData.badgeEmoji;
                             movieData.badgeDescription = badgeData.badgeDescription;
                             movieData.tier = badgeData.tier;
-                            console.log('🎯 Badge:', badgeData.badge, badgeData.badgeEmoji, badgeData.badgeDescription);
+
+                            // Log detailed calculation
+                            console.log('\n🎯 Badge Calculation Details:');
+                            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                            console.log('Badge:', badgeData.badge, badgeData.badgeEmoji);
+                            console.log('Description:', badgeData.badgeDescription);
+                            console.log('Tier:', badgeData.tier, `(${badgeData.totalVotes || 0} votes)`);
+                            console.log('');
+                            console.log('Base Score (IMDb):', badgeData.baseScore || 'N/A');
+                            console.log('Adjustments:');
+                            console.log('  Genre:   ', badgeData.adjustments?.genre || 0);
+                            console.log('  Director:', badgeData.adjustments?.director || 0);
+                            console.log('  Cast:    ', badgeData.adjustments?.cast || 0);
+                            console.log('Final Score:', badgeData.adjustedScore || 'N/A');
+                            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
                         }
                     } catch (error) {
                         console.warn('Could not calculate badge:', error);
@@ -1509,10 +1542,10 @@
                                                                                 </div>
                                                                             )}
                                                                         </div>
-                                                                        {movie.badge && (
+                                                                        {movie.badge && votedCount >= 5 && (
                                                                             <div className="inline-flex items-center gap-1 px-2 py-1 bg-purple-900/30 rounded-lg border border-purple-500/30 text-xs">
                                                                                 <span>{movie.badgeEmoji}</span>
-                                                                                <span className="text-purple-300 font-semibold">{movie.badgeDescription}</span>
+                                                                                <span className="text-purple-300 font-semibold">{getBadgeDisplayName(movie.badge)}</span>
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -1628,43 +1661,15 @@
                                                         </p>
                                                     </div>
                                                 </div>
-                                                {(() => {
-                                                    const score = currentMovie.personalScore || currentMovie.imdbRating;
-                                                    if (score >= 8.5) {
-                                                        return (
-                                                            <div className="mb-4">
-                                                                <div className="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
-                                                                    🎯 PERFECT MATCH
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    } else if (score >= 8.0) {
-                                                        return (
-                                                            <div className="mb-4">
-                                                                <div className="inline-flex items-center bg-orange-600 text-white px-3 py-1 rounded text-sm font-semibold">
-                                                                    🔥 HIGHLY RECOMMENDED
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    } else if (score >= 7.0) {
-                                                        return (
-                                                            <div className="mb-4">
-                                                                <div className="inline-flex items-center bg-blue-600 text-white px-3 py-1 rounded text-sm font-semibold">
-                                                                    👍 WORTH WATCHING
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return null;
-                                                })()}
                                                 {currentMovie.badge ? (
                                                     <div className="mb-4 p-3 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl border border-purple-500/30">
                                                         <div className="flex items-center gap-3 mb-1">
                                                             <span className="text-3xl">{currentMovie.badgeEmoji}</span>
                                                             <div>
-                                                                <div className="text-white text-xl font-bold">{currentMovie.badgeDescription}</div>
+                                                                <div className="text-white text-xl font-bold">{getBadgeDisplayName(currentMovie.badge)}</div>
+                                                                <div className="text-purple-200 text-sm">{currentMovie.badgeDescription}</div>
                                                                 {currentMovie.tier && (
-                                                                    <div className="text-purple-300 text-xs">Based on your {currentMovie.tier} taste profile</div>
+                                                                    <div className="text-purple-300 text-xs mt-1">Based on your {currentMovie.tier} taste profile</div>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -1831,8 +1836,8 @@
                                                         {/* Recommendation Info */}
                                                         <div className="mt-6 w-full max-w-md bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                                                             <div className="text-center mb-3">
-                                                                <h3 className="text-white text-sm font-semibold mb-1">How recommendation badge works</h3>
-                                                                <p className="text-gray-400 text-xs">Badge based on IMDb score + your genre, director, and cast preferences</p>
+                                                                <h3 className="text-white text-sm font-semibold mb-1">Recommendation Badges</h3>
+                                                                <p className="text-gray-400 text-xs">Based on IMDb score + your genre, director, and cast preferences</p>
                                                             </div>
                                                             {votedCount < 5 && (
                                                                 <div className="text-gray-400 text-xs text-center mb-3">
@@ -1842,23 +1847,23 @@
                                                             <div className="text-gray-300 text-xs space-y-2">
                                                                 <div className="flex items-center gap-2">
                                                                     <span>🎯</span>
-                                                                    <span>Perfect Match - IMDb 8.0+ with loved genres</span>
+                                                                    <span>Perfect Match - This is right up your alley!</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <span>⭐</span>
-                                                                    <span>Great Pick - IMDb 6.5+ with liked genres</span>
+                                                                    <span>Great Pick - You'll probably enjoy this</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <span>👍</span>
-                                                                    <span>Worth a Try - IMDb 5.0+ decent match</span>
+                                                                    <span>Worth a Try - Give it a shot</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <span>🤷</span>
-                                                                    <span>Mixed Feelings - IMDb 3.5+ uncertain match</span>
+                                                                    <span>Mixed Feelings - Could go either way</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <span>❌</span>
-                                                                    <span>Not Your Style - Below 3.5 with disliked genres</span>
+                                                                    <span>Not Your Style - Probably skip this</span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1989,10 +1994,11 @@
                                                 {detailModalMovie.badge && (
                                                     <div className="bg-purple-900/30 p-3 rounded-lg border border-purple-500/30 col-span-2">
                                                         <div className="text-purple-300 text-xs mb-2">Recommendation</div>
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-2 mb-1">
                                                             <span className="text-2xl">{detailModalMovie.badgeEmoji}</span>
-                                                            <span className="text-white text-lg font-bold">{detailModalMovie.badgeDescription}</span>
+                                                            <span className="text-white text-lg font-bold">{getBadgeDisplayName(detailModalMovie.badge)}</span>
                                                         </div>
+                                                        <div className="text-purple-200 text-sm ml-9">{detailModalMovie.badgeDescription}</div>
                                                     </div>
                                                 )}
                                                 {detailModalMovie.imdbRating && (

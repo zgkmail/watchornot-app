@@ -6,6 +6,8 @@ const {
   getMovieRating,
   deleteMovieRating,
   getUserGenrePreferences,
+  getUserDirectorPreferences,
+  getUserCastPreferences,
   getMovieGenres
 } = require('../db/database');
 
@@ -53,6 +55,7 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
 
   // Require at least 5 rated movies before showing badge
   if (ratedMovies.length < 5) {
+    console.log(`📊 Badge Calculation: Need ${5 - ratedMovies.length} more rated movies (currently ${ratedMovies.length}/5)`);
     return null;
   }
 
@@ -67,7 +70,7 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
   // Get genre preferences for the user
   const genrePrefs = getUserGenrePreferences(userId);
 
-  // Genre Adjustment (-3 to +3 points)
+  // Genre Adjustment (-2 to +2 points)
   const movieGenres = getMovieGenres(userId, movie.id || movie.movie_id);
   let genresToCheck = movieGenres;
   if (genresToCheck.length === 0 && movie.genre) {
@@ -100,17 +103,17 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
         if (total > 0) {
           const positiveRatio = thumbsUp / total;
 
-          // Convert ratio to adjustment score (-3 to +3)
+          // Convert ratio to adjustment score (-2 to +2)
           let genreScore = 0;
           if (positiveRatio >= 0.7) {
-            genreScore = 2 + (positiveRatio - 0.7) * 3.33; // 2 to 3
+            genreScore = 1.5 + (positiveRatio - 0.7) * 1.67; // 1.5 to 2
           } else if (positiveRatio >= 0.5) {
-            genreScore = (positiveRatio - 0.5) * 10; // 0 to 2
+            genreScore = (positiveRatio - 0.5) * 7.5; // 0 to 1.5
           } else if (positiveRatio >= 0.3) {
-            genreScore = (positiveRatio - 0.5) * 5; // -1 to 0
+            genreScore = (positiveRatio - 0.5) * 3.75; // -0.75 to 0
           } else {
-            genreScore = -1 + (positiveRatio - 0.3) * 3.33; // -2 to -1
-            genreScore = Math.max(-3, genreScore - (0.3 - positiveRatio) * 3.33); // Can go to -3
+            genreScore = -0.75 + (positiveRatio - 0.3) * 2.5; // -1.5 to -0.75
+            genreScore = Math.max(-2, genreScore - (0.3 - positiveRatio) * 1.67); // Can go to -2
           }
 
           genreScores.push(genreScore);
@@ -121,15 +124,129 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
     // Average genre scores
     if (genreScores.length > 0) {
       genreAdjustment = genreScores.reduce((a, b) => a + b, 0) / genreScores.length;
-      genreAdjustment = Math.max(-3, Math.min(3, genreAdjustment));
+      genreAdjustment = Math.max(-2, Math.min(2, genreAdjustment));
     }
   }
 
-  // TODO: Director Adjustment (-1 to +2) - requires director data in DB
-  // TODO: Cast Adjustment (-1 to +2) - requires cast data in DB
+  // Director Adjustment (-0.5 to +1 points)
+  const directorPrefs = getUserDirectorPreferences(userId);
+  const movieDirector = movie.director;
+
+  if (movieDirector && movieDirector !== 'N/A' && directorPrefs.length > 0) {
+    const directors = movieDirector.split(',').map(d => d.trim()).filter(d => d);
+    let directorScores = [];
+
+    directors.forEach(director => {
+      const directorPref = directorPrefs.find(d => d.director === director);
+
+      if (directorPref) {
+        let thumbsUp = directorPref.thumbs_up;
+        let thumbsDown = directorPref.thumbs_down;
+
+        // Exclude current movie from director counts to prevent circular dependency
+        if (excludeMovieId) {
+          const currentMovie = userRatings.find(m => m.movie_id === excludeMovieId);
+          if (currentMovie && currentMovie.director && currentMovie.director.includes(director) && currentMovie.rating) {
+            if (currentMovie.rating === 'up') thumbsUp = Math.max(0, thumbsUp - 1);
+            if (currentMovie.rating === 'down') thumbsDown = Math.max(0, thumbsDown - 1);
+          }
+        }
+
+        const total = thumbsUp + thumbsDown;
+        if (total > 0) {
+          const positiveRatio = thumbsUp / total;
+
+          // Convert ratio to adjustment score (-0.5 to +1)
+          let directorScore = 0;
+          if (positiveRatio >= 0.7) {
+            directorScore = 0.7 + (positiveRatio - 0.7) * 1.0; // 0.7 to 1
+          } else if (positiveRatio >= 0.5) {
+            directorScore = (positiveRatio - 0.5) * 3.5; // 0 to 0.7
+          } else if (positiveRatio >= 0.3) {
+            directorScore = (positiveRatio - 0.5) * 1.25; // -0.25 to 0
+          } else {
+            directorScore = -0.25 + (positiveRatio - 0.3) * 0.83; // -0.5 to -0.25
+            directorScore = Math.max(-0.5, directorScore - (0.3 - positiveRatio) * 0.83);
+          }
+
+          directorScores.push(directorScore);
+        }
+      }
+    });
+
+    // Average director scores
+    if (directorScores.length > 0) {
+      directorAdjustment = directorScores.reduce((a, b) => a + b, 0) / directorScores.length;
+      directorAdjustment = Math.max(-0.5, Math.min(1, directorAdjustment));
+    }
+  }
+
+  // Cast Adjustment (-0.5 to +1 points)
+  const castPrefs = getUserCastPreferences(userId);
+  const movieCast = movie.cast;
+
+  if (movieCast && movieCast !== 'N/A' && castPrefs.length > 0) {
+    const castMembers = movieCast.split(',').map(c => c.trim()).filter(c => c);
+    let castScores = [];
+
+    // Only consider top 3 cast members to avoid over-weighting
+    const topCastMembers = castMembers.slice(0, 3);
+
+    topCastMembers.forEach(castMember => {
+      const castPref = castPrefs.find(c => c.cast_member === castMember);
+
+      if (castPref) {
+        let thumbsUp = castPref.thumbs_up;
+        let thumbsDown = castPref.thumbs_down;
+
+        // Exclude current movie from cast counts to prevent circular dependency
+        if (excludeMovieId) {
+          const currentMovie = userRatings.find(m => m.movie_id === excludeMovieId);
+          if (currentMovie && currentMovie.cast && currentMovie.cast.includes(castMember) && currentMovie.rating) {
+            if (currentMovie.rating === 'up') thumbsUp = Math.max(0, thumbsUp - 1);
+            if (currentMovie.rating === 'down') thumbsDown = Math.max(0, thumbsDown - 1);
+          }
+        }
+
+        const total = thumbsUp + thumbsDown;
+        if (total > 0) {
+          const positiveRatio = thumbsUp / total;
+
+          // Convert ratio to adjustment score (-0.5 to +1)
+          let castScore = 0;
+          if (positiveRatio >= 0.7) {
+            castScore = 0.7 + (positiveRatio - 0.7) * 1.0; // 0.7 to 1
+          } else if (positiveRatio >= 0.5) {
+            castScore = (positiveRatio - 0.5) * 3.5; // 0 to 0.7
+          } else if (positiveRatio >= 0.3) {
+            castScore = (positiveRatio - 0.5) * 1.25; // -0.25 to 0
+          } else {
+            castScore = -0.25 + (positiveRatio - 0.3) * 0.83; // -0.5 to -0.25
+            castScore = Math.max(-0.5, castScore - (0.3 - positiveRatio) * 0.83);
+          }
+
+          castScores.push(castScore);
+        }
+      }
+    });
+
+    // Average cast scores
+    if (castScores.length > 0) {
+      castAdjustment = castScores.reduce((a, b) => a + b, 0) / castScores.length;
+      castAdjustment = Math.max(-0.5, Math.min(1, castAdjustment));
+    }
+  }
 
   // Calculate final adjusted score
   adjustedScore += genreAdjustment + directorAdjustment + castAdjustment;
+
+  // Log calculation details
+  console.log('📊 Badge Calculation Details:');
+  console.log('   IMDb Base Score:', imdbScore);
+  console.log('   Genre Adjustment:', genreAdjustment.toFixed(2));
+  console.log('   Director Adjustment:', directorAdjustment.toFixed(2));
+  console.log('   Cast Adjustment:', castAdjustment.toFixed(2));
+  console.log('   Final Adjusted Score:', adjustedScore.toFixed(2));
 
   // Determine badge level based on adjusted score
   let badge, description, emoji;
@@ -160,10 +277,11 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
     emoji,
     description,
     adjustedScore: Math.round(adjustedScore * 10) / 10,
+    baseScore: imdbScore,
     adjustments: {
       genre: Math.round(genreAdjustment * 10) / 10,
-      director: directorAdjustment,
-      cast: castAdjustment
+      director: Math.round(directorAdjustment * 10) / 10,
+      cast: Math.round(castAdjustment * 10) / 10
     },
     tier,
     totalVotes: ratedMovies.length
@@ -233,7 +351,10 @@ router.post('/', async (req, res) => {
       badgeEmoji: badgeData ? badgeData.emoji : null,
       badgeDescription: badgeData ? badgeData.description : null,
       tier: badgeData ? badgeData.tier : null,
-      totalVotes: badgeData ? badgeData.totalVotes : 0
+      totalVotes: badgeData ? badgeData.totalVotes : 0,
+      baseScore: badgeData ? badgeData.baseScore : null,
+      adjustedScore: badgeData ? badgeData.adjustedScore : null,
+      adjustments: badgeData ? badgeData.adjustments : null
     });
   } catch (error) {
     console.error('Save rating error:', error);
@@ -295,6 +416,9 @@ router.post('/calculate-badge', async (req, res) => {
       badgeDescription: badgeData ? badgeData.description : null,
       tier: badgeData ? badgeData.tier : null,
       totalVotes: badgeData ? badgeData.totalVotes : 0,
+      baseScore: badgeData ? badgeData.baseScore : null,
+      adjustedScore: badgeData ? badgeData.adjustedScore : null,
+      adjustments: badgeData ? badgeData.adjustments : null,
       imdbRating: movieData.imdbRating || movieData.imdb_rating
     });
   } catch (error) {
