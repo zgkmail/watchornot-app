@@ -95,6 +95,18 @@ router.post('/identify', async (req, res) => {
     const sanitizedImage = image.replace(/\s/g, '');
     console.log('✓ Base64 data sanitized, length:', sanitizedImage.length, 'characters');
 
+    // Validate base64 format
+    const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
+    if (!base64Regex.test(sanitizedImage)) {
+      console.error('❌ ERROR: Invalid base64 format detected');
+      console.error('First 100 chars:', sanitizedImage.substring(0, 100));
+      return res.status(400).json({
+        error: 'Invalid base64 image data',
+        debug: 'Image data contains invalid characters for base64'
+      });
+    }
+    console.log('✓ Base64 format validated');
+
     // Check authentication
     if (!req.session.userId) {
       console.error('❌ ERROR: User not authenticated');
@@ -140,6 +152,7 @@ router.post('/identify', async (req, res) => {
 
     const mediaType = detectImageType(sanitizedImage);
     console.log('✓ Detected image type:', mediaType);
+    console.log('Base64 data preview (first 50 chars):', sanitizedImage.substring(0, 50));
 
     // Initialize Anthropic client
     const anthropic = new Anthropic({
@@ -166,36 +179,38 @@ router.post('/identify', async (req, res) => {
           },
           {
             type: 'text',
-            text: `Look at this screenshot from a streaming service. Extract the EXACT title and year (if visible) of the movie or TV show being displayed.
+            text: `Look at this screenshot. Extract the EXACT main title of the movie or TV show being displayed.
 
 CRITICAL RULES:
-1. Pay CLOSE attention to word spacing - preserve ALL spaces in the title
-2. "Red Dragon" should be TWO words, NOT "Reddragon" or "RedDragon"
-3. "Star Wars" should be TWO words, NOT "StarWars"
-4. Ignore all UI elements (buttons, menus, subtitles, logos)
-5. Ignore actor names, episode numbers, season info, descriptions
-6. If you see multiple titles, return the main/prominent one
-7. Keep the exact capitalization and spacing as shown
+1. Extract ONLY the main movie/show title - ignore ALL descriptive text
+2. Ignore phrases like "The Making of...", "Behind the Scenes", "Bonus Features", "Special Edition"
+3. If you see "The Making of Back to the Future", return "Back to the Future" (not the making-of text)
+4. Preserve ALL spaces in the title exactly as shown
+5. "Red Dragon" = TWO words, "Back to the Future" = FOUR words
+6. Ignore UI elements (buttons, menus, subtitles, progress bars)
+7. Ignore actor names, episode numbers, season info, plot descriptions
+8. Return the MAIN title only, typically the largest/most prominent text
+9. Keep exact capitalization and spacing as shown
 
-You MUST respond with ONLY a JSON object in this exact format:
+Respond with ONLY valid JSON - nothing else:
 {
-  "title": "Movie Title Here",
-  "year": 2015
+  "title": "Exact Movie Title",
+  "year": 2005
 }
 
-If no year is visible, use null for year:
+If no year visible, use null:
 {
-  "title": "Movie Title Here",
+  "title": "Movie Title",
   "year": null
 }
 
-If no clear title is visible, respond with:
+If no clear title:
 {
   "title": null,
   "year": null
 }
 
-Do not include any other text, explanations, or formatting - only the JSON object.`
+Return ONLY the JSON object with no additional text, explanations, markdown, or code blocks.`
           }
         ]
       }]
@@ -208,23 +223,49 @@ Do not include any other text, explanations, or formatting - only the JSON objec
     const responseText = message.content[0].text.trim();
     console.log('📝 Claude raw response:', responseText);
 
-    // Parse JSON response
+    // Parse JSON response - extract JSON from response that might have extra text
     let parsedResponse;
     try {
+      // Try to parse directly first
       parsedResponse = JSON.parse(responseText);
     } catch (parseError) {
-      console.error('❌ Failed to parse JSON response:', parseError.message);
-      console.error('Raw response:', responseText);
-      return res.status(500).json({
-        error: 'Failed to parse Claude response',
-        debug: {
-          message: 'Claude did not return valid JSON',
-          rawResponse: responseText
+      // If direct parse fails, try to extract JSON from the response
+      console.log('⚠️  Direct JSON parse failed, attempting to extract JSON...');
+
+      // Look for JSON object in the response (between { and })
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+
+      if (jsonMatch) {
+        try {
+          parsedResponse = JSON.parse(jsonMatch[0]);
+          console.log('✓ Successfully extracted JSON from response');
+        } catch (extractError) {
+          console.error('❌ Failed to parse extracted JSON:', extractError.message);
+          console.error('Extracted text:', jsonMatch[0]);
+          console.error('Raw response:', responseText);
+          return res.status(500).json({
+            error: 'Failed to parse Claude response',
+            debug: {
+              message: 'Claude did not return valid JSON',
+              rawResponse: responseText,
+              extractedJson: jsonMatch[0]
+            }
+          });
         }
-      });
+      } else {
+        console.error('❌ No JSON object found in response');
+        console.error('Raw response:', responseText);
+        return res.status(500).json({
+          error: 'Failed to parse Claude response',
+          debug: {
+            message: 'No JSON object found in Claude response',
+            rawResponse: responseText
+          }
+        });
+      }
     }
 
-    const title = parsedResponse.title;
+    let title = parsedResponse.title;
     const year = parsedResponse.year;
 
     console.log('📝 Parsed JSON - Title:', title, 'Year:', year);
@@ -238,6 +279,32 @@ Do not include any other text, explanations, or formatting - only the JSON objec
         confidence: 0,
         message: 'No clear movie or TV show title found in image'
       });
+    }
+
+    // Post-process: Clean up common bonus content phrases that Claude might have included
+    const bonusPhrases = [
+      /^The Making of\s+/i,
+      /^Making of\s+/i,
+      /^Behind the Scenes:\s*/i,
+      /^Behind the Scenes of\s+/i,
+      /^Bonus Features:\s*/i,
+      /^Special Edition:\s*/i,
+      /^Extended Edition:\s*/i,
+      /^Director's Cut:\s*/i,
+      /:\s*The Making of$/i,
+      /:\s*Behind the Scenes$/i,
+      /\s*-\s*The Making of$/i,
+      /\s*-\s*Behind the Scenes$/i
+    ];
+
+    const originalTitle = title;
+    for (const phrase of bonusPhrases) {
+      title = title.replace(phrase, '').trim();
+    }
+
+    if (originalTitle !== title) {
+      console.log('🧹 Cleaned title from:', originalTitle);
+      console.log('                 to:', title);
     }
 
     console.log('========================================\n');
@@ -255,6 +322,8 @@ Do not include any other text, explanations, or formatting - only the JSON objec
     console.error('Duration:', duration, 'ms');
     console.error('Error type:', error.constructor.name);
     console.error('Error message:', error.message);
+    console.error('Error status:', error.status);
+    console.error('Full error:', JSON.stringify(error, null, 2));
 
     if (error.status === 401) {
       return res.status(500).json({
@@ -276,11 +345,13 @@ Do not include any other text, explanations, or formatting - only the JSON objec
       });
     }
 
+    // Return the actual error message from Claude API
     return res.status(500).json({
-      error: 'Failed to process image with Claude',
+      error: error.message || 'Failed to process image with Claude',
       debug: {
         message: error.message,
-        type: error.constructor.name
+        type: error.constructor.name,
+        status: error.status
       }
     });
   }

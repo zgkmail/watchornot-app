@@ -1089,7 +1089,7 @@ import React, { useState, useRef } from 'react';
                 }
 
                 // Generate alternative search queries as fallbacks
-                const generateAlternatives = (originalQuery) => {
+                const generateAlternatives = (originalQuery, targetYear) => {
                     const alternatives = [originalQuery];
 
                     // Try with "The" prepended (common for movies)
@@ -1113,6 +1113,17 @@ import React, { useState, useRef } from 'react';
                     if (spacedQuery !== originalQuery) {
                         alternatives.push(spacedQuery);
                         alternatives.push(spacedQuery.charAt(0).toUpperCase() + spacedQuery.slice(1).toLowerCase());
+                    }
+
+                    // Try sequel variations if year is provided (common OCR miss for sequels)
+                    if (targetYear) {
+                        // Try adding common sequel suffixes
+                        alternatives.push(originalQuery + ' II');
+                        alternatives.push(originalQuery + ' 2');
+                        alternatives.push(originalQuery + ' Part II');
+                        alternatives.push(originalQuery + ' Part 2');
+                        alternatives.push(originalQuery + ' III');
+                        alternatives.push(originalQuery + ' 3');
                     }
 
                     console.log('📋 Search alternatives:', alternatives);
@@ -1144,17 +1155,22 @@ import React, { useState, useRef } from 'react';
                     const releaseDate = result.release_date || result.first_air_date;
                     const resultYear = releaseDate ? parseInt(releaseDate.split('-')[0]) : null;
 
-                    // Year match scoring (high priority)
+                    // Year match scoring (high priority - increase weight significantly)
                     if (targetYear && resultYear) {
                         const yearDiff = Math.abs(resultYear - targetYear);
                         if (yearDiff === 0) {
-                            score += 1000; // Exact year match
+                            score += 5000; // Exact year match (increased from 1000)
                             console.log('      🎯 Exact year match!', resultYear);
                         } else if (yearDiff === 1) {
-                            score += 500; // Off by 1 year (common for international releases)
+                            score += 2000; // Off by 1 year (increased from 500)
                             console.log('      📅 Year close match:', resultYear, '(target:', targetYear + ')');
+                        } else if (yearDiff <= 3) {
+                            score += 500; // Within 3 years
+                            console.log('      📅 Year nearby:', resultYear, '(target:', targetYear + ')');
                         } else {
-                            console.log('      ⚠️  Year mismatch:', resultYear, '(target:', targetYear + ')');
+                            // Penalize results with very different years
+                            score -= (yearDiff * 100);
+                            console.log('      ⚠️  Year mismatch penalty:', resultYear, '(target:', targetYear + ')');
                         }
                     }
 
@@ -1183,9 +1199,34 @@ import React, { useState, useRef } from 'react';
 
                     // Filter results to only include movies and TV shows (exclude people, etc.)
                     if (data.results && data.results.length > 0) {
-                        const validResults = data.results.filter(result =>
-                            result.media_type === 'movie' || result.media_type === 'tv'
-                        );
+                        const validResults = data.results.filter(result => {
+                            if (result.media_type !== 'movie' && result.media_type !== 'tv') {
+                                return false;
+                            }
+
+                            // Filter out ONLY "making-of" bonus content, NOT standalone documentaries
+                            // This keeps: "Free Solo", "Planet Earth", etc.
+                            // This filters: "The Making of Back to the Future", "Behind the Scenes: Star Wars"
+                            const title = (result.title || result.name || '').toLowerCase();
+                            const bonusContentPatterns = [
+                                /^the making of/i,
+                                /^making of/i,
+                                /^behind the scenes/i,
+                                /: the making of/i,
+                                /: behind the scenes/i,
+                                /- the making of/i,
+                                /- behind the scenes/i
+                            ];
+
+                            for (const pattern of bonusContentPatterns) {
+                                if (pattern.test(title)) {
+                                    console.log('      ⚠️  Filtering out bonus content:', title);
+                                    return false;
+                                }
+                            }
+
+                            return true;
+                        });
 
                         if (validResults.length > 0) {
                             console.log('    ✓ Found', validResults.length, 'movie/TV results (filtered from', data.results.length, 'total)');
@@ -1219,7 +1260,7 @@ import React, { useState, useRef } from 'react';
                 };
 
                 try {
-                    const alternatives = generateAlternatives(query);
+                    const alternatives = generateAlternatives(query, year);
                     let movie = null;
                     let successfulQuery = null;
 
@@ -1839,7 +1880,7 @@ import React, { useState, useRef } from 'react';
                                                 <div className="text-center mb-4">
                                                     <p className={`text-sm mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>What's your take on this title?</p>
                                                     <p className={`text-sm mb-3 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Vote to build your taste profile!</p>
-                                                    <button onClick={handleNotNow} className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'}`}>Skip For Now | Vote in History later</button>
+                                                    <button onClick={handleNotNow} className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'}`}>Skip For Now | Vote Later in History</button>
                                                 </div>
                                                 <div className="flex gap-3">
                                                     <button
