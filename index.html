@@ -1380,7 +1380,7 @@
                         title: movie.title || movie.name,
                         year: (movie.release_date || movie.first_air_date || '').split('-')[0],
                         genre: details.genres?.slice(0, 3).map(g => g.name).join(', ') || 'Drama',
-                        director: omdbRatings?.director || null,
+                        director: omdbRatings?.director || details.credits?.crew?.find(c => c.job === 'Director')?.name || null,
                         cast: omdbRatings?.actors || details.credits?.cast?.slice(0, 3).map(c => c.name).join(', ') || 'N/A',
                         poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
                         score: movie.vote_average,
