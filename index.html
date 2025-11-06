@@ -2100,9 +2100,19 @@
                                                 <h3 className="text-white text-2xl font-bold mb-2">{detailModalMovie.title}</h3>
                                                 <p className="text-gray-400 text-sm mb-3">{detailModalMovie.year} • {detailModalMovie.genre}</p>
                                                 {detailModalMovie.cast && (
-                                                    <p className="text-gray-300 text-sm">
+                                                    <p className="text-gray-300 text-sm mb-2">
                                                         <span className="text-gray-400">Cast:</span> {detailModalMovie.cast}
                                                     </p>
+                                                )}
+                                                {detailModalMovie.trailerUrl && (
+                                                    <a
+                                                        href={detailModalMovie.trailerUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 mt-1 text-blue-400 hover:text-blue-300 text-sm"
+                                                    >
+                                                        <span>🎬</span> Watch Trailer
+                                                    </a>
                                                 )}
                                             </div>
                                         </div>
