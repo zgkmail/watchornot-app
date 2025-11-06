@@ -15,9 +15,10 @@ See a movie on TV? Just snap the title. WatchOrNot gives you a personalized yes-
 ## Architecture
 
 ### Frontend
-- **Framework**: React 18 (CDN-based)
-- **Styling**: Tailwind CSS
-- **Build**: No build step required (Babel transpiles in browser)
+- **Framework**: React 18
+- **Build Tool**: Vite (fast development & optimized production builds)
+- **Styling**: Tailwind CSS (via PostCSS)
+- **Bundler**: Vite + esbuild
 - **Storage**: localStorage for ratings
 
 ### Backend (NEW!)
@@ -35,7 +36,33 @@ See a movie on TV? Just snap the title. WatchOrNot gives you a personalized yes-
 - **For server admin**: API key from:
   - [TMDB](https://www.themoviedb.org/settings/api)
 
-### 1. Setup Backend
+### Option 1: Quick Start Script (Easiest!)
+
+```bash
+# Install dependencies (first time only)
+npm install
+cd backend && npm install && cd ..
+
+# Configure backend (first time only)
+cd backend
+cp .env.example .env
+# Edit .env with your API keys
+cd ..
+
+# Start both frontend and backend
+./start-dev.sh
+```
+
+### Option 2: Manual Setup
+
+### 1. Setup Frontend Dependencies
+
+```bash
+# Install frontend dependencies
+npm install
+```
+
+### 2. Setup Backend
 
 ```bash
 # Navigate to backend directory
@@ -61,31 +88,16 @@ npm start
 
 The backend will run on `http://localhost:3001`
 
-### 2. Setup Frontend
+### 3. Setup Frontend (in a new terminal)
 
 ```bash
-# Go back to project root
-cd ..
-
-# Open index.html in a browser
-# On macOS:
-open index.html
-
-# On Linux:
-xdg-open index.html
-
-# On Windows:
-start index.html
-
-# Or use a simple HTTP server (recommended):
-python -m http.server 3000
-# or
-npx http-server -p 3000
+# Start the Vite development server
+npm run dev
 ```
 
 The frontend will be available at `http://localhost:3000`
 
-### 3. Start Using the App
+### 4. Start Using the App
 
 1. Open the app in your browser (http://localhost:3000)
 2. The backend securely handles all API requests
@@ -95,11 +107,20 @@ The frontend will be available at `http://localhost:3000`
 
 ```
 watchornot-app/
-├── index.html              # Frontend (React app in single file)
+├── index.html              # Main HTML entry point
+├── package.json            # Frontend dependencies
+├── vite.config.js          # Vite configuration
+├── tailwind.config.js      # Tailwind CSS configuration
+├── postcss.config.js       # PostCSS configuration
+├── start-dev.sh            # Convenience script to start both servers
+├── src/
+│   ├── main.jsx            # React entry point
+│   ├── App.jsx             # Main React component
+│   └── index.css           # Global styles + Tailwind directives
 ├── README.md               # This file
 └── backend/
     ├── server.js           # Main Express server
-    ├── package.json        # Dependencies
+    ├── package.json        # Backend dependencies
     ├── .env.example        # Environment template
     ├── README.md           # Backend documentation
     ├── db/
@@ -142,7 +163,19 @@ See [backend/README.md](backend/README.md) for detailed API documentation.
 ## Development
 
 ### Frontend Development
-The frontend is a single HTML file with React loaded via CDN. Simply edit `index.html` and refresh your browser.
+
+```bash
+# Start development server with hot reload
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+The frontend uses Vite for fast development with hot module replacement (HMR). Edit files in `src/` and see changes instantly.
 
 ### Backend Development
 
@@ -174,20 +207,44 @@ TMDB_API_KEY=your_tmdb_api_key
 
 ### Frontend Backend URL
 
-In `index.html`, update the backend URL if needed (line ~149):
+In `src/App.jsx`, update the backend URL if needed:
 
 ```javascript
 const BACKEND_URL = 'http://localhost:3001';
 ```
 
+## Mobile Testing
+
+Want to test the app on your iPhone while the servers run on your computer? It's easy!
+
+Both the frontend and backend are configured to work on your local network automatically. Just:
+
+1. Find your computer's IP address (e.g., `192.168.1.5`)
+2. Start both servers with `npm run dev` (frontend) and `cd backend && npm start`
+3. Open `http://YOUR-IP:3000` on your iPhone's Safari
+
+The app automatically detects the network URL and connects to the backend on the same IP!
+
+📱 **See [MOBILE_TESTING.md](MOBILE_TESTING.md) for detailed instructions.**
+
 ## Deployment
 
 ### Frontend
-Deploy the `index.html` file to any static hosting:
+Build the production version and deploy to any static hosting:
+
+```bash
+# Build for production
+npm run build
+
+# The dist/ folder contains your production-ready files
+```
+
+Deploy `dist/` folder to:
 - GitHub Pages
 - Netlify
 - Vercel
 - AWS S3 + CloudFront
+- Any static hosting service
 
 ### Backend
 Deploy to any Node.js hosting platform:
@@ -196,7 +253,9 @@ Deploy to any Node.js hosting platform:
 - Heroku
 - DigitalOcean App Platform
 
-**Important**: Update `FRONTEND_URL` in backend `.env` to match your frontend domain.
+**Important**:
+- Update `FRONTEND_URL` in backend `.env` to match your frontend domain
+- Set `NODE_ENV=production` in production environment
 
 ## Troubleshooting
 
@@ -219,10 +278,9 @@ Deploy to any Node.js hosting platform:
 
 ### Frontend
 - React 18
+- Vite
 - Tailwind CSS
-- Babel Standalone
-- TMDB API
-- Claude API (for image recognition)
+- PostCSS & Autoprefixer
 
 ### Backend
 - Node.js
