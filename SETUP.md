@@ -49,11 +49,18 @@ git checkout claude/backend-api-key-storage-011CUi1MkeVrAeayyVip2Ysh
 
 You should see a folder structure like:
 ```
-watchornot/
+watchornot-app/
 ├── index.html
+├── package.json
+├── vite.config.js
+├── tailwind.config.js
 ├── README.md
 ├── SETUP.md (this file)
 ├── TESTING.md
+├── src/
+│   ├── main.jsx
+│   ├── App.jsx
+│   └── index.css
 └── backend/
     ├── server.js
     ├── package.json
@@ -164,38 +171,34 @@ You should see output like:
 ### 4.2 Navigate to the project root
 
 ```bash
-cd /path/to/watchornot
+cd /path/to/watchornot-app
 ```
 
-Replace `/path/to/watchornot` with the actual path where you cloned the repo.
+Replace `/path/to/watchornot-app` with the actual path where you cloned the repo.
 
-### 4.3 Start a web server
+### 4.3 Install frontend dependencies
 
-Choose one of these options based on what you have installed:
-
-**Option A: Python (usually pre-installed on Mac/Linux)**
 ```bash
-python3 -m http.server 3000
-# or on some systems:
-python -m http.server 3000
+npm install
 ```
 
-**Option B: Node.js http-server**
-```bash
-npx http-server -p 3000
-```
+This will install React, Vite, Tailwind CSS, and other dependencies. Takes about 1-2 minutes.
 
-**Option C: PHP (if installed)**
+### 4.4 Start the development server
+
 ```bash
-php -S localhost:3000
+npm run dev
 ```
 
 You should see output like:
 ```
-Serving HTTP on 0.0.0.0 port 3000 (http://0.0.0.0:3000/) ...
+VITE v5.x.x  ready in xxx ms
+
+➜  Local:   http://localhost:3000/
+➜  Network: use --host to expose
 ```
 
-🎉 **Success!** Your frontend is now being served!
+🎉 **Success!** Your frontend development server is now running!
 
 ## Step 5: Open in Browser
 
@@ -316,14 +319,34 @@ You don't need to reinstall or reconfigure! Just:
 
 ```bash
 # Terminal 1: Start backend
-cd watchornot/backend
+cd watchornot-app/backend
 npm start
 
 # Terminal 2: Start frontend
 cd watchornot-app
-python3 -m http.server 3000
+npm run dev
 
 # Then open http://localhost:3000 in browser
+```
+
+## Building for Production
+
+To create an optimized production build:
+
+```bash
+npm run build
+```
+
+This will:
+- Compile and optimize your React code
+- Process Tailwind CSS and remove unused styles
+- Minify and bundle all assets
+- Output everything to the `dist/` folder
+
+To preview the production build locally:
+
+```bash
+npm run preview
 ```
 
 ## Need More Help?
