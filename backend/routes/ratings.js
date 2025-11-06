@@ -67,6 +67,22 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
   let directorAdjustment = 0;
   let castAdjustment = 0;
 
+  // Data quality tracking
+  const dataQuality = {
+    genreReliability: 0,
+    directorReliability: 0,
+    castReliability: 0,
+    genresEvaluated: 0,
+    genresUsed: 0,
+    directorSampleSize: 0,
+    castSampleSizes: [],
+    adjustmentsApplied: {
+      genre: false,
+      director: false,
+      cast: false
+    }
+  };
+
   // Get genre preferences for the user
   const genrePrefs = getUserGenrePreferences(userId);
 
@@ -79,8 +95,10 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
 
   if (genresToCheck.length > 0) {
     let genreScores = [];
+    let genreSampleSizes = [];
 
     genresToCheck.forEach(genre => {
+      dataQuality.genresEvaluated++;
       const genrePref = genrePrefs.find(g => g.genre === genre);
 
       if (genrePref) {
@@ -100,7 +118,12 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
         }
 
         const total = thumbsUp + thumbsDown;
-        if (total > 0) {
+
+        // MINIMUM SAMPLE REQUIREMENT: Need at least 3 ratings in this genre
+        if (total >= 3) {
+          dataQuality.genresUsed++;
+          genreSampleSizes.push(total);
+
           const positiveRatio = thumbsUp / total;
 
           // Convert ratio to adjustment score (-2 to +2)
@@ -125,6 +148,11 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
     if (genreScores.length > 0) {
       genreAdjustment = genreScores.reduce((a, b) => a + b, 0) / genreScores.length;
       genreAdjustment = Math.max(-2, Math.min(2, genreAdjustment));
+      dataQuality.adjustmentsApplied.genre = true;
+
+      // Calculate genre reliability (0-1 scale based on sample sizes)
+      const avgGenreSampleSize = genreSampleSizes.reduce((a, b) => a + b, 0) / genreSampleSizes.length;
+      dataQuality.genreReliability = Math.min(1, avgGenreSampleSize / 10); // 10+ ratings = max reliability
     }
   }
 
@@ -153,7 +181,11 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
         }
 
         const total = thumbsUp + thumbsDown;
-        if (total > 0) {
+
+        // MINIMUM SAMPLE REQUIREMENT: Need at least 2 ratings for this director
+        if (total >= 2) {
+          dataQuality.directorSampleSize = Math.max(dataQuality.directorSampleSize, total);
+
           const positiveRatio = thumbsUp / total;
 
           // Convert ratio to adjustment score (-0.5 to +1)
@@ -178,6 +210,10 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
     if (directorScores.length > 0) {
       directorAdjustment = directorScores.reduce((a, b) => a + b, 0) / directorScores.length;
       directorAdjustment = Math.max(-0.5, Math.min(1, directorAdjustment));
+      dataQuality.adjustmentsApplied.director = true;
+
+      // Calculate director reliability (0-1 scale based on sample size)
+      dataQuality.directorReliability = Math.min(1, dataQuality.directorSampleSize / 5); // 5+ ratings = max reliability
     }
   }
 
@@ -209,7 +245,11 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
         }
 
         const total = thumbsUp + thumbsDown;
-        if (total > 0) {
+
+        // MINIMUM SAMPLE REQUIREMENT: Need at least 2 ratings for this cast member
+        if (total >= 2) {
+          dataQuality.castSampleSizes.push(total);
+
           const positiveRatio = thumbsUp / total;
 
           // Convert ratio to adjustment score (-0.5 to +1)
@@ -234,6 +274,13 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
     if (castScores.length > 0) {
       castAdjustment = castScores.reduce((a, b) => a + b, 0) / castScores.length;
       castAdjustment = Math.max(-0.5, Math.min(1, castAdjustment));
+      dataQuality.adjustmentsApplied.cast = true;
+
+      // Calculate cast reliability (0-1 scale based on average sample size)
+      if (dataQuality.castSampleSizes.length > 0) {
+        const avgCastSampleSize = dataQuality.castSampleSizes.reduce((a, b) => a + b, 0) / dataQuality.castSampleSizes.length;
+        dataQuality.castReliability = Math.min(1, avgCastSampleSize / 5); // 5+ ratings = max reliability
+      }
     }
   }
 
@@ -243,10 +290,11 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
   // Log calculation details
   console.log('📊 Badge Calculation Details:');
   console.log('   IMDb Base Score:', imdbScore);
-  console.log('   Genre Adjustment:', genreAdjustment.toFixed(2));
-  console.log('   Director Adjustment:', directorAdjustment.toFixed(2));
-  console.log('   Cast Adjustment:', castAdjustment.toFixed(2));
+  console.log('   Genre Adjustment:', genreAdjustment.toFixed(2), `(${dataQuality.genresUsed}/${dataQuality.genresEvaluated} genres used, reliability: ${(dataQuality.genreReliability * 100).toFixed(0)}%)`);
+  console.log('   Director Adjustment:', directorAdjustment.toFixed(2), `(sample size: ${dataQuality.directorSampleSize}, reliability: ${(dataQuality.directorReliability * 100).toFixed(0)}%)`);
+  console.log('   Cast Adjustment:', castAdjustment.toFixed(2), `(sample sizes: [${dataQuality.castSampleSizes.join(', ')}], reliability: ${(dataQuality.castReliability * 100).toFixed(0)}%)`);
   console.log('   Final Adjusted Score:', adjustedScore.toFixed(2));
+  console.log('   Overall Confidence:', confidence);
 
   // Determine badge level based on adjusted score
   let badge, description, emoji;
@@ -272,6 +320,16 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
     description = 'Probably skip this';
   }
 
+  // Calculate overall confidence score (0-1 scale)
+  const activeAdjustments = Object.values(dataQuality.adjustmentsApplied).filter(a => a).length;
+  const avgReliability = activeAdjustments > 0
+    ? (dataQuality.genreReliability + dataQuality.directorReliability + dataQuality.castReliability) / 3
+    : 0;
+
+  let confidence = 'low';
+  if (avgReliability >= 0.7) confidence = 'high';
+  else if (avgReliability >= 0.4) confidence = 'medium';
+
   return {
     badge,
     emoji,
@@ -284,7 +342,18 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
       cast: Math.round(castAdjustment * 10) / 10
     },
     tier,
-    totalVotes: ratedMovies.length
+    totalVotes: ratedMovies.length,
+    confidence,
+    dataQuality: {
+      genreReliability: Math.round(dataQuality.genreReliability * 100) / 100,
+      directorReliability: Math.round(dataQuality.directorReliability * 100) / 100,
+      castReliability: Math.round(dataQuality.castReliability * 100) / 100,
+      genresEvaluated: dataQuality.genresEvaluated,
+      genresUsed: dataQuality.genresUsed,
+      directorSampleSize: dataQuality.directorSampleSize,
+      castSampleSizes: dataQuality.castSampleSizes,
+      adjustmentsApplied: dataQuality.adjustmentsApplied
+    }
   };
 }
 
@@ -354,7 +423,9 @@ router.post('/', async (req, res) => {
       totalVotes: badgeData ? badgeData.totalVotes : 0,
       baseScore: badgeData ? badgeData.baseScore : null,
       adjustedScore: badgeData ? badgeData.adjustedScore : null,
-      adjustments: badgeData ? badgeData.adjustments : null
+      adjustments: badgeData ? badgeData.adjustments : null,
+      confidence: badgeData ? badgeData.confidence : null,
+      dataQuality: badgeData ? badgeData.dataQuality : null
     });
   } catch (error) {
     console.error('Save rating error:', error);
@@ -419,6 +490,8 @@ router.post('/calculate-badge', async (req, res) => {
       baseScore: badgeData ? badgeData.baseScore : null,
       adjustedScore: badgeData ? badgeData.adjustedScore : null,
       adjustments: badgeData ? badgeData.adjustments : null,
+      confidence: badgeData ? badgeData.confidence : null,
+      dataQuality: badgeData ? badgeData.dataQuality : null,
       imdbRating: movieData.imdbRating || movieData.imdb_rating
     });
   } catch (error) {
