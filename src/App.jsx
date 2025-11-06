@@ -269,14 +269,21 @@ import React, { useState, useRef } from 'react';
             const remainingNeeded = totalNeeded - votedCount;
             const progressPercentage = (votedCount / totalNeeded) * 100;
 
+            // Track if we've already recalculated badges after reaching 5 votes
+            const [badgesRecalculated, setBadgesRecalculated] = useState(false);
+
             // Recalculate badges for all movies when user becomes eligible
             React.useEffect(() => {
                 const recalculateAllBadges = async () => {
-                    if (votedCount < 5) return;
+                    // Only run once when user reaches 5 votes
+                    if (votedCount < 5 || badgesRecalculated) return;
 
                     // Check if any movies are missing badge data
                     const moviesNeedingBadges = Object.values(movieHistory).filter(movie => !movie.badge);
-                    if (moviesNeedingBadges.length === 0) return;
+                    if (moviesNeedingBadges.length === 0) {
+                        setBadgesRecalculated(true);
+                        return;
+                    }
 
                     console.log(`🔄 User is now eligible! Recalculating badges for ${moviesNeedingBadges.length} movies...`);
 
@@ -340,13 +347,14 @@ import React, { useState, useRef } from 'react';
                         });
 
                         console.log('✅ All badges recalculated successfully!');
+                        setBadgesRecalculated(true);
                     } catch (error) {
                         console.error('Error recalculating badges:', error);
                     }
                 };
 
                 recalculateAllBadges();
-            }, [votedCount, movieHistory]);
+            }, [votedCount, movieHistory, badgesRecalculated]); // Safe to include all deps now with flag
 
             const handleMovieRating = async (movieId, rating) => {
                 const movie = movieHistory[movieId];
@@ -1333,6 +1341,12 @@ import React, { useState, useRef } from 'react';
                                 } else {
                                     console.log('⚠️  Movie not found in OMDb');
                                 }
+                            } else if (omdbResponse.status === 429) {
+                                // Rate limit exceeded
+                                const errorData = await omdbResponse.json();
+                                console.warn('⚠️  OMDb API rate limit exceeded:', errorData.message);
+                                console.warn('   Continuing without OMDb ratings...');
+                                // Don't show error to user, just continue without ratings
                             } else {
                                 console.warn('⚠️  OMDb API request failed:', omdbResponse.status);
                             }

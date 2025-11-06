@@ -212,6 +212,38 @@ router.get('/ratings/:imdbId', async (req, res) => {
       console.error('Response status:', error.response.status);
       console.error('Response data:', JSON.stringify(error.response.data, null, 2));
 
+      // Handle rate limiting / too many requests
+      if (error.response.status === 429) {
+        console.error('⚠️  OMDb API rate limit exceeded');
+        return res.status(429).json({
+          error: 'Rate limit exceeded',
+          message: 'Too many requests to OMDb API. Please try again later.',
+          debug: {
+            status: 429,
+            type: 'rate_limit'
+          }
+        });
+      }
+
+      // Handle OMDb specific errors (like daily limit reached)
+      if (error.response.data?.Error) {
+        const errorMsg = error.response.data.Error.toLowerCase();
+
+        // Check for daily limit error
+        if (errorMsg.includes('daily limit') || errorMsg.includes('limit reached') || errorMsg.includes('over quota')) {
+          console.error('⚠️  OMDb API daily limit reached');
+          return res.status(429).json({
+            error: 'Daily limit reached',
+            message: 'OMDb API daily limit has been reached. Ratings unavailable until tomorrow.',
+            debug: {
+              status: error.response.status,
+              type: 'daily_limit',
+              details: error.response.data.Error
+            }
+          });
+        }
+      }
+
       return res.status(error.response.status).json({
         error: error.response.data?.Error || 'OMDb API error',
         debug: {
