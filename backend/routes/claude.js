@@ -179,7 +179,7 @@ router.post('/identify', async (req, res) => {
           },
           {
             type: 'text',
-            text: `Look at this screenshot. Extract the EXACT main title of the movie or TV show being displayed.
+            text: `Look at this screenshot. Extract the EXACT main title of the movie or TV show being displayed, and determine if it's a movie or TV show.
 
 CRITICAL RULES:
 1. Extract ONLY the main movie/show title - ignore ALL descriptive text
@@ -192,22 +192,39 @@ CRITICAL RULES:
 8. Return the MAIN title only, typically the largest/most prominent text
 9. Keep exact capitalization and spacing as shown
 
+VISUAL CONTEXT CLUES FOR MEDIA TYPE:
+- If you see episode numbers, "S1 E5", "Season X Episode Y" → TV show
+- If you see a single runtime like "90 min", "2h 15m" without episode info → Movie
+- If you see episode thumbnails, season menus, or "Next Episode" → TV show
+- If you see movie poster with main actors and single runtime → Movie
+- TV shows often show progress in episodes/seasons
+- Movies typically show a single progress bar for one viewing
+- Look for visual patterns: TV show interfaces show episode lists, movies don't
+
 Respond with ONLY valid JSON - nothing else:
 {
   "title": "Exact Movie Title",
-  "year": 2005
+  "year": 2005,
+  "media_type": "movie"
 }
+
+Media type should be:
+- "movie" for movies
+- "tv" for TV shows
+- null if you cannot determine
 
 If no year visible, use null:
 {
   "title": "Movie Title",
-  "year": null
+  "year": null,
+  "media_type": "movie"
 }
 
 If no clear title:
 {
   "title": null,
-  "year": null
+  "year": null,
+  "media_type": null
 }
 
 Return ONLY the JSON object with no additional text, explanations, markdown, or code blocks.`
@@ -267,8 +284,9 @@ Return ONLY the JSON object with no additional text, explanations, markdown, or 
 
     let title = parsedResponse.title;
     const year = parsedResponse.year;
+    const media_type = parsedResponse.media_type;
 
-    console.log('📝 Parsed JSON - Title:', title, 'Year:', year);
+    console.log('📝 Parsed JSON - Title:', title, 'Year:', year, 'Media Type:', media_type);
 
     // Check if Claude found a title
     if (!title) {
@@ -276,6 +294,7 @@ Return ONLY the JSON object with no additional text, explanations, markdown, or 
       return res.json({
         title: null,
         year: null,
+        media_type: null,
         confidence: 0,
         message: 'No clear movie or TV show title found in image'
       });
@@ -312,6 +331,7 @@ Return ONLY the JSON object with no additional text, explanations, markdown, or 
     res.json({
       title: title,
       year: year,
+      media_type: media_type,
       confidence: 0.9, // Claude is generally very accurate
       model: 'claude-3-haiku-20240307',
       processingTime: duration

@@ -1054,12 +1054,16 @@ import React, { useState, useRef, useEffect } from 'react';
 
                     const detectedTitle = claudeData.title;
                     const detectedYear = claudeData.year;
+                    const detectedMediaType = claudeData.media_type;
                     const confidence = claudeData.confidence || 0.9;
 
                     console.log('\n🎯 Claude identified:');
                     console.log('   Title:', detectedTitle);
                     if (detectedYear) {
                         console.log('   Year:', detectedYear);
+                    }
+                    if (detectedMediaType) {
+                        console.log('   Media Type:', detectedMediaType);
                     }
                     console.log('   Confidence:', (confidence * 100).toFixed(1) + '%');
 
@@ -1070,9 +1074,9 @@ import React, { useState, useRef, useEffect } from 'react';
                         return;
                     }
 
-                    // Search for the movie directly with Claude's identified title and year
-                    console.log('\n🔍 Searching TMDB for:', detectedTitle + (detectedYear ? ' (' + detectedYear + ')' : ''));
-                    await searchMovie(detectedTitle, detectedYear);
+                    // Search for the movie directly with Claude's identified title, year, and media type
+                    console.log('\n🔍 Searching TMDB for:', detectedTitle + (detectedYear ? ' (' + detectedYear + ')' : '') + (detectedMediaType ? ' [' + detectedMediaType + ']' : ''));
+                    await searchMovie(detectedTitle, detectedYear, detectedMediaType);
                 } catch (error) {
                     console.error('\n❌❌❌ FRONTEND ERROR ❌❌❌');
                     console.error('Error type:', error.constructor.name);
@@ -1160,10 +1164,13 @@ import React, { useState, useRef, useEffect } from 'react';
                 setIsProcessing(false);
             };
 
-            const searchMovie = async (query, year = null, silent = false) => {
+            const searchMovie = async (query, year = null, mediaType = null, silent = false) => {
                 console.log('🎬 Starting movie search with query:', query);
                 if (year) {
                     console.log('📅 Using year for filtering/ranking:', year);
+                }
+                if (mediaType) {
+                    console.log('🎭 Media type filter:', mediaType);
                 }
 
                 // Generate alternative search queries as fallbacks
@@ -1208,8 +1215,8 @@ import React, { useState, useRef, useEffect } from 'react';
                     return alternatives;
                 };
 
-                // Rank/score a result based on title match, year match, and popularity
-                const scoreResult = (result, targetYear, searchQuery) => {
+                // Rank/score a result based on title match, year match, media type, and popularity
+                const scoreResult = (result, targetYear, searchQuery, targetMediaType) => {
                     let score = 0;
 
                     const resultTitle = (result.title || result.name || '').toLowerCase();
@@ -1252,21 +1259,44 @@ import React, { useState, useRef, useEffect } from 'react';
                         }
                     }
 
-                    // Popularity as tertiary factor (normalize to 0-100 scale)
-                    const popularityScore = Math.min(result.popularity || 0, 100);
+                    // Media type scoring (important when year is not available)
+                    if (targetMediaType) {
+                        if (result.media_type === targetMediaType) {
+                            score += 3000; // Strong preference for matching media type
+                            console.log('      🎭 Media type match:', targetMediaType);
+                        } else {
+                            // Penalize wrong media type
+                            score -= 2000;
+                            console.log('      ⚠️  Media type mismatch (got:', result.media_type, 'want:', targetMediaType + ')');
+                        }
+                    } else if (!targetYear) {
+                        // When no year and no media type specified, prefer movies slightly
+                        // (users snap movies more often than TV shows)
+                        if (result.media_type === 'movie') {
+                            score += 1000;
+                            console.log('      🎬 Default movie preference');
+                        }
+                    }
+
+                    // Popularity scoring - more heavily weighted when year is null
+                    const popularityWeight = targetYear ? 1 : 5;
+                    const popularityScore = Math.min(result.popularity || 0, 100) * popularityWeight;
                     score += popularityScore;
 
                     console.log('      Total Score:', score, '(popularity:', result.popularity?.toFixed(1) + ')');
                     return score;
                 };
 
-                const trySearch = async (searchQuery, targetYear) => {
+                const trySearch = async (searchQuery, targetYear, targetMediaType) => {
                     console.log('  🔎 Trying:', searchQuery);
 
-                    const response = await fetch(
-                        `${BACKEND_URL}/api/tmdb/search?query=${encodeURIComponent(searchQuery)}`,
-                        { credentials: 'include' }
-                    );
+                    // Build search URL with optional media_type parameter
+                    let searchUrl = `${BACKEND_URL}/api/tmdb/search?query=${encodeURIComponent(searchQuery)}`;
+                    if (targetMediaType) {
+                        searchUrl += `&media_type=${targetMediaType}`;
+                    }
+
+                    const response = await fetch(searchUrl, { credentials: 'include' });
 
                     if (!response.ok) {
                         const errorData = await response.json();
@@ -1312,7 +1342,7 @@ import React, { useState, useRef, useEffect } from 'react';
                             // Rank results
                             const scoredResults = validResults.map(result => ({
                                 ...result,
-                                _score: scoreResult(result, targetYear, searchQuery)
+                                _score: scoreResult(result, targetYear, searchQuery, targetMediaType)
                             }));
 
                             // Sort by score (highest first)
@@ -1344,7 +1374,7 @@ import React, { useState, useRef, useEffect } from 'react';
 
                     // Try each alternative until we find a match
                     for (const altQuery of alternatives) {
-                        movie = await trySearch(altQuery, year);
+                        movie = await trySearch(altQuery, year, mediaType);
                         if (movie) {
                             successfulQuery = altQuery;
                             console.log('✅ Found match with:', successfulQuery);
