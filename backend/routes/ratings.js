@@ -287,6 +287,16 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
   // Calculate final adjusted score
   adjustedScore += genreAdjustment + directorAdjustment + castAdjustment;
 
+  // Calculate overall confidence score (0-1 scale) - MUST BE BEFORE LOGGING
+  const activeAdjustments = Object.values(dataQuality.adjustmentsApplied).filter(a => a).length;
+  const avgReliability = activeAdjustments > 0
+    ? (dataQuality.genreReliability + dataQuality.directorReliability + dataQuality.castReliability) / 3
+    : 0;
+
+  let confidence = 'low';
+  if (avgReliability >= 0.7) confidence = 'high';
+  else if (avgReliability >= 0.4) confidence = 'medium';
+
   // Log calculation details
   console.log('📊 Badge Calculation Details:');
   console.log('   IMDb Base Score:', imdbScore);
@@ -319,16 +329,6 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
     emoji = '❌';
     description = 'Probably skip this';
   }
-
-  // Calculate overall confidence score (0-1 scale)
-  const activeAdjustments = Object.values(dataQuality.adjustmentsApplied).filter(a => a).length;
-  const avgReliability = activeAdjustments > 0
-    ? (dataQuality.genreReliability + dataQuality.directorReliability + dataQuality.castReliability) / 3
-    : 0;
-
-  let confidence = 'low';
-  if (avgReliability >= 0.7) confidence = 'high';
-  else if (avgReliability >= 0.4) confidence = 'medium';
 
   return {
     badge,
