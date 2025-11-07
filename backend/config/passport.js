@@ -2,38 +2,49 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { createOrUpdateOAuthUser, findUserByOAuth } = require('../db/database');
 
-// Configure Google OAuth Strategy
-passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3001/auth/google/callback',
-  passReqToCallback: true
-},
-async (req, accessToken, refreshToken, profile, done) => {
-  try {
-    // Extract user info from Google profile
-    const oauthData = {
-      provider: 'google',
-      oauthId: profile.id,
-      email: profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null,
-      displayName: profile.displayName,
-      profilePicture: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : null
-    };
+// Check if Google OAuth credentials are configured
+const isGoogleOAuthConfigured = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
 
-    // Create or update user
-    const user = createOrUpdateOAuthUser(oauthData);
+if (isGoogleOAuthConfigured) {
+  console.log('✅ Google OAuth is configured');
 
-    // Store anonymous user ID in session for potential linking
-    if (req.session && req.session.userId) {
-      user.anonymousUserId = req.session.userId;
+  // Configure Google OAuth Strategy
+  passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3001/auth/google/callback',
+    passReqToCallback: true
+  },
+  async (req, accessToken, refreshToken, profile, done) => {
+    try {
+      // Extract user info from Google profile
+      const oauthData = {
+        provider: 'google',
+        oauthId: profile.id,
+        email: profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null,
+        displayName: profile.displayName,
+        profilePicture: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : null
+      };
+
+      // Create or update user
+      const user = createOrUpdateOAuthUser(oauthData);
+
+      // Store anonymous user ID in session for potential linking
+      if (req.session && req.session.userId) {
+        user.anonymousUserId = req.session.userId;
+      }
+
+      return done(null, user);
+    } catch (error) {
+      console.error('Error in Google OAuth strategy:', error);
+      return done(error, null);
     }
-
-    return done(null, user);
-  } catch (error) {
-    console.error('Error in Google OAuth strategy:', error);
-    return done(error, null);
-  }
-}));
+  }));
+} else {
+  console.log('⚠️  Google OAuth is not configured. Social login will be disabled.');
+  console.log('   To enable, add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your .env file');
+  console.log('   See OAUTH_SETUP.md for setup instructions');
+}
 
 // Serialize user to session
 passport.serializeUser((user, done) => {

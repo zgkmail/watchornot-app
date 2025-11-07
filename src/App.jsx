@@ -201,6 +201,7 @@ import React, { useState, useRef, useEffect } from 'react';
             // User authentication state
             const [user, setUser] = useState(null);
             const [isAuthenticating, setIsAuthenticating] = useState(true);
+            const [isOAuthConfigured, setIsOAuthConfigured] = useState(false);
 
             // Backend API configuration
             // Automatically use the same host as the frontend (for network testing on iPhone/devices)
@@ -279,6 +280,7 @@ import React, { useState, useRef, useEffect } from 'react';
 
                         if (response.ok) {
                             const data = await response.json();
+                            setIsOAuthConfigured(data.oauthConfigured || false);
                             if (data.authenticated && data.user) {
                                 setUser(data.user);
                                 console.log('✅ User authenticated:', data.user.displayName || data.user.email);
@@ -2307,8 +2309,8 @@ import React, { useState, useRef, useEffect } from 'react';
                                                             <span>Sign Out</span>
                                                         </button>
                                                     </div>
-                                                ) : (
-                                                    // Anonymous user - show login button
+                                                ) : isOAuthConfigured ? (
+                                                    // Anonymous user with OAuth configured - show login button
                                                     <div className={`w-full rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300 shadow-sm'}`}>
                                                         <div className={`p-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                                             <p className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -2330,6 +2332,18 @@ import React, { useState, useRef, useEffect } from 'react';
                                                             </svg>
                                                             <span className="text-gray-700 font-medium">Continue with Google</span>
                                                         </button>
+                                                    </div>
+                                                ) : (
+                                                    // OAuth not configured - show info message
+                                                    <div className={`w-full rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300 shadow-sm'}`}>
+                                                        <div className={`p-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                            <p className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                                Social Login Not Available
+                                                            </p>
+                                                            <p className="text-sm">
+                                                                Your ratings are saved locally on this device. Social login has not been configured by the server administrator.
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 )}
                                                 <button

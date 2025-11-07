@@ -3,21 +3,42 @@ const router = express.Router();
 const passport = require('../config/passport');
 const { linkAnonymousToOAuth } = require('../db/database');
 
+// Check if OAuth is configured
+const isOAuthConfigured = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
+
 /**
  * Initiate Google OAuth flow
  * GET /auth/google
  */
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
-}));
+router.get('/google', (req, res, next) => {
+  if (!isOAuthConfigured) {
+    return res.status(503).json({
+      error: 'OAuth not configured',
+      message: 'Social login is not configured on this server. Please contact the administrator.'
+    });
+  }
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
+  })(req, res, next);
+});
 
 /**
  * Google OAuth callback
  * GET /auth/google/callback
  */
-router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: process.env.FRONTEND_URL || 'http://localhost:3000' }),
-  async (req, res) => {
+router.get('/google/callback', (req, res, next) => {
+  if (!isOAuthConfigured) {
+    return res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+  }
+
+  passport.authenticate('google', {
+    failureRedirect: process.env.FRONTEND_URL || 'http://localhost:3000'
+  })(req, res, async (err) => {
+    if (err) {
+      console.error('Error in OAuth callback:', err);
+      return res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
+    }
+
     try {
       // Check if we need to link anonymous account
       if (req.user.anonymousUserId && req.user.anonymousUserId !== req.user.id) {
@@ -37,8 +58,8 @@ router.get('/google/callback',
       console.error('Error in OAuth callback:', error);
       res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
     }
-  }
-);
+  });
+});
 
 /**
  * Get current user status
@@ -49,6 +70,7 @@ router.get('/status', (req, res) => {
     // Return user info without sensitive data
     res.json({
       authenticated: true,
+      oauthConfigured: isOAuthConfigured,
       user: {
         id: req.user.id,
         email: req.user.email,
@@ -61,6 +83,7 @@ router.get('/status', (req, res) => {
     // Anonymous user
     res.json({
       authenticated: false,
+      oauthConfigured: isOAuthConfigured,
       user: {
         id: req.session.userId,
         anonymous: true
@@ -69,6 +92,7 @@ router.get('/status', (req, res) => {
   } else {
     res.json({
       authenticated: false,
+      oauthConfigured: isOAuthConfigured,
       user: null
     });
   }
