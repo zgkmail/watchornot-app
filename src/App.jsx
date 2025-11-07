@@ -1889,7 +1889,11 @@ import React, { useState, useRef } from 'react';
                                                     <div className="flex-1">
                                                         <h2 className={`text-2xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentMovie.title}</h2>
                                                         <button
-                                                            onClick={() => setShowCorrectionModal(true)}
+                                                            onClick={() => {
+                                                                setSearchQuery(currentMovie.title);
+                                                                setSearchMode(true);
+                                                                setCurrentMovie(null);
+                                                            }}
                                                             className={`text-xs mb-2 underline ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
                                                         >
                                                             Wrong title? Search instead
