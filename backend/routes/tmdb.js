@@ -11,11 +11,11 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 /**
  * Search for movies/TV shows
- * GET /api/tmdb/search?query=movie_name
+ * GET /api/tmdb/search?query=movie_name&media_type=movie|tv
  */
 router.get('/search', async (req, res) => {
   try {
-    const { query } = req.query;
+    const { query, media_type } = req.query;
 
     if (!query) {
       return res.status(400).json({ error: 'Query parameter is required' });
@@ -32,8 +32,21 @@ router.get('/search', async (req, res) => {
       return res.status(500).json({ error: 'TMDB API key not configured on server. Please contact administrator.' });
     }
 
+    // Determine the search endpoint based on media_type
+    let searchEndpoint = '/search/multi'; // Default: search both movies and TV shows
+
+    if (media_type === 'movie') {
+      searchEndpoint = '/search/movie';
+      console.log('🎬 Searching movies only');
+    } else if (media_type === 'tv') {
+      searchEndpoint = '/search/tv';
+      console.log('📺 Searching TV shows only');
+    } else {
+      console.log('🔍 Searching movies and TV shows (multi)');
+    }
+
     // Make request to TMDB API
-    const response = await axios.get(`${TMDB_BASE_URL}/search/multi`, {
+    const response = await axios.get(`${TMDB_BASE_URL}${searchEndpoint}`, {
       params: {
         api_key: apiKey,
         query: query
