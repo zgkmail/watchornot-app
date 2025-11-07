@@ -88,10 +88,10 @@ This creates `fly.toml` configuration file.
 
 ### 3.3 Create persistent volume for database
 ```bash
-fly volumes create watchornot_data --size 1
+fly volumes create data --size 1
 ```
 
-**Note**: This creates a 1 GB volume for your SQLite database (free).
+**Note**: This creates a 1 GB volume named "data" for your SQLite database (free).
 
 ### 3.4 Set environment secrets
 ```bash
@@ -118,9 +118,11 @@ The `fly.toml` file should already be configured correctly, but verify it has:
 
 ```toml
 [mounts]
-  source = "watchornot_data"
-  destination = "/app/db"
+  source = "data"
+  destination = "/data"
 ```
+
+**Note**: The database will be stored at `/data/watchornot.db` on the persistent volume.
 
 ### 3.6 Deploy!
 ```bash
@@ -273,7 +275,7 @@ fly machines restart <machine-id>
 # Check volume is mounted
 fly volumes list
 
-# Should show: watchornot_data | 1GB | attached
+# Should show: data | 1GB | attached
 ```
 
 ### App not accessible
