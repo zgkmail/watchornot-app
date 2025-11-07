@@ -25,3 +25,8 @@ backend.log
 
 # Backup files
 *.backup
+
+# Database files (backend)
+backend/db/*.db
+backend/db/*.db-*
+backend/.env
