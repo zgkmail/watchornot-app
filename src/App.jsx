@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 
         // SVG Icon Components
@@ -171,6 +171,7 @@ import React, { useState, useRef } from 'react';
             const fileInputRef = useRef(null);
             const cameraInputRef = useRef(null);
             const videoRef = useRef(null);
+            const searchInputRef = useRef(null);
             const [stream, setStream] = useState(null);
             const [cameraActive, setCameraActive] = useState(false);
 
@@ -268,6 +269,16 @@ import React, { useState, useRef } from 'react';
             React.useEffect(() => {
                 localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
             }, [isDarkMode]);
+
+            // Focus search input when search mode is enabled with prepopulated query
+            useEffect(() => {
+                if (searchMode && searchQuery && searchInputRef.current) {
+                    searchInputRef.current.focus();
+                    // Set cursor at the end of the text
+                    const length = searchQuery.length;
+                    searchInputRef.current.setSelectionRange(length, length);
+                }
+            }, [searchMode, searchQuery]);
 
             const votedMovies = Object.values(movieHistory).filter(movie => movie.rating !== null);
             const votedCount = votedMovies.length;
@@ -1848,6 +1859,7 @@ import React, { useState, useRef } from 'react';
                                                 {searchMode && (
                                                     <div className="space-y-3 mb-6">
                                                         <input
+                                                            ref={searchInputRef}
                                                             type="text"
                                                             value={searchQuery}
                                                             onChange={(e) => setSearchQuery(e.target.value)}
