@@ -185,6 +185,12 @@ import React, { useState, useRef } from 'react';
             // Movie detail modal state
             const [detailModalMovie, setDetailModalMovie] = useState(null);
 
+            // Title correction modal state
+            const [showCorrectionModal, setShowCorrectionModal] = useState(false);
+            const [correctionSearchQuery, setCorrectionSearchQuery] = useState('');
+            const [correctionSearchResults, setCorrectionSearchResults] = useState([]);
+            const [isSearchingCorrection, setIsSearchingCorrection] = useState(false);
+
             // Dark mode state
             const [isDarkMode, setIsDarkMode] = useState(() => {
                 const saved = localStorage.getItem('darkMode');
@@ -1090,6 +1096,59 @@ import React, { useState, useRef } from 'react';
                 }
             };
 
+            // Search for movies and return multiple results for user selection
+            const searchCorrectionResults = async (query) => {
+                if (!query || query.trim().length < 2) {
+                    setCorrectionSearchResults([]);
+                    return;
+                }
+
+                setIsSearchingCorrection(true);
+                console.log('🔍 Searching for correction candidates:', query);
+
+                try {
+                    const response = await fetch(
+                        `${BACKEND_URL}/api/tmdb/search?query=${encodeURIComponent(query)}`,
+                        { credentials: 'include' }
+                    );
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'TMDB search error');
+                    }
+
+                    const data = await response.json();
+
+                    // Filter to only movies and TV shows
+                    const validResults = (data.results || [])
+                        .filter(result => result.media_type === 'movie' || result.media_type === 'tv')
+                        .slice(0, 10); // Show top 10 results
+
+                    console.log('✓ Found', validResults.length, 'results');
+                    setCorrectionSearchResults(validResults);
+                } catch (error) {
+                    console.error('❌ Search error:', error);
+                    setCorrectionSearchResults([]);
+                } finally {
+                    setIsSearchingCorrection(false);
+                }
+            };
+
+            // Handle selecting a movie from correction search results
+            const handleCorrectionSelect = async (selectedMovie) => {
+                console.log('✅ User selected correct movie:', selectedMovie.title || selectedMovie.name);
+                setShowCorrectionModal(false);
+                setCorrectionSearchQuery('');
+                setCorrectionSearchResults([]);
+                setIsProcessing(true);
+
+                // Use searchMovie to fetch full details and update currentMovie
+                const title = selectedMovie.title || selectedMovie.name;
+                const year = (selectedMovie.release_date || selectedMovie.first_air_date || '').split('-')[0];
+                await searchMovie(title, year ? parseInt(year) : null);
+                setIsProcessing(false);
+            };
+
             const searchMovie = async (query, year = null, silent = false) => {
                 console.log('🎬 Starting movie search with query:', query);
                 if (year) {
@@ -1829,6 +1888,12 @@ import React, { useState, useRef } from 'react';
                                                     )}
                                                     <div className="flex-1">
                                                         <h2 className={`text-2xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentMovie.title}</h2>
+                                                        <button
+                                                            onClick={() => setShowCorrectionModal(true)}
+                                                            className={`text-xs mb-2 underline ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
+                                                        >
+                                                            Wrong title? Search instead
+                                                        </button>
                                                         <p className={`text-sm mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{currentMovie.year} • {currentMovie.genre}</p>
                                                         {currentMovie.director && (
                                                             <p className={`text-xs mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -2285,6 +2350,131 @@ import React, { useState, useRef } from 'react';
                                             >
                                                 Close
                                             </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Title Correction Modal */}
+                        {showCorrectionModal && (
+                            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+                                {/* Backdrop */}
+                                <div
+                                    className="absolute inset-0 bg-black bg-opacity-50"
+                                    onClick={() => {
+                                        setShowCorrectionModal(false);
+                                        setCorrectionSearchQuery('');
+                                        setCorrectionSearchResults([]);
+                                    }}
+                                />
+
+                                {/* Modal Content */}
+                                <div className={`relative w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-t-2xl sm:rounded-2xl ${isDarkMode ? 'bg-gray-900' : 'bg-white'} shadow-2xl`}>
+                                    <div className="p-6">
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                Search for the Correct Title
+                                            </h3>
+                                            <button
+                                                onClick={() => {
+                                                    setShowCorrectionModal(false);
+                                                    setCorrectionSearchQuery('');
+                                                    setCorrectionSearchResults([]);
+                                                }}
+                                                className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-600'}`}
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+
+                                        {/* Search Input */}
+                                        <div className="mb-4">
+                                            <input
+                                                type="text"
+                                                value={correctionSearchQuery}
+                                                onChange={(e) => {
+                                                    setCorrectionSearchQuery(e.target.value);
+                                                    searchCorrectionResults(e.target.value);
+                                                }}
+                                                placeholder="Type the correct movie or TV show title..."
+                                                className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                                    isDarkMode
+                                                        ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                                                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                                                }`}
+                                                autoFocus
+                                            />
+                                        </div>
+
+                                        {/* Search Results */}
+                                        <div className="overflow-y-auto max-h-[50vh]">
+                                            {isSearchingCorrection ? (
+                                                <div className="text-center py-8">
+                                                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                        Searching...
+                                                    </div>
+                                                </div>
+                                            ) : correctionSearchResults.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {correctionSearchResults.map((result) => {
+                                                        const title = result.title || result.name;
+                                                        const year = (result.release_date || result.first_air_date || '').split('-')[0];
+                                                        const posterUrl = result.poster_path
+                                                            ? `https://image.tmdb.org/t/p/w92${result.poster_path}`
+                                                            : null;
+
+                                                        return (
+                                                            <button
+                                                                key={result.id}
+                                                                onClick={() => handleCorrectionSelect(result)}
+                                                                className={`w-full p-3 rounded-xl flex items-center gap-3 transition-all ${
+                                                                    isDarkMode
+                                                                        ? 'hover:bg-gray-800 border border-gray-800'
+                                                                        : 'hover:bg-gray-50 border border-gray-200'
+                                                                }`}
+                                                            >
+                                                                {/* Poster */}
+                                                                {posterUrl ? (
+                                                                    <img
+                                                                        src={posterUrl}
+                                                                        alt={title}
+                                                                        className="w-12 h-18 rounded object-cover flex-shrink-0"
+                                                                    />
+                                                                ) : (
+                                                                    <div className={`w-12 h-18 rounded flex-shrink-0 ${
+                                                                        isDarkMode ? 'bg-gray-800' : 'bg-gray-200'
+                                                                    }`} />
+                                                                )}
+
+                                                                {/* Info */}
+                                                                <div className="flex-1 text-left">
+                                                                    <div className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                                        {title}
+                                                                    </div>
+                                                                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                                        {year && `${year} • `}
+                                                                        {result.media_type === 'movie' ? 'Movie' : 'TV Show'}
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : correctionSearchQuery.trim().length >= 2 ? (
+                                                <div className="text-center py-8">
+                                                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                        No results found. Try a different search.
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-8">
+                                                    <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                        Start typing to search...
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
