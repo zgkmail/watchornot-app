@@ -48,9 +48,13 @@ function calculateRecommendationBadge(movie, userId, excludeMovieId = null) {
   // Get all user ratings to check count
   const userRatings = getUserMovieRatings(userId);
 
-  // Filter out the current movie being scored to prevent circular dependency
+  // Filter to get all rated movies
+  // Note: We don't exclude the current movie here because:
+  // 1. Eligibility check needs to count ALL votes
+  // 2. Tier calculation should be based on ALL votes
+  // 3. Circular dependency prevention is handled within each adjustment section
   const ratedMovies = userRatings.filter(m => {
-    return m.rating !== null && (!excludeMovieId || m.movie_id !== excludeMovieId);
+    return m.rating !== null;
   });
 
   // Require at least 5 rated movies before showing badge
