@@ -156,7 +156,26 @@ Should return:
 
 ## Step 4: Deploy Frontend (10 minutes)
 
-**Option A: Render (Recommended for frontend)**
+**Option A: Fly.io (NEW - Keep everything on Fly.io!)**
+
+Deploy the frontend to Fly.io alongside the backend:
+
+```bash
+# From project root
+./deploy-frontend-flyio.sh
+```
+
+Or manually:
+```bash
+fly launch --now
+fly deploy
+```
+
+Your frontend will be at: `https://watchornot-frontend.fly.dev`
+
+📖 **See [DEPLOY_FRONTEND_FLYIO.md](DEPLOY_FRONTEND_FLYIO.md) for detailed instructions.**
+
+**Option B: Render (Alternative)**
 
 Frontend can still use Render's free static site hosting:
 
@@ -168,14 +187,14 @@ Frontend can still use Render's free static site hosting:
    - **Publish Directory**: `dist`
 5. Deploy!
 
-**Option B: Vercel (Alternative)**
+**Option C: Vercel (Alternative)**
 
 ```bash
 # From project root
 npx vercel --prod
 ```
 
-**Option C: Netlify (Alternative)**
+**Option D: Netlify (Alternative)**
 
 ```bash
 # From project root
