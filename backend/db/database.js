@@ -22,9 +22,15 @@ function initDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
-      session_id TEXT UNIQUE NOT NULL,
+      session_id TEXT UNIQUE,
+      oauth_provider TEXT,
+      oauth_id TEXT,
+      email TEXT,
+      display_name TEXT,
+      profile_picture TEXT,
       created_at INTEGER NOT NULL,
-      last_accessed INTEGER NOT NULL
+      last_accessed INTEGER NOT NULL,
+      UNIQUE(oauth_provider, oauth_id)
     )
   `);
 
@@ -132,11 +138,59 @@ function initDatabase() {
 
   console.log('Database initialized successfully');
 
+  // Run migration to add OAuth columns if needed
+  migrateAddOAuthColumns();
+
   // Run migration to add director column if needed
   migrateAddDirectorColumn();
 
   // Run migration to populate genre mappings if needed
   migrateGenreData();
+}
+
+/**
+ * Migrate to add OAuth columns to users table
+ */
+function migrateAddOAuthColumns() {
+  try {
+    // Check if OAuth columns exist
+    const columns = db.prepare("PRAGMA table_info(users)").all();
+    const columnNames = columns.map(col => col.name);
+
+    const hasOAuthProvider = columnNames.includes('oauth_provider');
+    const hasOAuthId = columnNames.includes('oauth_id');
+    const hasEmail = columnNames.includes('email');
+    const hasDisplayName = columnNames.includes('display_name');
+    const hasProfilePicture = columnNames.includes('profile_picture');
+
+    if (!hasOAuthProvider || !hasOAuthId || !hasEmail || !hasDisplayName || !hasProfilePicture) {
+      console.log('🔄 Adding OAuth columns to users table...');
+
+      if (!hasOAuthProvider) {
+        db.exec('ALTER TABLE users ADD COLUMN oauth_provider TEXT');
+      }
+      if (!hasOAuthId) {
+        db.exec('ALTER TABLE users ADD COLUMN oauth_id TEXT');
+      }
+      if (!hasEmail) {
+        db.exec('ALTER TABLE users ADD COLUMN email TEXT');
+      }
+      if (!hasDisplayName) {
+        db.exec('ALTER TABLE users ADD COLUMN display_name TEXT');
+      }
+      if (!hasProfilePicture) {
+        db.exec('ALTER TABLE users ADD COLUMN profile_picture TEXT');
+      }
+
+      // Create index for OAuth lookups
+      db.exec('CREATE INDEX IF NOT EXISTS idx_users_oauth ON users(oauth_provider, oauth_id)');
+      db.exec('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
+
+      console.log('✅ OAuth columns added successfully');
+    }
+  } catch (error) {
+    console.error('Error checking/adding OAuth columns:', error);
+  }
 }
 
 /**
@@ -307,6 +361,134 @@ function getOrCreateUser(sessionId) {
   }
 
   return user;
+}
+
+/**
+ * Find a user by OAuth credentials
+ */
+function findUserByOAuth(provider, oauthId) {
+  const stmt = db.prepare(`
+    SELECT * FROM users
+    WHERE oauth_provider = ? AND oauth_id = ?
+  `);
+
+  return stmt.get(provider, oauthId);
+}
+
+/**
+ * Find a user by email
+ */
+function findUserByEmail(email) {
+  const stmt = db.prepare(`
+    SELECT * FROM users
+    WHERE email = ?
+  `);
+
+  return stmt.get(email);
+}
+
+/**
+ * Create or update an OAuth user
+ */
+function createOrUpdateOAuthUser(oauthData) {
+  const now = Date.now();
+  const { provider, oauthId, email, displayName, profilePicture } = oauthData;
+
+  // Check if user exists
+  let user = findUserByOAuth(provider, oauthId);
+
+  if (user) {
+    // Update existing user
+    db.prepare(`
+      UPDATE users
+      SET email = ?, display_name = ?, profile_picture = ?, last_accessed = ?
+      WHERE id = ?
+    `).run(email, displayName, profilePicture, now, user.id);
+
+    user.email = email;
+    user.display_name = displayName;
+    user.profile_picture = profilePicture;
+    user.last_accessed = now;
+  } else {
+    // Create new OAuth user
+    const { v4: uuidv4 } = require('uuid');
+    const userId = uuidv4();
+
+    db.prepare(`
+      INSERT INTO users (id, oauth_provider, oauth_id, email, display_name, profile_picture, created_at, last_accessed)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(userId, provider, oauthId, email, displayName, profilePicture, now, now);
+
+    user = {
+      id: userId,
+      oauth_provider: provider,
+      oauth_id: oauthId,
+      email,
+      display_name: displayName,
+      profile_picture: profilePicture,
+      created_at: now,
+      last_accessed: now
+    };
+  }
+
+  return user;
+}
+
+/**
+ * Link an anonymous user account to an OAuth account
+ * Transfers all data from anonymous user to OAuth user
+ */
+function linkAnonymousToOAuth(anonymousUserId, oauthUserId) {
+  const transaction = db.transaction(() => {
+    // Transfer all movie ratings
+    db.prepare(`
+      UPDATE movie_ratings
+      SET user_id = ?
+      WHERE user_id = ?
+    `).run(oauthUserId, anonymousUserId);
+
+    // Transfer all API keys
+    db.prepare(`
+      UPDATE api_keys
+      SET user_id = ?
+      WHERE user_id = ?
+    `).run(oauthUserId, anonymousUserId);
+
+    // Transfer all genre preferences
+    db.prepare(`
+      UPDATE user_genre_preferences
+      SET user_id = ?
+      WHERE user_id = ?
+    `).run(oauthUserId, anonymousUserId);
+
+    // Transfer all director preferences
+    db.prepare(`
+      UPDATE user_director_preferences
+      SET user_id = ?
+      WHERE user_id = ?
+    `).run(oauthUserId, anonymousUserId);
+
+    // Transfer all cast preferences
+    db.prepare(`
+      UPDATE user_cast_preferences
+      SET user_id = ?
+      WHERE user_id = ?
+    `).run(oauthUserId, anonymousUserId);
+
+    // Transfer all genre mappings
+    db.prepare(`
+      UPDATE movie_genre_mappings
+      SET user_id = ?
+      WHERE user_id = ?
+    `).run(oauthUserId, anonymousUserId);
+
+    // Delete the anonymous user
+    db.prepare('DELETE FROM users WHERE id = ?').run(anonymousUserId);
+
+    console.log(`✅ Linked anonymous user ${anonymousUserId} to OAuth user ${oauthUserId}`);
+  });
+
+  transaction();
 }
 
 /**
@@ -655,6 +837,10 @@ setInterval(cleanupOldSessions, 24 * 60 * 60 * 1000);
 module.exports = {
   db,
   getOrCreateUser,
+  findUserByOAuth,
+  findUserByEmail,
+  createOrUpdateOAuthUser,
+  linkAnonymousToOAuth,
   storeApiKey,
   getApiKey,
   getUserApiKeys,

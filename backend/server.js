@@ -9,9 +9,13 @@ const tmdbRouter = require('./routes/tmdb');
 const claudeRouter = require('./routes/claude');
 const omdbRouter = require('./routes/omdb');
 const ratingsRouter = require('./routes/ratings');
+const authRouter = require('./routes/auth');
 
 // Import database utilities
 const { getOrCreateUser } = require('./db/database');
+
+// Import Passport
+const passport = require('./config/passport');
 
 // Validate environment variables
 if (!process.env.SESSION_SECRET) {
@@ -104,6 +108,10 @@ app.use(
   })
 );
 
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -121,6 +129,13 @@ app.use('/api/', limiter);
 
 // Authentication middleware
 function ensureAuthenticated(req, res, next) {
+  // If user is already authenticated via OAuth
+  if (req.user) {
+    req.session.userId = req.user.id;
+    return next();
+  }
+
+  // Otherwise, create or get anonymous user
   if (!req.session.id) {
     return res.status(401).json({ error: 'Session not found' });
   }
@@ -139,6 +154,9 @@ app.use('/api/', ensureAuthenticated);
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'WatchOrNot Backend is running' });
 });
+
+// Auth routes (before ensureAuthenticated middleware)
+app.use('/auth', authRouter);
 
 // Session info endpoint
 app.get('/api/session', (req, res) => {

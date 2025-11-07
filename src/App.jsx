@@ -198,6 +198,10 @@ import React, { useState, useRef, useEffect } from 'react';
                 return saved !== null ? JSON.parse(saved) : true; // Default to dark mode
             });
 
+            // User authentication state
+            const [user, setUser] = useState(null);
+            const [isAuthenticating, setIsAuthenticating] = useState(true);
+
             // Backend API configuration
             // Automatically use the same host as the frontend (for network testing on iPhone/devices)
             // If accessing via IP (e.g., http://192.168.1.5:3000), backend will be http://192.168.1.5:3001
@@ -263,6 +267,31 @@ import React, { useState, useRef, useEffect } from 'react';
                 };
 
                 loadMovieHistory();
+            }, []);
+
+            // Check authentication status on mount
+            React.useEffect(() => {
+                const checkAuthStatus = async () => {
+                    try {
+                        const response = await fetch(`${BACKEND_URL}/auth/status`, {
+                            credentials: 'include'
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.authenticated && data.user) {
+                                setUser(data.user);
+                                console.log('✅ User authenticated:', data.user.displayName || data.user.email);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error checking auth status:', error);
+                    } finally {
+                        setIsAuthenticating(false);
+                    }
+                };
+
+                checkAuthStatus();
             }, []);
 
             // Persist dark mode preference
@@ -521,6 +550,30 @@ import React, { useState, useRef, useEffect } from 'react';
                     console.log('✅ Movie deleted from backend');
                 } catch (error) {
                     console.error('Error deleting movie from backend:', error);
+                }
+            };
+
+            // Handle Google login
+            const handleGoogleLogin = () => {
+                window.location.href = `${BACKEND_URL}/auth/google`;
+            };
+
+            // Handle logout
+            const handleLogout = async () => {
+                try {
+                    const response = await fetch(`${BACKEND_URL}/auth/logout`, {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        setUser(null);
+                        console.log('✅ Logged out successfully');
+                        alert('You have been logged out. Your ratings will remain on this device until you sign in again.');
+                    }
+                } catch (error) {
+                    console.error('Error logging out:', error);
+                    alert('Error logging out. Please try again.');
                 }
             };
 
@@ -2217,13 +2270,68 @@ import React, { useState, useRef, useEffect } from 'react';
                                         <div className="pb-24">
                                             <h2 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Settings & Account</h2>
                                             <div className="space-y-1">
-                                                <button className={`w-full py-4 px-2 flex items-center justify-between rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDarkMode ? 'text-white hover:bg-gray-800' : 'text-gray-900 hover:bg-gray-100'}`}>
-                                                    <div className="flex items-center gap-3">
-                                                        <Hash className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-blue-600'}`} />
-                                                        <span className="text-lg">Account</span>
+                                                {/* Account / Login Section */}
+                                                {user ? (
+                                                    // Authenticated user - show profile
+                                                    <div className={`w-full rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300 shadow-sm'}`}>
+                                                        <div className="p-4 flex items-center gap-3">
+                                                            {user.profilePicture ? (
+                                                                <img
+                                                                    src={user.profilePicture}
+                                                                    alt={user.displayName}
+                                                                    className="w-12 h-12 rounded-full"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
+                                                                    <User className="w-6 h-6 text-white" />
+                                                                </div>
+                                                            )}
+                                                            <div className="flex-1">
+                                                                <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                                    {user.displayName || 'User'}
+                                                                </p>
+                                                                {user.email && (
+                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                        {user.email}
+                                                                    </p>
+                                                                )}
+                                                                <p className={`text-xs mt-1 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+                                                                    ✓ Synced across devices
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={handleLogout}
+                                                            className={`w-full py-3 px-4 border-t flex items-center justify-center gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-red-500 ${isDarkMode ? 'border-gray-700 text-red-400 hover:bg-gray-700' : 'border-gray-200 text-red-600 hover:bg-red-50'}`}
+                                                        >
+                                                            <span>Sign Out</span>
+                                                        </button>
                                                     </div>
-                                                    <ChevronRight className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
-                                                </button>
+                                                ) : (
+                                                    // Anonymous user - show login button
+                                                    <div className={`w-full rounded-lg border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300 shadow-sm'}`}>
+                                                        <div className={`p-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                            <p className={`font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                                                Sign in to sync your ratings
+                                                            </p>
+                                                            <p className="text-sm mb-3">
+                                                                Access your movie ratings and recommendations across all your devices.
+                                                            </p>
+                                                        </div>
+                                                        <button
+                                                            onClick={handleGoogleLogin}
+                                                            className="w-full py-3 px-4 border-t flex items-center justify-center gap-2 bg-white hover:bg-gray-50 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-200"
+                                                        >
+                                                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                                            </svg>
+                                                            <span className="text-gray-700 font-medium">Continue with Google</span>
+                                                        </button>
+                                                    </div>
+                                                )}
                                                 <button
                                                     onClick={() => setIsDarkMode(!isDarkMode)}
                                                     className={`w-full py-4 px-2 flex items-center justify-between rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDarkMode ? 'text-white hover:bg-gray-800' : 'text-gray-900 hover:bg-gray-100'}`}
