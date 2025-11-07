@@ -17,11 +17,11 @@ COPY . .
 RUN mkdir -p /data
 
 # Expose port (Fly.io will set PORT env var)
-EXPOSE 3001
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error('Health check failed')})"
+  CMD node -e "require('http').get('http://0.0.0.0:8080/health', (r) => {if (r.statusCode !== 200) throw new Error('Health check failed')})"
 
 # Start the server
 CMD ["node", "server.js"]
