@@ -1892,6 +1892,7 @@ import React, { useState, useRef } from 'react';
                                                             onClick={() => {
                                                                 setSearchQuery(currentMovie.title);
                                                                 setSearchMode(true);
+                                                                setHasScanned(false);
                                                                 setCurrentMovie(null);
                                                             }}
                                                             className={`text-xs mb-2 underline ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
