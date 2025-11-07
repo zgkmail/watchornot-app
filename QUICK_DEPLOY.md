@@ -1,8 +1,12 @@
 # Quick Deployment Guide
 
-This is a simplified guide to deploy WatchOrNot to production in under 30 minutes for FREE.
+⚠️ **IMPORTANT UPDATE**: Render's free tier no longer supports persistent storage (databases).
 
-For the complete deployment plan with alternatives, see [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md).
+**Recommended alternatives with FREE persistent storage:**
+- **[Fly.io](FLY_DEPLOY.md)** - Best for 24/7 apps, requires Dockerfile
+- **[Railway](RAILWAY_DEPLOY.md)** - Easiest setup, 500 free hours/month
+
+For the complete deployment plan with all alternatives, see [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md).
 
 ---
 
@@ -17,7 +21,34 @@ For the complete deployment plan with alternatives, see [DEPLOYMENT_PLAN.md](DEP
 
 ---
 
-## Deployment Steps (Render.com - Recommended)
+## ⚠️ Render Free Tier Limitation
+
+**Render removed persistent disk support from free tier**, which means:
+- ❌ Your SQLite database won't persist across restarts
+- ❌ All user ratings will be lost on every redeploy
+- ❌ **Not suitable for production use**
+
+### Your Options:
+
+1. **Fly.io (Recommended)** - See [FLY_DEPLOY.md](FLY_DEPLOY.md)
+   - ✅ 3 GB persistent storage (free)
+   - ✅ No cold starts
+   - ✅ 24/7 availability
+   - ⚠️ Requires Dockerfile
+
+2. **Railway** - See [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md)
+   - ✅ Persistent storage (free)
+   - ✅ Easier setup
+   - ⚠️ 500 hours/month limit (~16-17 hrs/day)
+
+3. **Render Paid ($7/month)**
+   - ✅ Persistent storage included
+   - ✅ No cold starts
+   - 💰 $7/month
+
+---
+
+## Original Render Instructions (Not Recommended for Production)
 
 ### Step 1: Get API Keys (10 minutes)
 
@@ -70,12 +101,9 @@ git push origin main
    - `OMDB_API_KEY` = [Your OMDB API key]
    - `FRONTEND_URL` = `https://watchornot.onrender.com` (we'll update this after frontend is deployed)
 
-6. Enable Persistent Disk:
-   - Scroll down to **"Disks"** section
-   - Click **"Add Disk"**
-   - **Name**: `watchornot-db`
-   - **Mount Path**: `/opt/render/project/src/backend/db`
-   - **Size**: 1 GB (free)
+6. ⚠️ **Skip Persistent Disk** (not available on free tier)
+   - **WARNING**: Without persistent disk, your database will be deleted on every restart
+   - This setup is **only for testing**, not production use
 
 7. Click **"Create Web Service"**
 8. Wait 3-5 minutes for deployment
