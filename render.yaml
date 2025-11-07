@@ -15,6 +15,10 @@ services:
         generateValue: true
       - key: TMDB_API_KEY
         sync: false # Set manually in Render dashboard
+      - key: CLAUDE_API_KEY
+        sync: false # Set manually in Render dashboard
+      - key: OMDB_API_KEY
+        sync: false # Set manually in Render dashboard
       - key: FRONTEND_URL
         value: https://watchornot.onrender.com
     disk:

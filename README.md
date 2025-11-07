@@ -33,8 +33,10 @@ See a movie on TV? Just snap the title. WatchOrNot gives you a personalized yes-
 ### Prerequisites
 - Node.js 18+ and npm
 - A modern web browser
-- **For server admin**: API key from:
-  - [TMDB](https://www.themoviedb.org/settings/api)
+- **For server admin**: API keys from:
+  - [TMDB](https://www.themoviedb.org/settings/api) (free)
+  - [Claude AI](https://console.anthropic.com/) ($5 free credit)
+  - [OMDB](https://www.omdbapi.com/apikey.aspx) (free)
 
 ### Option 1: Quick Start Script (Easiest!)
 
@@ -80,6 +82,8 @@ node -e "console.log('SESSION_SECRET=' + require('crypto').randomBytes(32).toStr
 # Edit .env and add:
 # - Generated SESSION_SECRET
 # - Your TMDB_API_KEY
+# - Your CLAUDE_API_KEY
+# - Your OMDB_API_KEY
 nano .env
 
 # Start the backend server
@@ -203,6 +207,8 @@ NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
 SESSION_SECRET=your_session_secret
 TMDB_API_KEY=your_tmdb_api_key
+CLAUDE_API_KEY=your_claude_api_key
+OMDB_API_KEY=your_omdb_api_key
 ```
 
 ### Frontend Backend URL
@@ -228,6 +234,14 @@ The app automatically detects the network URL and connects to the backend on the
 📱 **See [MOBILE_TESTING.md](MOBILE_TESTING.md) for detailed instructions.**
 
 ## Deployment
+
+**📚 Complete deployment guides available:**
+- **[QUICK_DEPLOY.md](QUICK_DEPLOY.md)** - 30-minute quick start (recommended)
+- **[DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md)** - Complete deployment strategy
+- **[DEPLOYMENT_OPTIONS.md](DEPLOYMENT_OPTIONS.md)** - Platform comparison
+- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Step-by-step checklist
+
+**Cost:** ~$0-5/month (mostly free, only Claude API is paid)
 
 ### Frontend
 Build the production version and deploy to any static hosting:
@@ -266,8 +280,9 @@ Deploy to any Node.js hosting platform:
 
 ### API errors
 - Check backend logs for detailed error messages
-- Ensure API keys are correctly set in backend `.env`
+- Ensure all API keys are correctly set in backend `.env` (TMDB, Claude, OMDB)
 - Verify API keys are valid and have proper permissions
+- Note: Claude API requires payment after $5 free credit is exhausted
 
 ### Session not persisting
 - Clear browser cookies and try again

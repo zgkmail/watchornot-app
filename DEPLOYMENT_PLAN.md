@@ -6,7 +6,10 @@ This plan deploys WatchOrNot to production with **zero cost** using free tiers o
 ## Architecture Summary
 - **Frontend**: React 18 + Vite (Static Site)
 - **Backend**: Node.js + Express + SQLite
-- **APIs**: TMDB (free tier: 1000 requests/day)
+- **APIs**:
+  - TMDB (movie database - free tier: 1000 requests/day)
+  - Claude AI (image recognition - paid API with free trial)
+  - OMDB (additional ratings - free tier: 1000 requests/day)
 
 ---
 
@@ -142,6 +145,10 @@ services:
         generateValue: true
       - key: TMDB_API_KEY
         sync: false # Set manually in Render dashboard
+      - key: CLAUDE_API_KEY
+        sync: false # Set manually in Render dashboard
+      - key: OMDB_API_KEY
+        sync: false # Set manually in Render dashboard
       - key: FRONTEND_URL
         value: https://watchornot.onrender.com # Update after frontend deploy
     disk:
@@ -187,7 +194,9 @@ In Render dashboard, add:
 - `NODE_ENV=production`
 - `PORT=3001`
 - `SESSION_SECRET=[auto-generate in Render]`
-- `TMDB_API_KEY=[your key]`
+- `TMDB_API_KEY=[your TMDB key]`
+- `CLAUDE_API_KEY=[your Claude API key]`
+- `OMDB_API_KEY=[your OMDB key]`
 - `FRONTEND_URL=https://watchornot.onrender.com` (update later)
 
 #### Step 4: Enable Persistent Disk
@@ -243,19 +252,33 @@ Update backend environment variable:
 
 ## 💰 Cost Analysis
 
-### Monthly Costs: $0
+### Monthly Costs: ~$0-5 (depending on usage)
 
 | Service | Free Tier | Usage | Cost |
 |---------|-----------|-------|------|
 | Render Backend | 750 hrs/mo | ~730 hrs (24/7) | $0 |
 | Render Frontend | 100 GB bandwidth | ~5-10 GB | $0 |
 | TMDB API | 1000 req/day | ~100-500/day | $0 |
+| OMDB API | 1000 req/day | ~50-200/day | $0 |
+| Claude API* | $5 free credit | ~10-50 images/day | ~$0-5/mo |
 | SQLite Storage | 1 GB | ~50 MB | $0 |
-| **TOTAL** | | | **$0** |
+| **TOTAL** | | | **~$0-5/month** |
+
+**Note**: Claude API is the only paid service, but provides $5 free credit for new accounts.
+- Image recognition costs ~$0.03-0.10 per image (depending on size/model)
+- $5 covers ~50-150 image recognitions
+- After free credit, typical usage: $2-5/month for light usage
+
+### Cost Optimization Tips:
+- Limit image recognition to authenticated users
+- Cache image recognition results
+- Consider switching to free OCR alternatives (Tesseract.js) for basic text detection
 
 ### When You'll Need to Upgrade:
 - **Backend**: >10k monthly active users (due to cold starts)
 - **TMDB API**: >1000 requests/day (rate limiting)
+- **OMDB API**: >1000 requests/day (rate limiting)
+- **Claude API**: After free credit exhausted or with heavy image usage
 - **Storage**: >1 GB database (unlikely for months)
 
 ---
@@ -269,8 +292,10 @@ git add .
 git commit -m "Prepare for production deployment"
 git push origin main
 
-# 2. Get TMDB API key
-# Visit: https://www.themoviedb.org/settings/api
+# 2. Get API keys (all free except Claude)
+# TMDB: https://www.themoviedb.org/settings/api
+# Claude: https://console.anthropic.com/ (paid API, $5 free credit for new accounts)
+# OMDB: https://www.omdbapi.com/apikey.aspx (free tier: 1000 requests/day)
 
 # 3. Sign up for Render
 # Visit: https://render.com (use GitHub)

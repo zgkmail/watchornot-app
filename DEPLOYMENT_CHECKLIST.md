@@ -9,7 +9,11 @@ Use this checklist to ensure a smooth deployment.
 ### 1. Get API Keys
 - [ ] Sign up for TMDB account: https://www.themoviedb.org/signup
 - [ ] Get TMDB API key: https://www.themoviedb.org/settings/api
-- [ ] Test API key locally (in backend/.env)
+- [ ] Sign up for Claude: https://console.anthropic.com/
+- [ ] Get Claude API key: Console → Account Settings → API Keys
+- [ ] Sign up for OMDB: https://www.omdbapi.com/apikey.aspx
+- [ ] Get OMDB API key (free tier, verify email)
+- [ ] Test all API keys locally (in backend/.env)
 
 ### 2. Choose Platform
 - [ ] Review [DEPLOYMENT_OPTIONS.md](DEPLOYMENT_OPTIONS.md)
@@ -35,7 +39,9 @@ Use this checklist to ensure a smooth deployment.
   - [ ] `NODE_ENV=production`
   - [ ] `PORT=10000`
   - [ ] `SESSION_SECRET` (generate new)
-  - [ ] `TMDB_API_KEY` (your key)
+  - [ ] `TMDB_API_KEY` (your TMDB key)
+  - [ ] `CLAUDE_API_KEY` (your Claude key)
+  - [ ] `OMDB_API_KEY` (your OMDB key)
   - [ ] `FRONTEND_URL` (update after frontend deploy)
 - [ ] Add persistent disk (1 GB)
   - [ ] Mount path: `/opt/render/project/src/backend/db`
@@ -126,10 +132,22 @@ Use this checklist to ensure a smooth deployment.
 - [ ] Review backend logs for specific errors
 
 #### API key errors
-- [ ] Verify TMDB_API_KEY is set correctly
-- [ ] Test API key with curl:
+- [ ] Verify all API keys are set correctly (TMDB, Claude, OMDB)
+- [ ] Test TMDB API key:
   ```bash
-  curl "https://api.themoviedb.org/3/movie/550?api_key=YOUR_KEY"
+  curl "https://api.themoviedb.org/3/movie/550?api_key=YOUR_TMDB_KEY"
+  ```
+- [ ] Test OMDB API key:
+  ```bash
+  curl "http://www.omdbapi.com/?i=tt0133093&apikey=YOUR_OMDB_KEY"
+  ```
+- [ ] Test Claude API key:
+  ```bash
+  curl https://api.anthropic.com/v1/messages \
+    -H "x-api-key: YOUR_CLAUDE_KEY" \
+    -H "anthropic-version: 2023-06-01" \
+    -H "content-type: application/json" \
+    -d '{"model":"claude-3-haiku-20240307","max_tokens":10,"messages":[{"role":"user","content":"Hi"}]}'
   ```
 
 ### Performance Issues

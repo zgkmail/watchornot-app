@@ -8,24 +8,47 @@ For the complete deployment plan with alternatives, see [DEPLOYMENT_PLAN.md](DEP
 
 ## Prerequisites
 
-1. GitHub account
-2. TMDB API key (free) - Get it from: https://www.themoviedb.org/settings/api
-3. 30 minutes of your time
+1. **GitHub account**
+2. **API Keys**:
+   - TMDB (free) - https://www.themoviedb.org/settings/api
+   - Claude AI ($5 free credit) - https://console.anthropic.com/
+   - OMDB (free) - https://www.omdbapi.com/apikey.aspx
+3. **Time**: 30-45 minutes
 
 ---
 
 ## Deployment Steps (Render.com - Recommended)
 
-### Step 1: Prepare Your Code (5 minutes)
+### Step 1: Get API Keys (10 minutes)
+
+Before deploying, obtain all three API keys:
+
+**TMDB API (Free)**
+1. Sign up at https://www.themoviedb.org/signup
+2. Go to https://www.themoviedb.org/settings/api
+3. Request API key (instant approval)
+
+**Claude API ($5 free credit)**
+1. Sign up at https://console.anthropic.com/
+2. Go to Account Settings → API Keys
+3. Create new API key
+4. Note: $5 credit covers ~50-150 image recognitions
+
+**OMDB API (Free - 1000/day)**
+1. Go to https://www.omdbapi.com/apikey.aspx
+2. Select "FREE" plan
+3. Verify your email to activate
+
+### Step 2: Prepare Your Code (2 minutes)
 
 ```bash
-# 1. Ensure everything is committed
+# Ensure everything is committed
 git add .
 git commit -m "Prepare for production deployment"
 git push origin main
 ```
 
-### Step 2: Deploy Backend (10 minutes)
+### Step 3: Deploy Backend (10 minutes)
 
 1. Go to [render.com](https://render.com) and sign up with GitHub
 2. Click **"New +"** → **"Web Service"**
@@ -43,6 +66,8 @@ git push origin main
    - `PORT` = `10000`
    - `SESSION_SECRET` = [Click "Generate" button]
    - `TMDB_API_KEY` = [Your TMDB API key]
+   - `CLAUDE_API_KEY` = [Your Claude API key]
+   - `OMDB_API_KEY` = [Your OMDB API key]
    - `FRONTEND_URL` = `https://watchornot.onrender.com` (we'll update this after frontend is deployed)
 
 6. Enable Persistent Disk:
@@ -56,7 +81,7 @@ git push origin main
 8. Wait 3-5 minutes for deployment
 9. Note your backend URL: `https://watchornot-backend-XXXX.onrender.com`
 
-### Step 3: Deploy Frontend (10 minutes)
+### Step 4: Deploy Frontend (10 minutes)
 
 1. In Render dashboard, click **"New +"** → **"Static Site"**
 2. Select your `watchornot-app` repository
@@ -69,7 +94,7 @@ git push origin main
 5. Wait 2-3 minutes for deployment
 6. Your app is live at: `https://watchornot.onrender.com` 🎉
 
-### Step 4: Update Backend CORS (2 minutes)
+### Step 5: Update Backend CORS (2 minutes)
 
 1. Go back to your backend service settings
 2. Update environment variables:
@@ -77,7 +102,7 @@ git push origin main
 3. Click **"Save Changes"**
 4. Backend will auto-redeploy (takes 2-3 minutes)
 
-### Step 5: Test Your App (3 minutes)
+### Step 6: Test Your App (3 minutes)
 
 1. Visit `https://watchornot.onrender.com`
 2. Try uploading an image or searching for a movie
@@ -95,17 +120,19 @@ If you prefer automated setup:
 3. Click **"New +"** → **"Blueprint"**
 4. Select your repository
 5. Render will create both services automatically!
-6. Just add your `TMDB_API_KEY` in environment variables
+6. Just add your API keys (`TMDB_API_KEY`, `CLAUDE_API_KEY`, `OMDB_API_KEY`) in environment variables
 
 ---
 
 ## Cost
 
-**Total: $0/month** 🎉
+**Total: ~$0-5/month**
 
 - Render Backend: Free (750 hours/month)
 - Render Frontend: Free (100 GB bandwidth/month)
 - TMDB API: Free (1000 requests/day)
+- OMDB API: Free (1000 requests/day)
+- Claude API: $5 free credit, then ~$2-5/month for light usage (~$0.03-0.10 per image)
 
 ---
 

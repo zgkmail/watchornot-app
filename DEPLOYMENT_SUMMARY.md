@@ -66,7 +66,7 @@ This repository now includes everything needed to deploy your app to production 
 - Auto-deploy from Git
 - Zero configuration needed
 
-**Cost**: $0/month
+**Cost**: ~$0-5/month (mostly free, Claude API only paid service)
 
 **Limitations**:
 - Backend sleeps after 15 min idle (50s wake time)
@@ -126,9 +126,9 @@ All included configurations are ready to use:
                  ▼
 ┌─────────────────────────────────────────────────┐
 │              External APIs                       │
-│  • TMDB (movies/TV data)                        │
-│  • Claude (image recognition)                   │
-│  • OMDB (additional ratings)                    │
+│  • TMDB (movies/TV data - free)                 │
+│  • Claude (image recognition - paid)            │
+│  • OMDB (additional ratings - free)             │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -144,8 +144,10 @@ All included configurations are ready to use:
 | Backend | Render/Railway | $0 |
 | Database | SQLite (included) | $0 |
 | TMDB API | 1,000 req/day | $0 |
+| OMDB API | 1,000 req/day | $0 |
+| Claude API | $5 free credit, then pay-per-use | ~$0-5 |
 | SSL/HTTPS | Automatic | $0 |
-| **Total** | | **$0/month** |
+| **Total** | | **~$0-5/month** |
 
 ### When You Grow (1,000-10,000 users)
 
@@ -323,16 +325,18 @@ This deployment prep includes:
 ## Summary
 
 ✅ **Ready to deploy** - All configs included
-✅ **Free to start** - $0/month tier available
-✅ **Easy to deploy** - 30 minute quick start
+✅ **Mostly free** - ~$0-5/month (only Claude API is paid)
+✅ **Easy to deploy** - 30-45 minute quick start
 ✅ **Well documented** - Multiple guides included
 ✅ **Scalable** - Clear upgrade path
 
 ---
 
 **Time to deploy**: 30-45 minutes
-**Cost**: $0/month
+**Cost**: ~$0-5/month
 **Difficulty**: Easy
+
+**Note**: Claude API is the only paid service (~$0.03-0.10 per image recognition). All other services are completely free.
 
 **Let's get your app live! 🚀**
 
