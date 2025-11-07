@@ -2,8 +2,12 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
+// Determine database directory
+// Use DATABASE_PATH env var if set, otherwise use /data in production, ./db in development
+const dbDir = process.env.DATABASE_PATH ||
+  (process.env.NODE_ENV === 'production' ? '/data' : path.join(__dirname));
+
 // Ensure db directory exists
-const dbDir = path.join(__dirname);
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }

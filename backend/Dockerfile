@@ -13,8 +13,8 @@ RUN npm ci --only=production
 # Copy application code
 COPY . .
 
-# Create database directory
-RUN mkdir -p /app/db
+# Create database directory for persistent storage
+RUN mkdir -p /data
 
 # Expose port (Fly.io will set PORT env var)
 EXPOSE 3001
