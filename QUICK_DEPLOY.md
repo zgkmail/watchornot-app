@@ -57,7 +57,7 @@ git push origin main
    - **Name**: `watchornot-backend`
    - **Runtime**: Node
    - **Root Directory**: `backend`
-   - **Build Command**: `npm install`
+   - **Build Command**: `npm install` (⚠️ Render may suggest `npm install; npm run build` - change it to just `npm install`)
    - **Start Command**: `npm start`
    - **Instance Type**: Free
 
