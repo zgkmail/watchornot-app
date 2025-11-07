@@ -203,6 +203,12 @@ import React, { useState, useRef, useEffect } from 'react';
             // If accessing via IP (e.g., http://192.168.1.5:3000), backend will be http://192.168.1.5:3001
             // If accessing via localhost, backend will be http://localhost:3001
             const getBackendUrl = () => {
+                // In production, use environment variable or default production URL
+                if (import.meta.env.PROD) {
+                    return import.meta.env.VITE_BACKEND_URL || 'https://watchornot-backend.onrender.com';
+                }
+
+                // In development, use dynamic hostname with port 3001
                 const hostname = window.location.hostname;
                 const backendPort = '3001';
                 return `http://${hostname}:${backendPort}`;
