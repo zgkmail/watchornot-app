@@ -1307,7 +1307,25 @@ import React, { useState, useRef, useEffect } from 'react';
 
                     // Filter results to only include movies and TV shows (exclude people, etc.)
                     if (data.results && data.results.length > 0) {
-                        const validResults = data.results.filter(result => {
+                        // When using /search/movie or /search/tv endpoints, TMDB doesn't include media_type
+                        // in the results, so we need to set it manually based on what we searched for
+                        const resultsWithMediaType = data.results.map(result => {
+                            // If media_type is not set and we used a specific search, infer it
+                            if (!result.media_type && targetMediaType) {
+                                return { ...result, media_type: targetMediaType };
+                            }
+                            // For /search/movie, results have release_date; for /search/tv, first_air_date
+                            if (!result.media_type) {
+                                if (result.release_date) {
+                                    return { ...result, media_type: 'movie' };
+                                } else if (result.first_air_date) {
+                                    return { ...result, media_type: 'tv' };
+                                }
+                            }
+                            return result;
+                        });
+
+                        const validResults = resultsWithMediaType.filter(result => {
                             if (result.media_type !== 'movie' && result.media_type !== 'tv') {
                                 return false;
                             }
