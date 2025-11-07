@@ -31,27 +31,30 @@ This repository now includes everything needed to deploy your app to production 
 
 ## Quick Start
 
-### Fastest Path to Production (30 minutes)
+### ⚠️ Important: Choose the Right Platform
 
-1. **Get TMDB API Key**
-   - Sign up: https://www.themoviedb.org/signup
-   - Get key: https://www.themoviedb.org/settings/api
+**Render's free tier no longer supports persistent storage.** Choose one of these FREE alternatives:
 
-2. **Deploy Backend (10 min)**
-   - Go to [render.com](https://render.com)
-   - Sign up with GitHub
-   - New Web Service → Select this repo
-   - Add environment variables
-   - Enable persistent disk
+#### Option 1: Fly.io (Recommended for 24/7 apps)
+- ✅ Free persistent storage (3 GB)
+- ✅ No cold starts
+- ⚠️ Requires Dockerfile
+- **Time**: 45-60 min
+- **Guide**: [FLY_DEPLOY.md](FLY_DEPLOY.md)
 
-3. **Deploy Frontend (10 min)**
-   - New Static Site → Select this repo
-   - Configure build settings
-   - Deploy
+#### Option 2: Railway (Easiest setup)
+- ✅ Free persistent storage
+- ✅ No Dockerfile needed
+- ⚠️ 500 hours/month
+- **Time**: 30 min
+- **Guide**: [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md)
 
-4. **Done!** 🎉
-
-**Full instructions**: See [QUICK_DEPLOY.md](QUICK_DEPLOY.md)
+#### Option 3: Render Paid ($7/month)
+- ✅ Persistent storage
+- ✅ Easiest setup
+- 💰 $7/month
+- **Time**: 30 min
+- **Guide**: [QUICK_DEPLOY.md](QUICK_DEPLOY.md) (with paid tier)
 
 ---
 

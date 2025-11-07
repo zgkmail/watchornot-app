@@ -185,8 +185,9 @@ echo "backend/db/*.db-*" >> .gitignore
 5. Configure:
    - **Name**: `watchornot-backend`
    - **Runtime**: Node
-   - **Build Command**: `cd backend && npm install`
-   - **Start Command**: `cd backend && npm start`
+   - **Root Directory**: `backend`
+   - **Build Command**: `npm install` ⚠️ **Important**: Render may auto-suggest `npm install; npm run build` - override it to just `npm install` (backend has no build step)
+   - **Start Command**: `npm start`
    - **Plan**: Free
 
 #### Step 3: Add Environment Variables
