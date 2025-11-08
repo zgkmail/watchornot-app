@@ -212,13 +212,12 @@ import React, { useState, useRef, useEffect } from 'react';
             const getBackendUrl = () => {
                 // In production, use environment variable or default production URL
                 if (import.meta.env.PROD) {
-                    return import.meta.env.VITE_BACKEND_URL || 'https://watchornot-backend.onrender.com';
+                    return import.meta.env.VITE_BACKEND_URL || 'https://watchornot-backend.fly.dev';
                 }
 
-                // In development, use dynamic hostname with port 3001
-                const hostname = window.location.hostname;
-                const backendPort = '3001';
-                return `http://${hostname}:${backendPort}`;
+                // In development, use the deployed backend on Fly.io (has HTTPS + API keys configured)
+                // This avoids mixed content issues when frontend uses HTTPS for camera access
+                return 'https://watchornot-backend.fly.dev';
             };
             const BACKEND_URL = getBackendUrl();
 
