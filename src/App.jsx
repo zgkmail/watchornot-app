@@ -1931,9 +1931,9 @@ import React, { useState, useRef, useEffect } from 'react';
 
                                                 {/* Action Buttons */}
                                                 <div className="space-y-3 mb-6">
-                                                    <button onClick={() => cameraInputRef.current?.click()} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-xl flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all shadow-lg">
+                                                    <button onClick={startCamera} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-xl flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all shadow-lg">
                                                         <Camera className="w-5 h-5" />
-                                                        Take Photo
+                                                        Open Camera
                                                     </button>
                                                     <button onClick={() => fileInputRef.current?.click()} className={`w-full py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50'}`}>
                                                         <Upload className="w-5 h-5" />
