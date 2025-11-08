@@ -1,7 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
+const SqliteStore = require('better-sqlite3-session-store')(session);
+const Database = require('better-sqlite3');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 // Import routes
@@ -90,9 +93,22 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Session configuration
+// Session configuration with SQLite store
+const sessionDbPath = process.env.DATABASE_PATH
+  ? path.join(process.env.DATABASE_PATH, 'sessions.db')
+  : path.join(__dirname, 'db', 'sessions.db');
+
+const sessionDb = new Database(sessionDbPath);
+
 app.use(
   session({
+    store: new SqliteStore({
+      client: sessionDb,
+      expired: {
+        clear: true,
+        intervalMs: 900000 // Clean up expired sessions every 15 minutes
+      }
+    }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
@@ -203,7 +219,8 @@ app.listen(PORT, '0.0.0.0', () => {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
+  console.log('SIGTERM signal received: closing HTTP server and database connections');
+  sessionDb.close();
   app.close(() => {
     console.log('HTTP server closed');
   });
