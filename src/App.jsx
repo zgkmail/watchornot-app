@@ -210,13 +210,12 @@ import React, { useState, useRef, useEffect } from 'react';
             // If accessing via IP (e.g., http://192.168.1.5:3000), backend will be http://192.168.1.5:3001
             // If accessing via localhost, backend will be http://localhost:3001
             const getBackendUrl = () => {
-                // In production, use environment variable or default production URL
-                if (import.meta.env.PROD) {
-                    return import.meta.env.VITE_BACKEND_URL || 'https://watchornot-backend.fly.dev';
+                // Check for environment variable first (from .env.development or .env.production)
+                if (import.meta.env.VITE_BACKEND_URL) {
+                    return import.meta.env.VITE_BACKEND_URL;
                 }
 
-                // In development, use the deployed backend on Fly.io (has HTTPS + API keys configured)
-                // This avoids mixed content issues when frontend uses HTTPS for camera access
+                // Fallback: use deployed backend (has HTTPS + API keys configured)
                 return 'https://watchornot-backend.fly.dev';
             };
             const BACKEND_URL = getBackendUrl();
