@@ -175,6 +175,13 @@ import React, { useState, useRef, useEffect } from 'react';
             const [stream, setStream] = useState(null);
             const [cameraActive, setCameraActive] = useState(false);
 
+            // Frame guide state
+            const [showFrameGuide, setShowFrameGuide] = useState(() => {
+                const saved = localStorage.getItem('watchornot_showFrameGuide');
+                return saved !== null ? JSON.parse(saved) : true; // Default to true (show guide)
+            });
+            const [frameGuideVisible, setFrameGuideVisible] = useState(true);
+
             // Swipe-to-delete state
             const [swipedItem, setSwipedItem] = useState(null);
             const [swipeOffset, setSwipeOffset] = useState(0);
@@ -549,6 +556,14 @@ import React, { useState, useRef, useEffect } from 'react';
                         videoRef.current.srcObject = mediaStream;
                         setStream(mediaStream);
                         setCameraActive(true);
+
+                        // Initialize frame guide visibility
+                        setFrameGuideVisible(showFrameGuide);
+
+                        // Auto-hide instruction text after 5 seconds
+                        if (showFrameGuide) {
+                            setTimeout(() => setFrameGuideVisible(false), 5000);
+                        }
                     }
                 } catch (err) {
                     console.error('❌ Camera error:', err);
@@ -1820,6 +1835,28 @@ import React, { useState, useRef, useEffect } from 'react';
                                         {cameraActive ? (
                                             <div className="h-full relative">
                                                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+
+                                                {/* Viewfinder Frame Overlay */}
+                                                {showFrameGuide && (
+                                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                        {/* Instructional text */}
+                                                        {frameGuideVisible && (
+                                                            <div className="absolute top-20 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-medium transition-opacity duration-300">
+                                                                Fit the movie title in the frame
+                                                            </div>
+                                                        )}
+
+                                                        {/* Frame box */}
+                                                        <div className="relative border-2 border-white/70 rounded-xl w-[80%] h-[45%] shadow-2xl">
+                                                            {/* Corner markers */}
+                                                            <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-xl"></div>
+                                                            <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-xl"></div>
+                                                            <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-xl"></div>
+                                                            <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-xl"></div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 flex gap-4">
                                                     <button onClick={captureFromCamera} className="w-20 h-20 rounded-full bg-white shadow-lg" />
                                                     <button onClick={stopCamera} className="w-20 h-20 rounded-full bg-red-500 shadow-lg flex items-center justify-center">
@@ -2244,6 +2281,22 @@ import React, { useState, useRef, useEffect } from 'react';
                                                     </div>
                                                     <div className={`relative w-12 h-6 rounded-full transition-colors ${isDarkMode ? 'bg-blue-600' : 'bg-gray-300'}`}>
                                                         <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm ${isDarkMode ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                                                    </div>
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        const newValue = !showFrameGuide;
+                                                        setShowFrameGuide(newValue);
+                                                        localStorage.setItem('watchornot_showFrameGuide', JSON.stringify(newValue));
+                                                    }}
+                                                    className={`w-full py-4 px-2 flex items-center justify-between rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDarkMode ? 'text-white hover:bg-gray-800' : 'text-gray-900 hover:bg-gray-100'}`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Camera className={`w-5 h-5 ${isDarkMode ? 'text-gray-400' : 'text-blue-600'}`} />
+                                                        <span className="text-lg">Camera Frame Guide</span>
+                                                    </div>
+                                                    <div className={`relative w-12 h-6 rounded-full transition-colors ${showFrameGuide ? 'bg-blue-600' : 'bg-gray-300'}`}>
+                                                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm ${showFrameGuide ? 'translate-x-6' : 'translate-x-0'}`}></div>
                                                     </div>
                                                 </button>
                                                 <button className={`w-full py-4 px-2 flex items-center justify-between rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isDarkMode ? 'text-white hover:bg-gray-800' : 'text-gray-900 hover:bg-gray-100'}`}>
