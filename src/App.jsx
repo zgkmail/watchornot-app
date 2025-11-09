@@ -555,6 +555,14 @@ import React, { useState, useRef, useEffect } from 'react';
                         setStream(mediaStream);
                         setCameraActive(true);
 
+                        // Explicitly play the video (required for iOS Safari)
+                        try {
+                            await videoRef.current.play();
+                            console.log('✅ Video playback started');
+                        } catch (playErr) {
+                            console.error('❌ Video play error:', playErr);
+                        }
+
                         // Initialize frame guide visibility
                         setFrameGuideVisible(showFrameGuide);
 
