@@ -38,23 +38,42 @@ You should see:
 ```
 VITE v5.4.21  ready in XXX ms
 
-➜  Local:   https://localhost:3000/
-➜  Network: https://YOUR_IP:3000/
+➜  Local:   http://localhost:3000/
+➜  Network: http://YOUR_IP:3000/
 ```
 
-**Note the Network URL** - this is what you'll use on your iPhone.
+### 5. Test Locally (Non-Camera Features)
 
-### 5. Access from iPhone
+You can test the app on your computer or iPhone for general functionality:
+- Navigate to: `http://localhost:3000` (on your computer)
+- Or: `http://10.0.0.101:3000` (on your iPhone, same WiFi)
 
-1. Open **Safari** on your iPhone
-2. Navigate to: `https://YOUR_IP:3000` (e.g., `https://10.0.0.101:3000`)
-3. Accept the certificate warning:
-   - Tap **"Show Details"**
-   - Tap **"visit this website"**
-   - Confirm by tapping **"Visit Website"** again
-4. Tap **"Open Camera"**
-5. Allow camera permissions when prompted
-6. You should see the viewfinder with the frame guide! 🎉
+**⚠️ Note:** The camera feature **will not work** in local HTTP development because iOS Safari requires HTTPS for camera access. See "Testing Camera Features" below.
+
+## 📱 Testing Camera Features on iPhone
+
+Since iOS Safari requires HTTPS for camera access, you must test the camera viewfinder frame feature on the **deployed Fly.io app**:
+
+### Option 1: Deploy and Test on Fly.io (Recommended)
+
+1. **Deploy your changes to Fly.io:**
+   ```bash
+   fly deploy
+   ```
+
+2. **Access from your iPhone:**
+   - Open Safari on your iPhone
+   - Navigate to: `https://watchornot-frontend.fly.dev`
+   - Tap **"Open Camera"**
+   - Allow camera permissions
+   - You should see the viewfinder with the frame guide! 🎉
+
+### Option 2: Test on Desktop (Limited)
+
+You can test the frame overlay visually on your desktop (without actual camera):
+- Navigate to: `http://localhost:3000`
+- Tap "Open Camera"
+- You'll see the camera permission error, but the frame overlay and UI can still be inspected in DevTools
 
 ## 🔧 Configuration
 
@@ -107,8 +126,8 @@ Once the app is running on your iPhone, test:
 
 ### "Camera API not available" Error
 
-**Cause:** Browser doesn't have HTTPS access
-**Solution:** Make sure you're using `https://` (not `http://`) in the URL
+**Cause:** iOS Safari requires HTTPS for camera access, but local dev runs on HTTP
+**Solution:** Test camera features on the deployed Fly.io app: `https://watchornot-frontend.fly.dev`
 
 ### Page Won't Load from iPhone
 
@@ -132,33 +151,22 @@ Once the app is running on your iPhone, test:
 3. **Different WiFi networks**
    - Ensure both devices are on the same network
 
-### Certificate Warning Won't Bypass
+## 💻 Test on Desktop First
 
-Some iOS versions are strict about self-signed certificates.
-
-**Solution:** Use the deployed app instead:
-```
-https://watchornot-frontend.fly.dev
-```
-
-### Mixed Content Errors
-
-**Cause:** Frontend is HTTPS but backend is HTTP
-**Solution:** Use the deployed backend (default configuration) or set up local HTTPS backend
-
-## 📱 Alternative: Test on Desktop First
-
-You can test on your computer first (without camera) using:
+You can test the app on your computer first using:
 
 ```
-https://localhost:3000
+http://localhost:3000
 ```
 
 This lets you verify:
 - App loads correctly
-- Frame overlay renders
+- UI and styling are correct
 - Settings toggle works
 - Build has no errors
+- Non-camera features work
+
+**Note:** Camera features won't work in desktop browsers or local HTTP. Test camera on Fly.io deployment.
 
 ## 📦 Deploy to Fly.io
 
@@ -189,8 +197,9 @@ https://watchornot-frontend.fly.dev
 - ✅ Viewfinder frame overlay with corner markers
 - ✅ Auto-fading instruction text
 - ✅ Settings toggle to enable/disable guide
-- ✅ HTTPS enabled for local dev (iOS camera requirement)
 - ✅ Configurable backend URL via .env
+- ✅ "Open Camera" button now activates live viewfinder
+- ✅ Local dev uses HTTP (camera testing done on Fly.io deployment)
 
 ## 📞 Need Help?
 
