@@ -550,27 +550,31 @@ import React, { useState, useRef, useEffect } from 'react';
 
                     console.log('✅ Camera access granted');
 
-                    if (videoRef.current) {
-                        videoRef.current.srcObject = mediaStream;
-                        setStream(mediaStream);
-                        setCameraActive(true);
+                    // Set stream and activate camera first
+                    setStream(mediaStream);
+                    setCameraActive(true);
 
-                        // Explicitly play the video (required for iOS Safari)
-                        try {
-                            await videoRef.current.play();
-                            console.log('✅ Video playback started');
-                        } catch (playErr) {
-                            console.error('❌ Video play error:', playErr);
-                        }
+                    // Initialize frame guide visibility
+                    setFrameGuideVisible(showFrameGuide);
 
-                        // Initialize frame guide visibility
-                        setFrameGuideVisible(showFrameGuide);
-
-                        // Auto-hide instruction text after 5 seconds
-                        if (showFrameGuide) {
-                            setTimeout(() => setFrameGuideVisible(false), 5000);
-                        }
+                    // Auto-hide instruction text after 5 seconds
+                    if (showFrameGuide) {
+                        setTimeout(() => setFrameGuideVisible(false), 5000);
                     }
+
+                    // Wait for next tick to ensure video element is rendered
+                    setTimeout(() => {
+                        if (videoRef.current) {
+                            videoRef.current.srcObject = mediaStream;
+
+                            // Explicitly play the video (required for iOS Safari)
+                            videoRef.current.play().then(() => {
+                                console.log('✅ Video playback started');
+                            }).catch((playErr) => {
+                                console.error('❌ Video play error:', playErr);
+                            });
+                        }
+                    }, 0);
                 } catch (err) {
                     console.error('❌ Camera error:', err);
 
