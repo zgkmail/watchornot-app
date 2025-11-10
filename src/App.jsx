@@ -224,28 +224,19 @@ import React, { useState, useRef, useEffect } from 'react';
             const getStoredSessionId = () => {
                 try {
                     const stored = localStorage.getItem(SESSION_STORAGE_KEY);
-                    if (stored) {
-                        console.log(`[getStoredSessionId] Retrieved from localStorage: ${stored.substring(0, 20)}...`);
-                        return stored;
-                    }
+                    if (stored) return stored;
                 } catch (e) {
-                    console.warn('[getStoredSessionId] localStorage not available:', e);
+                    // localStorage not available, fall back to memory
                 }
 
                 // Fallback to memory
-                if (memorySessionId) {
-                    console.log(`[getStoredSessionId] Using memory fallback: ${memorySessionId.substring(0, 20)}...`);
-                    return memorySessionId;
-                }
+                if (memorySessionId) return memorySessionId;
 
-                console.log('[getStoredSessionId] No session ID found');
                 return null;
             };
 
             const storeSessionId = (sessionId) => {
                 if (!sessionId) return;
-
-                console.log(`[storeSessionId] Storing session ID: ${sessionId.substring(0, 20)}...`);
 
                 // Always store in memory as fallback
                 memorySessionId = sessionId;
@@ -253,10 +244,8 @@ import React, { useState, useRef, useEffect } from 'react';
                 // Try to store in localStorage
                 try {
                     localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
-                    console.log('[storeSessionId] ✓ Stored in localStorage');
                 } catch (e) {
-                    console.warn('[storeSessionId] Could not store in localStorage:', e);
-                    console.log('[storeSessionId] ✓ Using memory fallback only');
+                    // localStorage blocked, using memory fallback only
                 }
             };
 
@@ -271,9 +260,6 @@ import React, { useState, useRef, useEffect } from 'react';
 
                 if (sessionId) {
                     headers['X-Session-ID'] = sessionId;
-                    console.log(`[fetchWithSession] Sending X-Session-ID: ${sessionId.substring(0, 20)}...`);
-                } else {
-                    console.log('[fetchWithSession] No stored session ID, will create new session');
                 }
 
                 const response = await fetch(url, {
@@ -293,15 +279,9 @@ import React, { useState, useRef, useEffect } from 'react';
                         if (data._sessionId) {
                             // Store session ID synchronously before returning
                             storeSessionId(data._sessionId);
-                            console.log(`📝 Session ID stored from response: ${data._sessionId.substring(0, 20)}...`);
-                            console.log(`📝 Stored session ID is now: ${getStoredSessionId()?.substring(0, 20)}...`);
-                        } else {
-                            console.warn('⚠️ Response does not contain _sessionId field');
-                            console.warn('⚠️ Response data:', data);
                         }
                     } catch (e) {
                         // Response might not be valid JSON, ignore
-                        console.warn('Could not parse response as JSON:', e.message);
                     }
                 }
 

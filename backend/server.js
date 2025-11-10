@@ -159,8 +159,6 @@ app.use((req, res, next) => {
     // Sign the session ID with our secret before setting it
     const signedSessionId = 's:' + signature.sign(customSessionId, process.env.SESSION_SECRET);
     req.headers.cookie = `connect.sid=${signedSessionId}`;
-    console.log(`[Session] Using X-Session-ID header (overriding any cookies): ${customSessionId.substring(0, 20)}...`);
-    console.log(`[Session] Signed session ID: ${signedSessionId.substring(0, 30)}...`);
   }
 
   next();
@@ -187,40 +185,31 @@ app.use(
   })
 );
 
-// Session debugging middleware (helps diagnose session persistence issues)
-app.use((req, res, next) => {
-  const isApiRequest = req.path.startsWith('/api/');
-  if (isApiRequest) {
-    console.log(`[Session] ${req.method} ${req.path}`);
-    console.log(`  Session ID: ${req.sessionID || 'NONE'}`);
-    console.log(`  Cookie header: ${req.headers.cookie ? 'present' : 'MISSING'}`);
-    console.log(`  X-Session-ID header: ${req.headers['x-session-id'] ? 'present' : 'missing'}`);
-    console.log(`  User ID: ${req.session?.userId || 'not set'}`);
-  }
-  next();
-});
+// Session debugging middleware (optional - can be removed in production)
+// Uncomment for debugging session issues
+// app.use((req, res, next) => {
+//   const isApiRequest = req.path.startsWith('/api/');
+//   if (isApiRequest) {
+//     console.log(`[Session] ${req.method} ${req.path}`);
+//     console.log(`  Session ID: ${req.sessionID || 'NONE'}`);
+//     console.log(`  User ID: ${req.session?.userId || 'not set'}`);
+//   }
+//   next();
+// });
 
 // Send session ID in response body (workaround for third-party cookie blocking)
 app.use((req, res, next) => {
   const originalJson = res.json;
   res.json = function(data) {
-    // Add session ID to all API responses
-    // Check both req.path and req.originalUrl to handle mounted routes
+    // Add session ID to all API responses for frontend session management
     const isApiRoute = req.path.startsWith('/api/') || req.originalUrl?.startsWith('/api/');
 
-    console.log(`[_sessionId Middleware] Called for ${req.originalUrl || req.path}`);
-    console.log(`[_sessionId Middleware] isApiRoute: ${isApiRoute}, has sessionID: ${!!req.sessionID}`);
-
     if (isApiRoute && req.sessionID) {
-      console.log(`[Session] ✓ Adding _sessionId to response`);
-      console.log(`[Session] Session ID: ${req.sessionID.substring(0, 20)}...`);
       const enhancedData = {
         ...data,
         _sessionId: req.sessionID
       };
       return originalJson.call(this, enhancedData);
-    } else {
-      console.log(`[Session] ✗ NOT adding _sessionId (isApiRoute: ${isApiRoute}, sessionID: ${req.sessionID || 'NONE'})`);
     }
     return originalJson.call(this, data);
   };
@@ -251,7 +240,6 @@ function ensureAuthenticated(req, res, next) {
 
   // Only create user if not already in session
   if (!req.session.userId) {
-    console.log(`[Auth] No userId in session, creating new user for session ${req.sessionID}`);
     const user = getOrCreateUser(req.sessionID);
     req.session.userId = user.id;
 
@@ -259,12 +247,8 @@ function ensureAuthenticated(req, res, next) {
     req.session.save((err) => {
       if (err) {
         console.error('[Auth] Error saving session:', err);
-      } else {
-        console.log(`[Auth] New user ${user.id} created and session saved`);
       }
     });
-  } else {
-    console.log(`[Auth] Existing user ${req.session.userId} found in session ${req.sessionID}`);
   }
 
   next();

@@ -1,0 +1,61 @@
+# flyctl launch added from .gitignore
+# Dependencies
+**/node_modules
+
+# Build output
+**/dist
+
+# Environment variables
+**/.env
+**/.env.local
+**/.env.production
+
+# Logs
+**/*.log
+**/npm-debug.log*
+**/backend.log
+
+# OS files
+**/.DS_Store
+**/*.swp
+**/*.swo
+
+# Editor directories
+**/.vscode
+**/.idea
+
+# Backup files
+**/*.backup
+
+# Database files (backend)
+**/backend/db/*.db
+**/backend/db/*.db-*
+**/backend/.env
+
+# flyctl launch added from backend/.gitignore
+# Dependencies
+backend/**/node_modules
+
+# Environment variables
+backend/**/.env
+
+# Database
+backend/**/db/*.db
+backend/**/db/*.db-shm
+backend/**/db/*.db-wal
+
+# Logs
+backend/**/logs
+backend/**/*.log
+backend/**/npm-debug.log*
+
+# OS files
+backend/**/.DS_Store
+backend/**/Thumbs.db
+
+# IDE
+backend/**/.vscode
+backend/**/.idea
+backend/**/*.swp
+backend/**/*.swo
+fly.toml
