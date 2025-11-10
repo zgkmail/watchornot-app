@@ -1931,7 +1931,7 @@ import React, { useState, useRef, useEffect } from 'react';
                                                         onClick={() => setHowItWorksExpanded(!howItWorksExpanded)}
                                                         className="w-full p-6 flex items-center justify-between focus:outline-none"
                                                     >
-                                                        <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>How It Works</h2>
+                                                        <h2 className={`text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>How It Works</h2>
                                                         <ChevronRight className={`w-5 h-5 transition-transform ${howItWorksExpanded ? 'rotate-90' : ''} ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`} />
                                                     </button>
 
@@ -1945,8 +1945,8 @@ import React, { useState, useRef, useEffect } from 'react';
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex-1">
-                                                                    <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Snap</h3>
-                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Point your camera at any movie title on TV or streaming</p>
+                                                                    <h3 className={`text-sm font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Snap</h3>
+                                                                    <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Point your camera at any movie title on TV or streaming</p>
                                                                 </div>
                                                             </div>
 
@@ -1958,8 +1958,8 @@ import React, { useState, useRef, useEffect } from 'react';
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex-1">
-                                                                    <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Analyze</h3>
-                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>AI reads the title and checks it against your taste profile</p>
+                                                                    <h3 className={`text-sm font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Analyze</h3>
+                                                                    <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>AI reads the title and checks it against your taste profile</p>
                                                                 </div>
                                                             </div>
 
@@ -1971,8 +1971,8 @@ import React, { useState, useRef, useEffect } from 'react';
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex-1">
-                                                                    <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Decide</h3>
-                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Get an instant personalized recommendation</p>
+                                                                    <h3 className={`text-sm font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Decide</h3>
+                                                                    <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Get an instant personalized recommendation</p>
                                                                 </div>
                                                             </div>
                                                         </div>
