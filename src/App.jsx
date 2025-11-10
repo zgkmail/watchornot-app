@@ -215,6 +215,66 @@ import React, { useState, useRef, useEffect } from 'react';
             };
             const BACKEND_URL = getBackendUrl();
 
+            // Session management for Safari/browsers that block cookies
+            const SESSION_STORAGE_KEY = 'watchornot_session_id';
+
+            const getStoredSessionId = () => {
+                try {
+                    return localStorage.getItem(SESSION_STORAGE_KEY);
+                } catch (e) {
+                    console.warn('localStorage not available:', e);
+                    return null;
+                }
+            };
+
+            const storeSessionId = (sessionId) => {
+                try {
+                    if (sessionId) {
+                        localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
+                    }
+                } catch (e) {
+                    console.warn('Could not store session ID:', e);
+                }
+            };
+
+            // Helper to make authenticated requests with session handling
+            const fetchWithSession = async (url, options = {}) => {
+                const sessionId = getStoredSessionId();
+
+                // Add session ID header if we have one
+                const headers = {
+                    ...options.headers,
+                };
+
+                if (sessionId) {
+                    headers['X-Session-ID'] = sessionId;
+                }
+
+                const response = await fetch(url, {
+                    ...options,
+                    credentials: 'include', // Still send cookies if they work
+                    headers
+                });
+
+                // For JSON responses, extract session ID from response body
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    // Clone response so we can read it multiple times
+                    const clonedResponse = response.clone();
+                    try {
+                        const data = await clonedResponse.json();
+                        if (data._sessionId) {
+                            storeSessionId(data._sessionId);
+                            console.log('📝 Session ID stored from response');
+                        }
+                    } catch (e) {
+                        // Response might not be valid JSON, ignore
+                    }
+                }
+
+                return response;
+            };
+
             // Helper function to get badge display name
             const getBadgeDisplayName = (badgeType) => {
                 const badgeNames = {
@@ -231,9 +291,7 @@ import React, { useState, useRef, useEffect } from 'react';
             React.useEffect(() => {
                 const loadMovieHistory = async () => {
                     try {
-                        const response = await fetch(`${BACKEND_URL}/api/ratings`, {
-                            credentials: 'include'
-                        });
+                        const response = await fetchWithSession(`${BACKEND_URL}/api/ratings`);
 
                         if (response.ok) {
                             const data = await response.json();
@@ -339,10 +397,9 @@ import React, { useState, useRef, useEffect } from 'react';
                         // Calculate badges for all movies that don't have them
                         const badgePromises = moviesNeedingBadges.map(async (movie) => {
                             try {
-                                const response = await fetch(`${BACKEND_URL}/api/ratings/calculate-badge`, {
+                                const response = await fetchWithSession(`${BACKEND_URL}/api/ratings/calculate-badge`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    credentials: 'include',
                                     body: JSON.stringify({
                                         id: movie.id,
                                         title: movie.title,
@@ -430,10 +487,9 @@ import React, { useState, useRef, useEffect } from 'react';
 
                 // Save to backend
                 try {
-                    const response = await fetch(`${BACKEND_URL}/api/ratings`, {
+                    const response = await fetchWithSession(`${BACKEND_URL}/api/ratings`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
                         body: JSON.stringify({
                             id: movie.id,
                             title: movie.title,
@@ -545,9 +601,8 @@ import React, { useState, useRef, useEffect } from 'react';
 
                 // Delete from backend
                 try {
-                    await fetch(`${BACKEND_URL}/api/ratings/${movieId}`, {
-                        method: 'DELETE',
-                        credentials: 'include'
+                    await fetchWithSession(`${BACKEND_URL}/api/ratings/${movieId}`, {
+                        method: 'DELETE'
                     });
                     console.log('✅ Movie deleted from backend');
                 } catch (error) {
@@ -1054,10 +1109,9 @@ import React, { useState, useRef, useEffect } from 'react';
                     console.log('Backend URL:', `${BACKEND_URL}/api/claude/identify`);
 
                     const requestStart = Date.now();
-                    const claudeResponse = await fetch(`${BACKEND_URL}/api/claude/identify`, {
+                    const claudeResponse = await fetchWithSession(`${BACKEND_URL}/api/claude/identify`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
                         body: JSON.stringify({ image: base64Image })
                     });
 
@@ -1153,9 +1207,8 @@ import React, { useState, useRef, useEffect } from 'react';
                 console.log('🔍 Searching for correction candidates:', query);
 
                 try {
-                    const response = await fetch(
-                        `${BACKEND_URL}/api/tmdb/search?query=${encodeURIComponent(query)}`,
-                        { credentials: 'include' }
+                    const response = await fetchWithSession(
+                        `${BACKEND_URL}/api/tmdb/search?query=${encodeURIComponent(query)}`
                     );
 
                     if (!response.ok) {
@@ -1327,7 +1380,7 @@ import React, { useState, useRef, useEffect } from 'react';
                         searchUrl += `&media_type=${targetMediaType}`;
                     }
 
-                    const response = await fetch(searchUrl, { credentials: 'include' });
+                    const response = await fetchWithSession(searchUrl);
 
                     if (!response.ok) {
                         const errorData = await response.json();
@@ -1451,9 +1504,8 @@ import React, { useState, useRef, useEffect } from 'react';
                     console.log('📦 Fetching details for:', movie.title || movie.name);
 
                     // Fetch movie details
-                    const detailsResponse = await fetch(
-                        `${BACKEND_URL}/api/tmdb/${movie.media_type}/${movie.id}`,
-                        { credentials: 'include' }
+                    const detailsResponse = await fetchWithSession(
+                        `${BACKEND_URL}/api/tmdb/${movie.media_type}/${movie.id}`
                     );
 
                     if (!detailsResponse.ok) {
@@ -1472,9 +1524,8 @@ import React, { useState, useRef, useEffect } from 'react';
                         console.log('   IMDb ID:', imdbId);
 
                         try {
-                            const omdbResponse = await fetch(
-                                `${BACKEND_URL}/api/omdb/ratings/${imdbId}`,
-                                { credentials: 'include' }
+                            const omdbResponse = await fetchWithSession(
+                                `${BACKEND_URL}/api/omdb/ratings/${imdbId}`
                             );
 
                             if (omdbResponse.ok) {
@@ -1541,10 +1592,9 @@ import React, { useState, useRef, useEffect } from 'react';
 
                     // Calculate recommendation badge from backend
                     try {
-                        const badgeResponse = await fetch(`${BACKEND_URL}/api/ratings/calculate-badge`, {
+                        const badgeResponse = await fetchWithSession(`${BACKEND_URL}/api/ratings/calculate-badge`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include',
                             body: JSON.stringify(movieData)
                         });
 
@@ -1588,10 +1638,9 @@ import React, { useState, useRef, useEffect } from 'react';
 
                     // Save to backend (without rating initially)
                     try {
-                        await fetch(`${BACKEND_URL}/api/ratings`, {
+                        await fetchWithSession(`${BACKEND_URL}/api/ratings`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include',
                             body: JSON.stringify(movieData)
                         });
                     } catch (error) {
@@ -2269,9 +2318,8 @@ import React, { useState, useRef, useEffect } from 'react';
                                                             const movieIds = Object.keys(movieHistory);
                                                             await Promise.all(
                                                                 movieIds.map(id =>
-                                                                    fetch(`${BACKEND_URL}/api/ratings/${id}`, {
-                                                                        method: 'DELETE',
-                                                                        credentials: 'include'
+                                                                    fetchWithSession(`${BACKEND_URL}/api/ratings/${id}`, {
+                                                                        method: 'DELETE'
                                                                     })
                                                                 )
                                                             );
