@@ -5,6 +5,7 @@ const SqliteStore = require('better-sqlite3-session-store')(session);
 const Database = require('better-sqlite3');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const signature = require('cookie-signature');
 require('dotenv').config();
 
 // Import routes
@@ -153,8 +154,13 @@ app.use((req, res, next) => {
     // ALWAYS prefer X-Session-ID header over cookies when present
     // Safari may send cookies but they might be stale or from a different session
     // The X-Session-ID is what we explicitly manage on the frontend
-    req.headers.cookie = `connect.sid=${customSessionId}`;
+
+    // Express-session expects signed cookies in format: s:sessionID.signature
+    // Sign the session ID with our secret before setting it
+    const signedSessionId = 's:' + signature.sign(customSessionId, process.env.SESSION_SECRET);
+    req.headers.cookie = `connect.sid=${signedSessionId}`;
     console.log(`[Session] Using X-Session-ID header (overriding any cookies): ${customSessionId.substring(0, 20)}...`);
+    console.log(`[Session] Signed session ID: ${signedSessionId.substring(0, 30)}...`);
   }
 
   next();
