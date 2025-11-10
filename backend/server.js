@@ -197,13 +197,22 @@ app.use((req, res, next) => {
   const originalJson = res.json;
   res.json = function(data) {
     // Add session ID to all API responses
-    if (req.path.startsWith('/api/') && req.sessionID) {
-      console.log(`[Session] Adding _sessionId to response: ${req.sessionID.substring(0, 20)}...`);
+    // Check both req.path and req.originalUrl to handle mounted routes
+    const isApiRoute = req.path.startsWith('/api/') || req.originalUrl?.startsWith('/api/');
+
+    console.log(`[_sessionId Middleware] Called for ${req.originalUrl || req.path}`);
+    console.log(`[_sessionId Middleware] isApiRoute: ${isApiRoute}, has sessionID: ${!!req.sessionID}`);
+
+    if (isApiRoute && req.sessionID) {
+      console.log(`[Session] ✓ Adding _sessionId to response`);
+      console.log(`[Session] Session ID: ${req.sessionID.substring(0, 20)}...`);
       const enhancedData = {
         ...data,
         _sessionId: req.sessionID
       };
       return originalJson.call(this, enhancedData);
+    } else {
+      console.log(`[Session] ✗ NOT adding _sessionId (isApiRoute: ${isApiRoute}, sessionID: ${req.sessionID || 'NONE'})`);
     }
     return originalJson.call(this, data);
   };
