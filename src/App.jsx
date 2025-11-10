@@ -280,16 +280,34 @@ import React, { useState, useRef, useEffect } from 'react';
             useEffect(() => {
                 if (searchMode && searchInputRef.current) {
                     searchInputRef.current.focus();
-                    // Scroll input into view to ensure it's visible above keyboard
-                    searchInputRef.current.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
                     // Set cursor at the end of the text if there's a query
                     if (searchQuery) {
                         const length = searchQuery.length;
                         searchInputRef.current.setSelectionRange(length, length);
                     }
+
+                    // Wait for keyboard to open, then scroll input into view
+                    // iOS keyboard animation takes ~300ms
+                    setTimeout(() => {
+                        if (searchInputRef.current) {
+                            // Get the input's position
+                            const inputRect = searchInputRef.current.getBoundingClientRect();
+                            const viewportHeight = window.innerHeight;
+
+                            // If input is in the bottom half of viewport (likely covered by keyboard)
+                            if (inputRect.top > viewportHeight / 2) {
+                                // Scroll it into the top third of the viewport
+                                searchInputRef.current.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                                // Add extra scroll to ensure it's well above keyboard
+                                setTimeout(() => {
+                                    window.scrollBy(0, -100);
+                                }, 100);
+                            }
+                        }
+                    }, 400);
                 }
             }, [searchMode, searchQuery]);
 
@@ -1835,7 +1853,7 @@ import React, { useState, useRef, useEffect } from 'react';
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className={`h-full flex flex-col px-6 py-6 overflow-y-auto ${isDarkMode ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-50 to-white'}`}>
+                                            <div className={`h-full flex flex-col px-6 py-6 overflow-y-auto ${searchMode ? 'pb-96' : ''} ${isDarkMode ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-50 to-white'}`}>
                                                 {/* App Branding */}
                                                 <div className="text-center mb-8">
                                                     <div className="flex justify-center mb-4">
