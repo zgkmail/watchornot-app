@@ -2087,7 +2087,24 @@ import React, { useState, useRef, useEffect } from 'react';
                                                     <div className="flex-1">
                                                         <h2 className={`text-2xl font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{currentMovie.title}</h2>
                                                         <button
-                                                            onClick={() => {
+                                                            onClick={async () => {
+                                                                // Remove from history since it's the wrong movie
+                                                                const movieId = currentMovie.id;
+                                                                setMovieHistory(prev => {
+                                                                    const newHistory = { ...prev };
+                                                                    delete newHistory[movieId];
+                                                                    return newHistory;
+                                                                });
+
+                                                                // Delete from backend
+                                                                try {
+                                                                    await fetchWithSession(`${BACKEND_URL}/api/ratings/${movieId}`, {
+                                                                        method: 'DELETE'
+                                                                    });
+                                                                } catch (error) {
+                                                                    console.warn('Could not delete movie from backend:', error);
+                                                                }
+
                                                                 setSearchQuery(currentMovie.title);
                                                                 setSearchMode(true);
                                                                 setHasScanned(false);
