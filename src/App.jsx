@@ -276,13 +276,38 @@ import React, { useState, useRef, useEffect } from 'react';
                 localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
             }, [isDarkMode]);
 
-            // Focus search input when search mode is enabled with prepopulated query
+            // Focus search input when search mode is enabled (iOS compatible)
             useEffect(() => {
-                if (searchMode && searchQuery && searchInputRef.current) {
+                if (searchMode && searchInputRef.current) {
                     searchInputRef.current.focus();
-                    // Set cursor at the end of the text
-                    const length = searchQuery.length;
-                    searchInputRef.current.setSelectionRange(length, length);
+                    // Set cursor at the end of the text if there's a query
+                    if (searchQuery) {
+                        const length = searchQuery.length;
+                        searchInputRef.current.setSelectionRange(length, length);
+                    }
+
+                    // Wait for keyboard to open, then scroll input into view
+                    // iOS keyboard animation takes ~300ms
+                    setTimeout(() => {
+                        if (searchInputRef.current) {
+                            // Get the input's position
+                            const inputRect = searchInputRef.current.getBoundingClientRect();
+                            const viewportHeight = window.innerHeight;
+
+                            // If input is in the bottom half of viewport (likely covered by keyboard)
+                            if (inputRect.top > viewportHeight / 2) {
+                                // Scroll it into the top third of the viewport
+                                searchInputRef.current.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                                // Add extra scroll to ensure it's well above keyboard
+                                setTimeout(() => {
+                                    window.scrollBy(0, -100);
+                                }, 100);
+                            }
+                        }
+                    }, 400);
                 }
             }, [searchMode, searchQuery]);
 
@@ -1828,7 +1853,7 @@ import React, { useState, useRef, useEffect } from 'react';
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className={`h-full flex flex-col px-6 py-6 overflow-y-auto ${isDarkMode ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-50 to-white'}`}>
+                                            <div className={`h-full flex flex-col px-6 py-6 overflow-y-auto ${searchMode ? 'pb-96' : ''} ${isDarkMode ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-50 to-white'}`}>
                                                 {/* App Branding */}
                                                 <div className="text-center mb-8">
                                                     <div className="flex justify-center mb-4">
@@ -1904,28 +1929,73 @@ import React, { useState, useRef, useEffect } from 'react';
                                                     </button>
                                                     <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileUpload} className="hidden" />
                                                     <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-                                                    <button onClick={() => setSearchMode(!searchMode)} className={`w-full py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white focus:ring-gray-500' : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 focus:ring-gray-400'}`}>
-                                                        <Search className="w-5 h-5" />
-                                                        Manual Search
-                                                    </button>
-                                                </div>
 
-                                                {searchMode && (
-                                                    <div className="space-y-3 mb-6">
+                                                    {/* Manual Search - transforms from button to input */}
+                                                    <div
+                                                        className={`w-full py-4 px-6 rounded-xl flex items-center gap-2 transition-all duration-300 ease-in-out focus-within:ring-2 focus-within:ring-offset-2 cursor-text ${
+                                                            searchMode
+                                                                ? isDarkMode
+                                                                    ? 'bg-gray-700 text-white focus-within:ring-gray-500'
+                                                                    : 'bg-white border-2 border-gray-300 text-gray-900 focus-within:ring-gray-400'
+                                                                : isDarkMode
+                                                                    ? 'bg-gray-800 hover:bg-gray-700 text-white focus-within:ring-gray-500 cursor-pointer'
+                                                                    : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 focus-within:ring-gray-400 cursor-pointer'
+                                                        }`}
+                                                        onClick={(e) => {
+                                                            if (!searchMode) {
+                                                                setSearchMode(true);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Search className={`w-5 h-5 flex-shrink-0 transition-all duration-300 ${searchMode ? 'opacity-60' : ''}`} />
+
                                                         <input
                                                             ref={searchInputRef}
                                                             type="text"
                                                             value={searchQuery}
                                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                                            onKeyPress={(e) => e.key === 'Enter' && searchQuery.trim() && (setIsProcessing(true), searchMovie(searchQuery))}
+                                                            onKeyPress={(e) => {
+                                                                if (e.key === 'Enter' && searchQuery.trim()) {
+                                                                    setIsProcessing(true);
+                                                                    searchMovie(searchQuery);
+                                                                    setSearchMode(false);
+                                                                } else if (e.key === 'Escape') {
+                                                                    setSearchMode(false);
+                                                                    setSearchQuery('');
+                                                                }
+                                                            }}
+                                                            onBlur={() => {
+                                                                if (!searchQuery.trim()) {
+                                                                    setSearchMode(false);
+                                                                }
+                                                            }}
                                                             placeholder="Enter movie or TV show name..."
-                                                            className={`w-full py-3 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${isDarkMode ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-white text-gray-900 placeholder-gray-500 border border-gray-300'}`}
+                                                            className={`flex-1 bg-transparent outline-none transition-opacity duration-300 ${
+                                                                searchMode
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0 pointer-events-none'
+                                                            } ${isDarkMode ? 'text-white placeholder-gray-400' : 'text-gray-900 placeholder-gray-500'}`}
                                                         />
-                                                        <button onClick={() => searchQuery.trim() && (setIsProcessing(true), searchMovie(searchQuery))} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
-                                                            Search
-                                                        </button>
+
+                                                        {!searchMode && (
+                                                            <span className="flex-1 text-center transition-opacity duration-300 absolute left-0 right-0">Manual Search</span>
+                                                        )}
+
+                                                        {searchMode && searchQuery.trim() && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setIsProcessing(true);
+                                                                    searchMovie(searchQuery);
+                                                                    setSearchMode(false);
+                                                                }}
+                                                                className="text-blue-600 hover:text-blue-700 font-medium transition-all duration-300 flex-shrink-0"
+                                                            >
+                                                                Go
+                                                            </button>
+                                                        )}
                                                     </div>
-                                                )}
+                                                </div>
 
                                                 {isProcessing && (
                                                     <div className="text-center">
