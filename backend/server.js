@@ -163,6 +163,21 @@ app.use(
   })
 );
 
+// Session ID extraction middleware (handles third-party cookie blocking)
+// This is a workaround for browsers blocking third-party cookies even with sameSite=none
+app.use((req, res, next) => {
+  // Check for session ID in custom header first (for browsers that block third-party cookies)
+  const customSessionId = req.headers['x-session-id'];
+
+  if (customSessionId && !req.headers.cookie) {
+    // Manually set the cookie header so express-session can find the session
+    req.headers.cookie = `connect.sid=${customSessionId}`;
+    console.log(`[Session] Using X-Session-ID header: ${customSessionId.substring(0, 20)}...`);
+  }
+
+  next();
+});
+
 // Session debugging middleware (helps diagnose session persistence issues)
 app.use((req, res, next) => {
   const isApiRequest = req.path.startsWith('/api/');
@@ -170,8 +185,26 @@ app.use((req, res, next) => {
     console.log(`[Session] ${req.method} ${req.path}`);
     console.log(`  Session ID: ${req.sessionID || 'NONE'}`);
     console.log(`  Cookie header: ${req.headers.cookie ? 'present' : 'MISSING'}`);
+    console.log(`  X-Session-ID header: ${req.headers['x-session-id'] ? 'present' : 'missing'}`);
     console.log(`  User ID: ${req.session?.userId || 'not set'}`);
   }
+  next();
+});
+
+// Send session ID in response body (workaround for third-party cookie blocking)
+app.use((req, res, next) => {
+  const originalJson = res.json;
+  res.json = function(data) {
+    // Add session ID to all API responses
+    if (req.path.startsWith('/api/') && req.sessionID) {
+      const enhancedData = {
+        ...data,
+        _sessionId: req.sessionID
+      };
+      return originalJson.call(this, enhancedData);
+    }
+    return originalJson.call(this, data);
+  };
   next();
 });
 
