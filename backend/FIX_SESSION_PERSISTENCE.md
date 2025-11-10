@@ -12,7 +12,7 @@ Without this variable, CORS rejects requests and cookies aren't sent/stored.
 
 ## Solution
 
-### Step 1: Set the FRONTEND_URL environment variable
+### Step 1: Set the FRONTEND_URL secret
 
 Run this command to set the frontend URL on your fly.io backend:
 
@@ -22,6 +22,8 @@ fly secrets set FRONTEND_URL="https://watchornot-frontend.fly.dev"
 ```
 
 Replace `watchornot-frontend.fly.dev` with your actual frontend domain if different.
+
+**Important:** The `NODE_ENV=production` is now set in `fly.toml`, so the next deploy will automatically enable production mode.
 
 ### Step 2: Deploy the updated backend
 
@@ -67,10 +69,14 @@ You should see:
 
 ### What was fixed:
 
-1. **Dockerfile** (`backend/Dockerfile`):
-   - Added `ENV NODE_ENV=production` to ensure production settings
+1. **Fly.io configuration** (`backend/fly.toml`):
+   - Added `[env]` section with `NODE_ENV = "production"`
+   - This ensures production mode is enabled when deployed
 
-2. **Server configuration** (`backend/server.js`):
+2. **Dockerfile** (`backend/Dockerfile`):
+   - Added `ENV NODE_ENV=production` as fallback
+
+3. **Server configuration** (`backend/server.js`):
    - Added `trust proxy: 1` for fly.io's reverse proxy
    - Added FRONTEND_URL validation (exits if not set in production)
    - Updated session database path to use `/data` (fly.io persistent volume)
