@@ -218,22 +218,45 @@ import React, { useState, useRef, useEffect } from 'react';
             // Session management for Safari/browsers that block cookies
             const SESSION_STORAGE_KEY = 'watchornot_session_id';
 
+            // In-memory fallback for Safari private mode where localStorage might not work
+            let memorySessionId = null;
+
             const getStoredSessionId = () => {
                 try {
-                    return localStorage.getItem(SESSION_STORAGE_KEY);
+                    const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+                    if (stored) {
+                        console.log(`[getStoredSessionId] Retrieved from localStorage: ${stored.substring(0, 20)}...`);
+                        return stored;
+                    }
                 } catch (e) {
-                    console.warn('localStorage not available:', e);
-                    return null;
+                    console.warn('[getStoredSessionId] localStorage not available:', e);
                 }
+
+                // Fallback to memory
+                if (memorySessionId) {
+                    console.log(`[getStoredSessionId] Using memory fallback: ${memorySessionId.substring(0, 20)}...`);
+                    return memorySessionId;
+                }
+
+                console.log('[getStoredSessionId] No session ID found');
+                return null;
             };
 
             const storeSessionId = (sessionId) => {
+                if (!sessionId) return;
+
+                console.log(`[storeSessionId] Storing session ID: ${sessionId.substring(0, 20)}...`);
+
+                // Always store in memory as fallback
+                memorySessionId = sessionId;
+
+                // Try to store in localStorage
                 try {
-                    if (sessionId) {
-                        localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
-                    }
+                    localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
+                    console.log('[storeSessionId] ✓ Stored in localStorage');
                 } catch (e) {
-                    console.warn('Could not store session ID:', e);
+                    console.warn('[storeSessionId] Could not store in localStorage:', e);
+                    console.log('[storeSessionId] ✓ Using memory fallback only');
                 }
             };
 
@@ -259,7 +282,8 @@ import React, { useState, useRef, useEffect } from 'react';
                     headers
                 });
 
-                // For JSON responses, extract session ID from response body
+                // For JSON responses, extract and store session ID BEFORE returning
+                // This ensures the next request will use the correct session ID
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
                     // Clone response so we can read it multiple times
@@ -267,10 +291,13 @@ import React, { useState, useRef, useEffect } from 'react';
                     try {
                         const data = await clonedResponse.json();
                         if (data._sessionId) {
+                            // Store session ID synchronously before returning
                             storeSessionId(data._sessionId);
                             console.log(`📝 Session ID stored from response: ${data._sessionId.substring(0, 20)}...`);
+                            console.log(`📝 Stored session ID is now: ${getStoredSessionId()?.substring(0, 20)}...`);
                         } else {
                             console.warn('⚠️ Response does not contain _sessionId field');
+                            console.warn('⚠️ Response data:', data);
                         }
                     } catch (e) {
                         // Response might not be valid JSON, ignore
