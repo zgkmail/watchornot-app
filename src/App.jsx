@@ -280,6 +280,11 @@ import React, { useState, useRef, useEffect } from 'react';
             useEffect(() => {
                 if (searchMode && searchInputRef.current) {
                     searchInputRef.current.focus();
+                    // Scroll input into view to ensure it's visible above keyboard
+                    searchInputRef.current.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
                     // Set cursor at the end of the text if there's a query
                     if (searchQuery) {
                         const length = searchQuery.length;
