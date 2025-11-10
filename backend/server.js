@@ -149,10 +149,12 @@ app.use((req, res, next) => {
   // Check for session ID in custom header first (for browsers that block third-party cookies)
   const customSessionId = req.headers['x-session-id'];
 
-  if (customSessionId && !req.headers.cookie) {
-    // Manually set the cookie header so express-session can find the session
+  if (customSessionId) {
+    // ALWAYS prefer X-Session-ID header over cookies when present
+    // Safari may send cookies but they might be stale or from a different session
+    // The X-Session-ID is what we explicitly manage on the frontend
     req.headers.cookie = `connect.sid=${customSessionId}`;
-    console.log(`[Session] Using X-Session-ID header: ${customSessionId.substring(0, 20)}...`);
+    console.log(`[Session] Using X-Session-ID header (overriding any cookies): ${customSessionId.substring(0, 20)}...`);
   }
 
   next();
