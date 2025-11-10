@@ -40,6 +40,17 @@ if (!process.env.OMDB_API_KEY || process.env.OMDB_API_KEY === 'your_omdb_api_key
   console.warn('   Get a free API key from: https://www.omdbapi.com/apikey.aspx');
 }
 
+// Validate production environment configuration
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.FRONTEND_URL) {
+    console.error('❌ FATAL: FRONTEND_URL environment variable is not set in production!');
+    console.error('   This will cause CORS errors and session cookies will not work.');
+    console.error('   Set it using: fly secrets set FRONTEND_URL="https://your-frontend-app.fly.dev"');
+    process.exit(1);
+  }
+  console.log(`✓ Production mode: FRONTEND_URL = ${process.env.FRONTEND_URL}`);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -240,14 +251,26 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`✓ Database storage: ${sessionDbDir}`);
-  console.log(`✓ CORS enabled for development (localhost + local network)`);
+  console.log(`✓ Trust proxy: 1 (first proxy only)`);
+
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`✓ CORS allowed origin: ${process.env.FRONTEND_URL}`);
+    console.log(`✓ Session cookies: secure=true, sameSite=none, httpOnly=true`);
+  } else {
+    console.log(`✓ CORS enabled for development (localhost + local network)`);
+    console.log(`✓ Session cookies: secure=false, sameSite=lax, httpOnly=true`);
+  }
+
   console.log(`\n📍 Local:    http://localhost:${PORT}`);
   console.log(`📍 Network:  http://${localIp}:${PORT}`);
   console.log(`\n✓ API endpoint: /api`);
   console.log(`✓ Health check: /health`);
   console.log('='.repeat(50));
-  console.log(`\n💡 To test on iPhone: Use http://${localIp}:3000 in Safari`);
-  console.log('='.repeat(50));
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`\n💡 To test on iPhone: Use http://${localIp}:3000 in Safari`);
+    console.log('='.repeat(50));
+  }
 });
 
 // Graceful shutdown function

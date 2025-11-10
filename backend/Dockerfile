@@ -19,8 +19,9 @@ RUN mkdir -p /data
 # Expose port (Fly.io will set PORT env var)
 EXPOSE 8080
 
-# Set PORT environment variable explicitly for Fly.io
+# Set PORT and NODE_ENV environment variables explicitly for Fly.io
 ENV PORT=8080
+ENV NODE_ENV=production
 
 # Health check - using the PORT env var
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
