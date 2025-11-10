@@ -43,6 +43,10 @@ if (!process.env.OMDB_API_KEY || process.env.OMDB_API_KEY === 'your_omdb_api_key
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy when behind reverse proxy (fly.io, nginx, etc.)
+// This is required for rate limiting to work correctly with X-Forwarded-For headers
+app.set('trust proxy', true);
+
 // Middleware
 app.use(express.json({ limit: '2mb' })); // Limit for base64 images (2MB sufficient for screenshots)
 app.use(express.urlencoded({ extended: true }));
@@ -111,9 +115,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Session configuration with SQLite store
-const sessionDbPath = process.env.DATABASE_PATH
-  ? path.join(process.env.DATABASE_PATH, 'sessions.db')
-  : path.join(__dirname, 'db', 'sessions.db');
+// Use DATABASE_PATH env var if set, otherwise use /data in production, ./db in development
+// This matches the logic in db/database.js for consistency
+const sessionDbDir = process.env.DATABASE_PATH ||
+  (process.env.NODE_ENV === 'production' ? '/data' : path.join(__dirname, 'db'));
+
+const sessionDbPath = path.join(sessionDbDir, 'sessions.db');
+
+// Warn if DATABASE_PATH is not explicitly set in production (using default /data)
+if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_PATH) {
+  console.log('ℹ️  Using default persistent storage: /data (fly.io volume)');
+}
 
 const sessionDb = new Database(sessionDbPath);
 
@@ -132,6 +144,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       httpOnly: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-origin in prod
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     }
   })
@@ -224,6 +237,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('='.repeat(50));
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✓ Database storage: ${sessionDbDir}`);
   console.log(`✓ CORS enabled for development (localhost + local network)`);
   console.log(`\n📍 Local:    http://localhost:${PORT}`);
   console.log(`📍 Network:  http://${localIp}:${PORT}`);
