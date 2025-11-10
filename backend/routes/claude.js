@@ -24,6 +24,7 @@ router.get('/test', async (req, res) => {
 
     const anthropic = new Anthropic({
       apiKey: apiKey,
+      timeout: 30000, // 30 second timeout for API calls
     });
 
     console.log('📤 Testing Claude API connection...');
@@ -157,6 +158,7 @@ router.post('/identify', async (req, res) => {
     // Initialize Anthropic client
     const anthropic = new Anthropic({
       apiKey: apiKey,
+      timeout: 30000, // 30 second timeout for API calls
     });
 
     console.log('📤 Sending request to Claude API...');

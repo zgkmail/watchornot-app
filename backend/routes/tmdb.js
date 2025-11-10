@@ -32,17 +32,23 @@ router.get('/search', async (req, res) => {
       return res.status(500).json({ error: 'TMDB API key not configured on server. Please contact administrator.' });
     }
 
-    // Determine the search endpoint based on media_type
-    let searchEndpoint = '/search/multi'; // Default: search both movies and TV shows
+    // Validate and determine the search endpoint based on media_type
+    let searchEndpoint;
 
-    if (media_type === 'movie') {
+    if (!media_type || media_type === 'multi') {
+      searchEndpoint = '/search/multi';
+      console.log('🔍 Searching movies and TV shows (multi)');
+    } else if (media_type === 'movie') {
       searchEndpoint = '/search/movie';
       console.log('🎬 Searching movies only');
     } else if (media_type === 'tv') {
       searchEndpoint = '/search/tv';
       console.log('📺 Searching TV shows only');
     } else {
-      console.log('🔍 Searching movies and TV shows (multi)');
+      return res.status(400).json({
+        error: 'Invalid media_type parameter',
+        message: 'media_type must be one of: movie, tv, multi, or omitted'
+      });
     }
 
     // Make request to TMDB API

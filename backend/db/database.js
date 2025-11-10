@@ -2,6 +2,16 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
+/**
+ * Sanitize input to prevent SQL injection in LIKE queries
+ * Escapes special characters used in SQL LIKE patterns
+ */
+function sanitizeLikePattern(input) {
+  if (!input || typeof input !== 'string') return '';
+  // Escape special SQL LIKE characters: % _ [ ]
+  return input.replace(/[%_\[\]]/g, '\\$&');
+}
+
 // Determine database directory
 // Use DATABASE_PATH env var if set, otherwise use /data in production, ./db in development
 const dbDir = process.env.DATABASE_PATH ||
@@ -380,67 +390,80 @@ function cleanupOldSessions() {
  * Save or update a movie rating
  */
 function saveMovieRating(userId, movieData) {
-  const now = Date.now();
+  try {
+    const now = Date.now();
 
-  const stmt = db.prepare(`
-    INSERT INTO movie_ratings (
-      user_id, movie_id, title, genre, year, imdb_rating,
-      rotten_tomatoes, metacritic, poster, director, cast, rating, timestamp
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(user_id, movie_id)
-    DO UPDATE SET
-      rating = ?,
-      timestamp = ?
-  `);
+    const stmt = db.prepare(`
+      INSERT INTO movie_ratings (
+        user_id, movie_id, title, genre, year, imdb_rating,
+        rotten_tomatoes, metacritic, poster, director, cast, rating, timestamp
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id, movie_id)
+      DO UPDATE SET
+        rating = ?,
+        timestamp = ?
+    `);
 
-  stmt.run(
-    userId,
-    movieData.id,
-    movieData.title,
-    movieData.genre,
-    movieData.year,
-    movieData.imdbRating,
-    movieData.rottenTomatoes,
-    movieData.metacritic,
-    movieData.poster,
-    movieData.director,
-    movieData.cast,
-    movieData.rating,
-    movieData.timestamp || now,
-    movieData.rating,
-    now
-  );
+    stmt.run(
+      userId,
+      movieData.id,
+      movieData.title,
+      movieData.genre,
+      movieData.year,
+      movieData.imdbRating,
+      movieData.rottenTomatoes,
+      movieData.metacritic,
+      movieData.poster,
+      movieData.director,
+      movieData.cast,
+      movieData.rating,
+      movieData.timestamp || now,
+      movieData.rating,
+      now
+    );
 
-  // Save individual genre mappings
-  if (movieData.genre) {
-    saveMovieGenreMappings(userId, movieData.id, movieData.genre);
+    // Save individual genre mappings
+    if (movieData.genre) {
+      saveMovieGenreMappings(userId, movieData.id, movieData.genre);
 
-    // Recalculate preferences for each genre
-    const genres = movieData.genre.split(',').map(g => g.trim()).filter(g => g);
-    genres.forEach(genre => {
-      recalculateGenrePreferences(userId, genre);
-    });
-  }
+      // Recalculate preferences for each genre
+      const genres = movieData.genre.split(',').map(g => g.trim()).filter(g => g);
+      genres.forEach(genre => {
+        try {
+          recalculateGenrePreferences(userId, genre);
+        } catch (error) {
+          console.error(`Error recalculating genre preferences for "${genre}":`, error.message);
+        }
+      });
+    }
 
-  // Recalculate director preferences
-  if (movieData.director && movieData.director !== 'N/A') {
-    const directors = movieData.director.split(',').map(d => d.trim()).filter(d => d);
-    directors.forEach(director => {
-      recalculateDirectorPreferences(userId, director);
-    });
-  }
+    // Recalculate director preferences
+    if (movieData.director && movieData.director !== 'N/A') {
+      const directors = movieData.director.split(',').map(d => d.trim()).filter(d => d);
+      directors.forEach(director => {
+        try {
+          recalculateDirectorPreferences(userId, director);
+        } catch (error) {
+          console.error(`Error recalculating director preferences for "${director}":`, error.message);
+        }
+      });
+    }
 
-  // Recalculate cast preferences
-  if (movieData.cast && movieData.cast !== 'N/A') {
-    try {
+    // Recalculate cast preferences
+    if (movieData.cast && movieData.cast !== 'N/A') {
       const castMembers = movieData.cast.split(',').map(c => c.trim()).filter(c => c);
       castMembers.forEach(castMember => {
-        recalculateCastPreferences(userId, castMember);
+        try {
+          recalculateCastPreferences(userId, castMember);
+        } catch (error) {
+          console.error(`Error recalculating cast preferences for "${castMember}":`, error.message);
+        }
       });
-    } catch (error) {
-      console.error('Error recalculating cast preferences:', error.message);
     }
+  } catch (error) {
+    console.error('Error saving movie rating:', error.message);
+    throw error;
   }
 }
 
@@ -473,23 +496,32 @@ function getMovieRating(userId, movieId) {
  * Delete a movie rating
  */
 function deleteMovieRating(userId, movieId) {
-  // Get the genres before deleting to update preferences
-  const genres = getMovieGenres(userId, movieId);
+  try {
+    // Get the genres before deleting to update preferences
+    const genres = getMovieGenres(userId, movieId);
 
-  const stmt = db.prepare(`
-    DELETE FROM movie_ratings
-    WHERE user_id = ? AND movie_id = ?
-  `);
+    const stmt = db.prepare(`
+      DELETE FROM movie_ratings
+      WHERE user_id = ? AND movie_id = ?
+    `);
 
-  stmt.run(userId, movieId);
+    stmt.run(userId, movieId);
 
-  // Delete genre mappings (cascade should handle this, but let's be explicit)
-  deleteMovieGenreMappings(userId, movieId);
+    // Delete genre mappings (cascade should handle this, but let's be explicit)
+    deleteMovieGenreMappings(userId, movieId);
 
-  // Update genre preferences after deletion for each genre
-  genres.forEach(genre => {
-    recalculateGenrePreferences(userId, genre);
-  });
+    // Update genre preferences after deletion for each genre
+    genres.forEach(genre => {
+      try {
+        recalculateGenrePreferences(userId, genre);
+      } catch (error) {
+        console.error(`Error recalculating genre preferences after deletion for "${genre}":`, error.message);
+      }
+    });
+  } catch (error) {
+    console.error('Error deleting movie rating:', error.message);
+    throw error;
+  }
 }
 
 /**
@@ -550,39 +582,47 @@ function getUserGenrePreferences(userId) {
  * Recalculate director preferences from scratch
  */
 function recalculateDirectorPreferences(userId, director) {
-  // Get all ratings for movies with this director
-  const ratings = db.prepare(`
-    SELECT rating, imdb_rating
-    FROM movie_ratings
-    WHERE user_id = ? AND "director" LIKE ? AND rating IS NOT NULL
-  `).all(userId, `%${director}%`);
+  try {
+    // Sanitize director name to prevent SQL injection
+    const sanitizedDirector = sanitizeLikePattern(director);
 
-  if (ratings.length === 0) {
-    // Delete if no ratings
+    // Get all ratings for movies with this director
+    const ratings = db.prepare(`
+      SELECT rating, imdb_rating
+      FROM movie_ratings
+      WHERE user_id = ? AND "director" LIKE ? ESCAPE '\\' AND rating IS NOT NULL
+    `).all(userId, `%${sanitizedDirector}%`);
+
+    if (ratings.length === 0) {
+      // Delete if no ratings
+      db.prepare(`
+        DELETE FROM user_director_preferences
+        WHERE user_id = ? AND director = ?
+      `).run(userId, director);
+      return;
+    }
+
+    const thumbsUp = ratings.filter(r => r.rating === 'up').length;
+    const thumbsDown = ratings.filter(r => r.rating === 'down').length;
+    const avgImdb = ratings.reduce((sum, r) => sum + (r.imdb_rating || 0), 0) / ratings.length;
+
     db.prepare(`
-      DELETE FROM user_director_preferences
-      WHERE user_id = ? AND director = ?
-    `).run(userId, director);
-    return;
+      INSERT INTO user_director_preferences (user_id, director, thumbs_up, thumbs_down, avg_imdb_rating, last_updated)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id, director)
+      DO UPDATE SET
+        thumbs_up = ?,
+        thumbs_down = ?,
+        avg_imdb_rating = ?,
+        last_updated = ?
+    `).run(
+      userId, director, thumbsUp, thumbsDown, avgImdb, Date.now(),
+      thumbsUp, thumbsDown, avgImdb, Date.now()
+    );
+  } catch (error) {
+    console.error(`Error recalculating director preferences for "${director}":`, error.message);
+    throw error;
   }
-
-  const thumbsUp = ratings.filter(r => r.rating === 'up').length;
-  const thumbsDown = ratings.filter(r => r.rating === 'down').length;
-  const avgImdb = ratings.reduce((sum, r) => sum + (r.imdb_rating || 0), 0) / ratings.length;
-
-  db.prepare(`
-    INSERT INTO user_director_preferences (user_id, director, thumbs_up, thumbs_down, avg_imdb_rating, last_updated)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT(user_id, director)
-    DO UPDATE SET
-      thumbs_up = ?,
-      thumbs_down = ?,
-      avg_imdb_rating = ?,
-      last_updated = ?
-  `).run(
-    userId, director, thumbsUp, thumbsDown, avgImdb, Date.now(),
-    thumbsUp, thumbsDown, avgImdb, Date.now()
-  );
 }
 
 /**
@@ -602,39 +642,47 @@ function getUserDirectorPreferences(userId) {
  * Recalculate cast preferences from scratch
  */
 function recalculateCastPreferences(userId, castMember) {
-  // Get all ratings for movies with this cast member
-  const ratings = db.prepare(`
-    SELECT rating, imdb_rating
-    FROM movie_ratings
-    WHERE user_id = ? AND "cast" LIKE ? AND rating IS NOT NULL
-  `).all(userId, `%${castMember}%`);
+  try {
+    // Sanitize cast member name to prevent SQL injection
+    const sanitizedCastMember = sanitizeLikePattern(castMember);
 
-  if (ratings.length === 0) {
-    // Delete if no ratings
+    // Get all ratings for movies with this cast member
+    const ratings = db.prepare(`
+      SELECT rating, imdb_rating
+      FROM movie_ratings
+      WHERE user_id = ? AND "cast" LIKE ? ESCAPE '\\' AND rating IS NOT NULL
+    `).all(userId, `%${sanitizedCastMember}%`);
+
+    if (ratings.length === 0) {
+      // Delete if no ratings
+      db.prepare(`
+        DELETE FROM user_cast_preferences
+        WHERE user_id = ? AND cast_member = ?
+      `).run(userId, castMember);
+      return;
+    }
+
+    const thumbsUp = ratings.filter(r => r.rating === 'up').length;
+    const thumbsDown = ratings.filter(r => r.rating === 'down').length;
+    const avgImdb = ratings.reduce((sum, r) => sum + (r.imdb_rating || 0), 0) / ratings.length;
+
     db.prepare(`
-      DELETE FROM user_cast_preferences
-      WHERE user_id = ? AND cast_member = ?
-    `).run(userId, castMember);
-    return;
+      INSERT INTO user_cast_preferences (user_id, cast_member, thumbs_up, thumbs_down, avg_imdb_rating, last_updated)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id, cast_member)
+      DO UPDATE SET
+        thumbs_up = ?,
+        thumbs_down = ?,
+        avg_imdb_rating = ?,
+        last_updated = ?
+    `).run(
+      userId, castMember, thumbsUp, thumbsDown, avgImdb, Date.now(),
+      thumbsUp, thumbsDown, avgImdb, Date.now()
+    );
+  } catch (error) {
+    console.error(`Error recalculating cast preferences for "${castMember}":`, error.message);
+    throw error;
   }
-
-  const thumbsUp = ratings.filter(r => r.rating === 'up').length;
-  const thumbsDown = ratings.filter(r => r.rating === 'down').length;
-  const avgImdb = ratings.reduce((sum, r) => sum + (r.imdb_rating || 0), 0) / ratings.length;
-
-  db.prepare(`
-    INSERT INTO user_cast_preferences (user_id, cast_member, thumbs_up, thumbs_down, avg_imdb_rating, last_updated)
-    VALUES (?, ?, ?, ?, ?, ?)
-    ON CONFLICT(user_id, cast_member)
-    DO UPDATE SET
-      thumbs_up = ?,
-      thumbs_down = ?,
-      avg_imdb_rating = ?,
-      last_updated = ?
-  `).run(
-    userId, castMember, thumbsUp, thumbsDown, avgImdb, Date.now(),
-    thumbsUp, thumbsDown, avgImdb, Date.now()
-  );
 }
 
 /**
@@ -653,8 +701,31 @@ function getUserCastPreferences(userId) {
 // Initialize database on module load
 initDatabase();
 
-// Run cleanup daily
-setInterval(cleanupOldSessions, 24 * 60 * 60 * 1000);
+// Run cleanup daily and store interval ID
+const cleanupIntervalId = setInterval(cleanupOldSessions, 24 * 60 * 60 * 1000);
+
+/**
+ * Close database connections and cleanup intervals
+ * Should be called during graceful shutdown
+ */
+function closeDatabase() {
+  // Clear the cleanup interval to prevent memory leaks
+  if (cleanupIntervalId) {
+    clearInterval(cleanupIntervalId);
+    console.log('✓ Cleanup interval cleared');
+  }
+
+  // Close the database connection
+  try {
+    db.close();
+    console.log('✓ Database connection closed');
+  } catch (err) {
+    // Ignore if already closed
+    if (!err.message.includes('already closed')) {
+      throw err;
+    }
+  }
+}
 
 module.exports = {
   db,
@@ -673,5 +744,6 @@ module.exports = {
   getUserCastPreferences,
   getMovieGenres,
   saveMovieGenreMappings,
-  deleteMovieGenreMappings
+  deleteMovieGenreMappings,
+  closeDatabase
 };
