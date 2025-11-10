@@ -44,8 +44,10 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Trust proxy when behind reverse proxy (fly.io, nginx, etc.)
-// This is required for rate limiting to work correctly with X-Forwarded-For headers
-app.set('trust proxy', true);
+// Set to 1 to trust only the first proxy (fly.io's load balancer)
+// This is more secure than 'true' which would allow anyone to spoof X-Forwarded-For
+// See: https://expressjs.com/en/guide/behind-proxies.html
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(express.json({ limit: '2mb' })); // Limit for base64 images (2MB sufficient for screenshots)
