@@ -40,8 +40,25 @@ if (!process.env.OMDB_API_KEY || process.env.OMDB_API_KEY === 'your_omdb_api_key
   console.warn('   Get a free API key from: https://www.omdbapi.com/apikey.aspx');
 }
 
+// Validate production environment configuration
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.FRONTEND_URL) {
+    console.error('❌ FATAL: FRONTEND_URL environment variable is not set in production!');
+    console.error('   This will cause CORS errors and session cookies will not work.');
+    console.error('   Set it using: fly secrets set FRONTEND_URL="https://your-frontend-app.fly.dev"');
+    process.exit(1);
+  }
+  console.log(`✓ Production mode: FRONTEND_URL = ${process.env.FRONTEND_URL}`);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Trust proxy when behind reverse proxy (fly.io, nginx, etc.)
+// Set to 1 to trust only the first proxy (fly.io's load balancer)
+// This is more secure than 'true' which would allow anyone to spoof X-Forwarded-For
+// See: https://expressjs.com/en/guide/behind-proxies.html
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(express.json({ limit: '2mb' })); // Limit for base64 images (2MB sufficient for screenshots)
@@ -111,9 +128,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Session configuration with SQLite store
-const sessionDbPath = process.env.DATABASE_PATH
-  ? path.join(process.env.DATABASE_PATH, 'sessions.db')
-  : path.join(__dirname, 'db', 'sessions.db');
+// Use DATABASE_PATH env var if set, otherwise use /data in production, ./db in development
+// This matches the logic in db/database.js for consistency
+const sessionDbDir = process.env.DATABASE_PATH ||
+  (process.env.NODE_ENV === 'production' ? '/data' : path.join(__dirname, 'db'));
+
+const sessionDbPath = path.join(sessionDbDir, 'sessions.db');
+
+// Warn if DATABASE_PATH is not explicitly set in production (using default /data)
+if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_PATH) {
+  console.log('ℹ️  Using default persistent storage: /data (fly.io volume)');
+}
 
 const sessionDb = new Database(sessionDbPath);
 
@@ -132,10 +157,56 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
       httpOnly: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-origin in prod
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     }
   })
 );
+
+// Session ID extraction middleware (handles third-party cookie blocking)
+// This is a workaround for browsers blocking third-party cookies even with sameSite=none
+app.use((req, res, next) => {
+  // Check for session ID in custom header first (for browsers that block third-party cookies)
+  const customSessionId = req.headers['x-session-id'];
+
+  if (customSessionId && !req.headers.cookie) {
+    // Manually set the cookie header so express-session can find the session
+    req.headers.cookie = `connect.sid=${customSessionId}`;
+    console.log(`[Session] Using X-Session-ID header: ${customSessionId.substring(0, 20)}...`);
+  }
+
+  next();
+});
+
+// Session debugging middleware (helps diagnose session persistence issues)
+app.use((req, res, next) => {
+  const isApiRequest = req.path.startsWith('/api/');
+  if (isApiRequest) {
+    console.log(`[Session] ${req.method} ${req.path}`);
+    console.log(`  Session ID: ${req.sessionID || 'NONE'}`);
+    console.log(`  Cookie header: ${req.headers.cookie ? 'present' : 'MISSING'}`);
+    console.log(`  X-Session-ID header: ${req.headers['x-session-id'] ? 'present' : 'missing'}`);
+    console.log(`  User ID: ${req.session?.userId || 'not set'}`);
+  }
+  next();
+});
+
+// Send session ID in response body (workaround for third-party cookie blocking)
+app.use((req, res, next) => {
+  const originalJson = res.json;
+  res.json = function(data) {
+    // Add session ID to all API responses
+    if (req.path.startsWith('/api/') && req.sessionID) {
+      const enhancedData = {
+        ...data,
+        _sessionId: req.sessionID
+      };
+      return originalJson.call(this, enhancedData);
+    }
+    return originalJson.call(this, data);
+  };
+  next();
+});
 
 // Rate limiting
 const limiter = rateLimit({
@@ -154,13 +225,16 @@ app.use('/api/', limiter);
 
 // Authentication middleware
 function ensureAuthenticated(req, res, next) {
-  if (!req.session.id) {
+  if (!req.sessionID) {
+    console.error('[Auth] No session ID found!');
     return res.status(401).json({ error: 'Session not found' });
   }
 
-  // Get or create user based on session
-  const user = getOrCreateUser(req.session.id);
+  // Get or create user based on session ID
+  const user = getOrCreateUser(req.sessionID);
   req.session.userId = user.id;
+
+  console.log(`[Auth] User ${user.id} authenticated for session ${req.sessionID}`);
 
   next();
 }
@@ -224,14 +298,27 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('='.repeat(50));
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`✓ CORS enabled for development (localhost + local network)`);
+  console.log(`✓ Database storage: ${sessionDbDir}`);
+  console.log(`✓ Trust proxy: 1 (first proxy only)`);
+
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`✓ CORS allowed origin: ${process.env.FRONTEND_URL}`);
+    console.log(`✓ Session cookies: secure=true, sameSite=none, httpOnly=true`);
+  } else {
+    console.log(`✓ CORS enabled for development (localhost + local network)`);
+    console.log(`✓ Session cookies: secure=false, sameSite=lax, httpOnly=true`);
+  }
+
   console.log(`\n📍 Local:    http://localhost:${PORT}`);
   console.log(`📍 Network:  http://${localIp}:${PORT}`);
   console.log(`\n✓ API endpoint: /api`);
   console.log(`✓ Health check: /health`);
   console.log('='.repeat(50));
-  console.log(`\n💡 To test on iPhone: Use http://${localIp}:3000 in Safari`);
-  console.log('='.repeat(50));
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`\n💡 To test on iPhone: Use http://${localIp}:3000 in Safari`);
+    console.log('='.repeat(50));
+  }
 });
 
 // Graceful shutdown function

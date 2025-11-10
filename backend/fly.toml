@@ -6,6 +6,9 @@
 app = 'watchornot-backend'
 primary_region = 'sjc'
 
+[env]
+  NODE_ENV = "production"
+
 [build]
 
 [[mounts]]
