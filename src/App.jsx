@@ -276,13 +276,15 @@ import React, { useState, useRef, useEffect } from 'react';
                 localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
             }, [isDarkMode]);
 
-            // Focus search input when search mode is enabled with prepopulated query
+            // Focus search input when search mode is enabled (iOS compatible)
             useEffect(() => {
-                if (searchMode && searchQuery && searchInputRef.current) {
+                if (searchMode && searchInputRef.current) {
                     searchInputRef.current.focus();
-                    // Set cursor at the end of the text
-                    const length = searchQuery.length;
-                    searchInputRef.current.setSelectionRange(length, length);
+                    // Set cursor at the end of the text if there's a query
+                    if (searchQuery) {
+                        const length = searchQuery.length;
+                        searchInputRef.current.setSelectionRange(length, length);
+                    }
                 }
             }, [searchMode, searchQuery]);
 
@@ -1919,39 +1921,41 @@ import React, { useState, useRef, useEffect } from 'react';
                                                         onClick={(e) => {
                                                             if (!searchMode) {
                                                                 setSearchMode(true);
-                                                                // Focus input after transition
-                                                                setTimeout(() => searchInputRef.current?.focus(), 100);
                                                             }
                                                         }}
                                                     >
                                                         <Search className={`w-5 h-5 flex-shrink-0 transition-all duration-300 ${searchMode ? 'opacity-60' : ''}`} />
 
-                                                        {searchMode ? (
-                                                            <input
-                                                                ref={searchInputRef}
-                                                                type="text"
-                                                                value={searchQuery}
-                                                                onChange={(e) => setSearchQuery(e.target.value)}
-                                                                onKeyPress={(e) => {
-                                                                    if (e.key === 'Enter' && searchQuery.trim()) {
-                                                                        setIsProcessing(true);
-                                                                        searchMovie(searchQuery);
-                                                                        setSearchMode(false);
-                                                                    } else if (e.key === 'Escape') {
-                                                                        setSearchMode(false);
-                                                                        setSearchQuery('');
-                                                                    }
-                                                                }}
-                                                                onBlur={() => {
-                                                                    if (!searchQuery.trim()) {
-                                                                        setSearchMode(false);
-                                                                    }
-                                                                }}
-                                                                placeholder="Enter movie or TV show name..."
-                                                                className={`flex-1 bg-transparent outline-none ${isDarkMode ? 'text-white placeholder-gray-400' : 'text-gray-900 placeholder-gray-500'}`}
-                                                            />
-                                                        ) : (
-                                                            <span className="flex-1 text-center transition-opacity duration-300">Manual Search</span>
+                                                        <input
+                                                            ref={searchInputRef}
+                                                            type="text"
+                                                            value={searchQuery}
+                                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                                            onKeyPress={(e) => {
+                                                                if (e.key === 'Enter' && searchQuery.trim()) {
+                                                                    setIsProcessing(true);
+                                                                    searchMovie(searchQuery);
+                                                                    setSearchMode(false);
+                                                                } else if (e.key === 'Escape') {
+                                                                    setSearchMode(false);
+                                                                    setSearchQuery('');
+                                                                }
+                                                            }}
+                                                            onBlur={() => {
+                                                                if (!searchQuery.trim()) {
+                                                                    setSearchMode(false);
+                                                                }
+                                                            }}
+                                                            placeholder="Enter movie or TV show name..."
+                                                            className={`flex-1 bg-transparent outline-none transition-opacity duration-300 ${
+                                                                searchMode
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0 pointer-events-none'
+                                                            } ${isDarkMode ? 'text-white placeholder-gray-400' : 'text-gray-900 placeholder-gray-500'}`}
+                                                        />
+
+                                                        {!searchMode && (
+                                                            <span className="flex-1 text-center transition-opacity duration-300 absolute left-0 right-0">Manual Search</span>
                                                         )}
 
                                                         {searchMode && searchQuery.trim() && (
