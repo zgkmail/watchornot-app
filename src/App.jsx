@@ -1945,8 +1945,8 @@ import React, { useState, useRef, useEffect } from 'react';
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex-1">
-                                                                    <h3 className={`text-sm font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Snap</h3>
-                                                                    <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Point your camera at any movie title on TV or streaming</p>
+                                                                    <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Snap</h3>
+                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Point your camera at any movie title on TV or streaming</p>
                                                                 </div>
                                                             </div>
 
@@ -1958,8 +1958,8 @@ import React, { useState, useRef, useEffect } from 'react';
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex-1">
-                                                                    <h3 className={`text-sm font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Analyze</h3>
-                                                                    <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>AI reads the title and checks it against your taste profile</p>
+                                                                    <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Analyze</h3>
+                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>AI reads the title and checks it against your taste profile</p>
                                                                 </div>
                                                             </div>
 
@@ -1971,8 +1971,8 @@ import React, { useState, useRef, useEffect } from 'react';
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex-1">
-                                                                    <h3 className={`text-sm font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Decide</h3>
-                                                                    <p className={`text-xs ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Get an instant personalized recommendation</p>
+                                                                    <h3 className={`font-semibold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Decide</h3>
+                                                                    <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Get an instant personalized recommendation</p>
                                                                 </div>
                                                             </div>
                                                         </div>
