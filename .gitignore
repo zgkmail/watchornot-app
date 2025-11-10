@@ -26,7 +26,14 @@ backend.log
 # Backup files
 *.backup
 
-# Database files (backend)
-backend/db/*.db
-backend/db/*.db-*
+# Database files (all locations)
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+
+# Environment files
 backend/.env
+.env
+.env.local
+.env.production.local

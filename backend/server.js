@@ -14,7 +14,7 @@ const omdbRouter = require('./routes/omdb');
 const ratingsRouter = require('./routes/ratings');
 
 // Import database utilities
-const { getOrCreateUser } = require('./db/database');
+const { getOrCreateUser, closeDatabase } = require('./db/database');
 
 // Validate environment variables
 if (!process.env.SESSION_SECRET) {
@@ -29,11 +29,22 @@ if (!process.env.TMDB_API_KEY) {
   process.exit(1);
 }
 
+// Warn about optional API keys
+if (!process.env.CLAUDE_API_KEY || process.env.CLAUDE_API_KEY === 'your_claude_api_key_here') {
+  console.warn('⚠️  WARNING: CLAUDE_API_KEY not configured. Image recognition features will not work.');
+  console.warn('   Get an API key from: https://console.anthropic.com/');
+}
+
+if (!process.env.OMDB_API_KEY || process.env.OMDB_API_KEY === 'your_omdb_api_key_here') {
+  console.warn('⚠️  WARNING: OMDB_API_KEY not configured. Movie ratings (IMDb, RT, Metacritic) will not be available.');
+  console.warn('   Get a free API key from: https://www.omdbapi.com/apikey.aspx');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
+app.use(express.json({ limit: '2mb' })); // Limit for base64 images (2MB sufficient for screenshots)
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware (after body parser)
@@ -68,16 +79,20 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    // In development, allow localhost and local network IPs
+    // In development, allow localhost and local network IPs (with stricter validation)
     if (process.env.NODE_ENV !== 'production') {
-      // Allow localhost on any port
+      // Allow localhost on any port (but only http, not https in dev)
       if (origin.match(/^http:\/\/localhost(:\d+)?$/)) {
         return callback(null, true);
       }
       // Allow local network IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
+      // Verify it's actually a local IP and not something malicious
       if (origin.match(/^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/)) {
         return callback(null, true);
       }
+
+      // Log rejected origin in development for debugging
+      console.warn(`⚠️  CORS rejected origin in development: ${origin}`);
     }
 
     // In production, only allow the configured frontend URL
@@ -86,6 +101,8 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Log rejected origin in production
+    console.error(`❌ CORS rejected origin: ${origin}`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -185,8 +202,8 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
+// Start server and capture server instance
+const server = app.listen(PORT, '0.0.0.0', () => {
   const os = require('os');
   const networkInterfaces = os.networkInterfaces();
   let localIp = 'localhost';
@@ -217,11 +234,40 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('='.repeat(50));
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server and database connections');
-  sessionDb.close();
-  app.close(() => {
-    console.log('HTTP server closed');
+// Graceful shutdown function
+function gracefulShutdown(signal) {
+  console.log(`\n${signal} signal received: closing HTTP server and database connections`);
+
+  // Close server first to stop accepting new connections
+  server.close(() => {
+    console.log('✓ HTTP server closed');
+
+    // Close database connections
+    try {
+      sessionDb.close();
+      console.log('✓ Session database closed');
+    } catch (err) {
+      console.error('Error closing session database:', err);
+    }
+
+    try {
+      closeDatabase();
+      console.log('✓ Main database closed');
+    } catch (err) {
+      console.error('Error closing main database:', err);
+    }
+
+    console.log('✓ Graceful shutdown complete');
+    process.exit(0);
   });
-});
+
+  // Force shutdown after 10 seconds
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+}
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

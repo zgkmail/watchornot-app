@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     port: 3000,
     host: '0.0.0.0', // Listen on all network interfaces
-    open: true
+    open: false // Set to true if you want browser to open automatically
   },
   build: {
     outDir: 'dist',
