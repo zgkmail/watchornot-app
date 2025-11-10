@@ -142,6 +142,22 @@ if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_PATH) {
 
 const sessionDb = new Database(sessionDbPath);
 
+// Session ID extraction middleware (handles third-party cookie blocking)
+// IMPORTANT: This MUST come BEFORE the session middleware!
+// This is a workaround for browsers blocking third-party cookies even with sameSite=none
+app.use((req, res, next) => {
+  // Check for session ID in custom header first (for browsers that block third-party cookies)
+  const customSessionId = req.headers['x-session-id'];
+
+  if (customSessionId && !req.headers.cookie) {
+    // Manually set the cookie header so express-session can find the session
+    req.headers.cookie = `connect.sid=${customSessionId}`;
+    console.log(`[Session] Using X-Session-ID header: ${customSessionId.substring(0, 20)}...`);
+  }
+
+  next();
+});
+
 app.use(
   session({
     store: new SqliteStore({
@@ -162,21 +178,6 @@ app.use(
     }
   })
 );
-
-// Session ID extraction middleware (handles third-party cookie blocking)
-// This is a workaround for browsers blocking third-party cookies even with sameSite=none
-app.use((req, res, next) => {
-  // Check for session ID in custom header first (for browsers that block third-party cookies)
-  const customSessionId = req.headers['x-session-id'];
-
-  if (customSessionId && !req.headers.cookie) {
-    // Manually set the cookie header so express-session can find the session
-    req.headers.cookie = `connect.sid=${customSessionId}`;
-    console.log(`[Session] Using X-Session-ID header: ${customSessionId.substring(0, 20)}...`);
-  }
-
-  next();
-});
 
 // Session debugging middleware (helps diagnose session persistence issues)
 app.use((req, res, next) => {
@@ -231,11 +232,23 @@ function ensureAuthenticated(req, res, next) {
     return res.status(401).json({ error: 'Session not found' });
   }
 
-  // Get or create user based on session ID
-  const user = getOrCreateUser(req.sessionID);
-  req.session.userId = user.id;
+  // Only create user if not already in session
+  if (!req.session.userId) {
+    console.log(`[Auth] No userId in session, creating new user for session ${req.sessionID}`);
+    const user = getOrCreateUser(req.sessionID);
+    req.session.userId = user.id;
 
-  console.log(`[Auth] User ${user.id} authenticated for session ${req.sessionID}`);
+    // Explicitly save session to ensure it persists
+    req.session.save((err) => {
+      if (err) {
+        console.error('[Auth] Error saving session:', err);
+      } else {
+        console.log(`[Auth] New user ${user.id} created and session saved`);
+      }
+    });
+  } else {
+    console.log(`[Auth] Existing user ${req.session.userId} found in session ${req.sessionID}`);
+  }
 
   next();
 }
