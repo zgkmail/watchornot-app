@@ -163,6 +163,18 @@ app.use(
   })
 );
 
+// Session debugging middleware (helps diagnose session persistence issues)
+app.use((req, res, next) => {
+  const isApiRequest = req.path.startsWith('/api/');
+  if (isApiRequest) {
+    console.log(`[Session] ${req.method} ${req.path}`);
+    console.log(`  Session ID: ${req.sessionID || 'NONE'}`);
+    console.log(`  Cookie header: ${req.headers.cookie ? 'present' : 'MISSING'}`);
+    console.log(`  User ID: ${req.session?.userId || 'not set'}`);
+  }
+  next();
+});
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -180,13 +192,16 @@ app.use('/api/', limiter);
 
 // Authentication middleware
 function ensureAuthenticated(req, res, next) {
-  if (!req.session.id) {
+  if (!req.sessionID) {
+    console.error('[Auth] No session ID found!');
     return res.status(401).json({ error: 'Session not found' });
   }
 
-  // Get or create user based on session
-  const user = getOrCreateUser(req.session.id);
+  // Get or create user based on session ID
+  const user = getOrCreateUser(req.sessionID);
   req.session.userId = user.id;
+
+  console.log(`[Auth] User ${user.id} authenticated for session ${req.sessionID}`);
 
   next();
 }
