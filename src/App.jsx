@@ -1932,7 +1932,7 @@ import React, { useState, useRef, useEffect } from 'react';
 
                                                     {/* Manual Search - transforms from button to input */}
                                                     <div
-                                                        className={`w-full py-4 px-6 rounded-xl flex items-center gap-2 transition-all duration-300 ease-in-out focus-within:ring-2 focus-within:ring-offset-2 cursor-text ${
+                                                        className={`w-full py-4 px-6 rounded-xl flex items-center gap-2 transition-all duration-300 ease-in-out focus-within:ring-2 focus-within:ring-offset-2 cursor-text relative ${
                                                             searchMode
                                                                 ? isDarkMode
                                                                     ? 'bg-gray-700 text-white focus-within:ring-gray-500'
@@ -1978,7 +1978,7 @@ import React, { useState, useRef, useEffect } from 'react';
                                                         />
 
                                                         {!searchMode && (
-                                                            <span className="flex-1 text-center transition-opacity duration-300 absolute left-0 right-0">Manual Search</span>
+                                                            <span className="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300">Manual Search</span>
                                                         )}
 
                                                         {searchMode && searchQuery.trim() && (
