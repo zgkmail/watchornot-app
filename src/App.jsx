@@ -248,6 +248,9 @@ import React, { useState, useRef, useEffect } from 'react';
 
                 if (sessionId) {
                     headers['X-Session-ID'] = sessionId;
+                    console.log(`[fetchWithSession] Sending X-Session-ID: ${sessionId.substring(0, 20)}...`);
+                } else {
+                    console.log('[fetchWithSession] No stored session ID, will create new session');
                 }
 
                 const response = await fetch(url, {
@@ -265,10 +268,13 @@ import React, { useState, useRef, useEffect } from 'react';
                         const data = await clonedResponse.json();
                         if (data._sessionId) {
                             storeSessionId(data._sessionId);
-                            console.log('📝 Session ID stored from response');
+                            console.log(`📝 Session ID stored from response: ${data._sessionId.substring(0, 20)}...`);
+                        } else {
+                            console.warn('⚠️ Response does not contain _sessionId field');
                         }
                     } catch (e) {
                         // Response might not be valid JSON, ignore
+                        console.warn('Could not parse response as JSON:', e.message);
                     }
                 }
 

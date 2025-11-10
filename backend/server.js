@@ -197,6 +197,7 @@ app.use((req, res, next) => {
   res.json = function(data) {
     // Add session ID to all API responses
     if (req.path.startsWith('/api/') && req.sessionID) {
+      console.log(`[Session] Adding _sessionId to response: ${req.sessionID.substring(0, 20)}...`);
       const enhancedData = {
         ...data,
         _sessionId: req.sessionID
