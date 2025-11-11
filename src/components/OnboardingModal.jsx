@@ -87,6 +87,7 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
       // Enough votes collected, show loading screen immediately and submit to backend
       setStep('loading');
       submitVotes(newVotes);
+      return; // Exit immediately to prevent any further execution
     } else if (currentMovieIndex < movies.length - 1) {
       // Move to next movie
       setCurrentMovieIndex(currentMovieIndex + 1);
@@ -111,7 +112,8 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setCompletionData(data);
+        // Ensure completionData is set even if data is minimal
+        setCompletionData(data || { success: true });
         isSubmittingRef.current = false; // Reset ref so complete screen shows
         setStep('complete');
       } else {
@@ -206,9 +208,9 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
             </>
           )}
 
-          {step === 'complete' && completionData && (
+          {step === 'complete' && (
             <OnboardingComplete
-              data={completionData}
+              data={completionData || { success: true }}
               onContinue={handleComplete}
               isDarkMode={isDarkMode}
             />
