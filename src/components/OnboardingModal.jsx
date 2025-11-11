@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import OnboardingMovieCard from './OnboardingMovieCard';
 import OnboardingProgress from './OnboardingProgress';
 import OnboardingComplete from './OnboardingComplete';
@@ -11,6 +11,9 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   const [actualVoteCount, setActualVoteCount] = useState(0); // Count of up/down votes (not skips)
   const [completionData, setCompletionData] = useState(null);
   const [error, setError] = useState(null);
+
+  // Ref to prevent race conditions - updates synchronously unlike state
+  const isSubmittingRef = useRef(false);
 
   const REQUIRED_VOTES = 5; // Minimum number of up/down votes needed
 
@@ -40,6 +43,12 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   };
 
   const handleVote = (vote) => {
+    // Guard: Prevent any votes from being processed if we're already submitting
+    // This check happens synchronously and prevents race conditions from rapid clicks
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     const currentMovie = movies[currentMovieIndex];
     const voteData = {
       movieId: currentMovie.id,
@@ -62,6 +71,8 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
     // Check if we have enough actual votes
     if (newActualVoteCount >= REQUIRED_VOTES) {
+      // Set ref synchronously BEFORE any async operations to block subsequent clicks
+      isSubmittingRef.current = true;
       // Enough votes collected, show loading screen immediately and submit to backend
       setStep('loading');
       submitVotes(newVotes);
@@ -116,6 +127,7 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
     setCurrentMovieIndex(0);
     setActualVoteCount(0);
     setError(null);
+    isSubmittingRef.current = false; // Reset the submission guard
     loadOnboardingMovies();
   };
 
