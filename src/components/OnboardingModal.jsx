@@ -44,19 +44,25 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   };
 
   const handleVote = (vote) => {
+    console.log(`[handleVote] Called with vote="${vote}", currentIndex=${currentMovieIndex}, movie=${movies[currentMovieIndex]?.title}`);
+    console.log(`[handleVote] State: actualVoteCount=${actualVoteCount}, actualVoteCountRef=${actualVoteCountRef.current}, isSubmitting=${isSubmittingRef.current}, step=${step}`);
+
     // Guard: Prevent any votes from being processed if we're already submitting
     if (isSubmittingRef.current) {
+      console.warn(`[handleVote] ❌ BLOCKED: Already submitting`);
       return;
     }
 
     // Guard: Don't process more votes if we've already reached the required count
     // This prevents adding votes beyond 5 even if something goes wrong later
     if (vote !== 'skip' && actualVoteCountRef.current >= REQUIRED_VOTES) {
-      console.warn(`⚠️ Attempted to vote when already at ${actualVoteCountRef.current} votes`);
+      console.warn(`[handleVote] ❌ BLOCKED: Already at ${actualVoteCountRef.current} votes (required: ${REQUIRED_VOTES})`);
       return;
     }
 
     const currentMovie = movies[currentMovieIndex];
+    console.log(`[handleVote] ✓ Processing vote for: ${currentMovie.title}`);
+
     const voteData = {
       movieId: currentMovie.id,
       title: currentMovie.title,
@@ -71,11 +77,15 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
     const newVotes = [...votes, voteData];
     setVotes(newVotes);
+    console.log(`[handleVote] Added vote, total votes in array: ${newVotes.length}`);
 
     // Update vote count synchronously using ref (source of truth)
     // Only increment for actual votes (not skips)
     if (vote !== 'skip') {
       actualVoteCountRef.current += 1;
+      console.log(`[handleVote] Incremented actualVoteCountRef to: ${actualVoteCountRef.current}`);
+    } else {
+      console.log(`[handleVote] Skip vote - not incrementing counter`);
     }
 
     // Also update state for UI rendering (but don't use this for logic!)
@@ -83,17 +93,23 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
     // Check if we just reached the required votes (use ref, not state!)
     if (actualVoteCountRef.current >= REQUIRED_VOTES) {
+      console.log(`[handleVote] 🎉 Reached ${actualVoteCountRef.current} votes! Submitting...`);
       // Set ref synchronously BEFORE any async operations to block subsequent clicks
       isSubmittingRef.current = true;
+      console.log(`[handleVote] Set isSubmittingRef = true`);
       // Enough votes collected, show loading screen immediately and submit to backend
       setStep('loading');
+      console.log(`[handleVote] Set step = 'loading'`);
       submitVotes(newVotes);
+      console.log(`[handleVote] Called submitVotes with ${newVotes.length} votes`);
       return; // Exit immediately to prevent any further execution
     } else if (currentMovieIndex < movies.length - 1) {
       // Move to next movie
+      console.log(`[handleVote] Moving to next movie (index ${currentMovieIndex} -> ${currentMovieIndex + 1})`);
       setCurrentMovieIndex(currentMovieIndex + 1);
     } else {
       // Ran out of movies without getting enough votes
+      console.error(`[handleVote] ❌ Ran out of movies! Need ${REQUIRED_VOTES - actualVoteCountRef.current} more votes`);
       setError(`You need to vote on at least ${REQUIRED_VOTES} movies (not "Haven't Seen"). Please try again.`);
     }
   };
@@ -151,6 +167,8 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
   if (!isOpen) return null;
 
+  console.log(`[OnboardingModal RENDER] step=${step}, actualVoteCount=${actualVoteCount}, actualVoteCountRef=${actualVoteCountRef.current}, isSubmitting=${isSubmittingRef.current}, currentMovieIndex=${currentMovieIndex}/${movies.length}`);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2">
       <div className={`relative w-full max-w-sm max-h-[95vh] overflow-y-auto rounded-xl shadow-2xl ${
@@ -169,16 +187,21 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
         {/* Content */}
         <div className="p-4">
-          {(step === 'loading' || isSubmittingRef.current) && (
+          {(step === 'loading' || isSubmittingRef.current) && (() => {
+            console.log('[OnboardingModal RENDER] Showing loading spinner');
+            return (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-3"></div>
               <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 {isSubmittingRef.current ? 'Saving your preferences...' : 'Loading movies...'}
               </p>
             </div>
-          )}
+            );
+          })()}
 
-          {step === 'voting' && !isSubmittingRef.current && movies.length > 0 && (
+          {step === 'voting' && !isSubmittingRef.current && movies.length > 0 && (() => {
+            console.log(`[OnboardingModal RENDER] Showing voting UI - movie ${currentMovieIndex + 1}: ${movies[currentMovieIndex]?.title}`);
+            return (
             <>
               <div className="text-center mb-4">
                 <h2 className="text-xl font-bold mb-1 leading-tight">Build Your Taste Profile</h2>
@@ -208,15 +231,19 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
                 </button>
               </div>
             </>
-          )}
+            );
+          })()}
 
-          {step === 'complete' && (
+          {step === 'complete' && (() => {
+            console.log('[OnboardingModal RENDER] Showing complete screen');
+            return (
             <OnboardingComplete
               data={completionData || { success: true }}
               onContinue={handleComplete}
               isDarkMode={isDarkMode}
             />
-          )}
+            );
+          })()}
 
           {error && (
             <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
