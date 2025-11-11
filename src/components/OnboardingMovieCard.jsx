@@ -1,6 +1,6 @@
 import React from 'react';
 
-const OnboardingMovieCard = ({ movie, onVote, isDarkMode }) => {
+const OnboardingMovieCard = ({ movie, onVote, isDarkMode, disabled = false }) => {
   const posterUrl = movie.poster
     ? `https://image.tmdb.org/t/p/w500${movie.poster}`
     : null;
@@ -67,7 +67,10 @@ const OnboardingMovieCard = ({ movie, onVote, isDarkMode }) => {
         <div className="flex gap-2">
           <button
             onClick={() => onVote('down')}
+            disabled={disabled}
             className={`flex-1 py-2.5 px-2 rounded-lg font-semibold text-sm transition-all ${
+              disabled ? 'opacity-50 cursor-not-allowed' : ''
+            } ${
               isDarkMode
                 ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400 border-2 border-red-500/40'
                 : 'bg-red-50 hover:bg-red-100 text-red-600 border-2 border-red-200'
@@ -83,7 +86,10 @@ const OnboardingMovieCard = ({ movie, onVote, isDarkMode }) => {
 
           <button
             onClick={() => onVote('up')}
+            disabled={disabled}
             className={`flex-1 py-2.5 px-2 rounded-lg font-semibold text-sm transition-all ${
+              disabled ? 'opacity-50 cursor-not-allowed' : ''
+            } ${
               isDarkMode
                 ? 'bg-green-500/20 hover:bg-green-500/30 text-green-400 border-2 border-green-500/40'
                 : 'bg-green-50 hover:bg-green-100 text-green-600 border-2 border-green-200'
@@ -100,7 +106,10 @@ const OnboardingMovieCard = ({ movie, onVote, isDarkMode }) => {
 
         <button
           onClick={() => onVote('skip')}
+          disabled={disabled}
           className={`w-full py-2 px-2 rounded-lg font-semibold text-xs transition-all ${
+            disabled ? 'opacity-50 cursor-not-allowed' : ''
+          } ${
             isDarkMode
               ? 'bg-gray-700/50 hover:bg-gray-700 text-gray-300 border-2 border-gray-600'
               : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-2 border-gray-300'
