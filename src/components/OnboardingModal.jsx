@@ -8,8 +8,11 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   const [movies, setMovies] = useState([]);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
   const [votes, setVotes] = useState([]);
+  const [actualVoteCount, setActualVoteCount] = useState(0); // Count of up/down votes (not skips)
   const [completionData, setCompletionData] = useState(null);
   const [error, setError] = useState(null);
+
+  const REQUIRED_VOTES = 5; // Minimum number of up/down votes needed
 
   // Load onboarding movies
   useEffect(() => {
@@ -47,18 +50,26 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
       director: currentMovie.director,
       cast: currentMovie.cast,
       poster: currentMovie.poster,
-      vote: vote // 'up' or 'down'
+      vote: vote // 'up', 'down', or 'skip'
     };
 
     const newVotes = [...votes, voteData];
     setVotes(newVotes);
 
-    // Move to next movie or complete
-    if (currentMovieIndex < movies.length - 1) {
+    // Track actual votes (not skips)
+    const newActualVoteCount = vote !== 'skip' ? actualVoteCount + 1 : actualVoteCount;
+    setActualVoteCount(newActualVoteCount);
+
+    // Check if we have enough actual votes
+    if (newActualVoteCount >= REQUIRED_VOTES) {
+      // Enough votes collected, submit to backend
+      submitVotes(newVotes);
+    } else if (currentMovieIndex < movies.length - 1) {
+      // Move to next movie
       setCurrentMovieIndex(currentMovieIndex + 1);
     } else {
-      // All movies voted, submit to backend
-      submitVotes(newVotes);
+      // Ran out of movies without getting enough votes
+      setError(`You need to vote on at least ${REQUIRED_VOTES} movies (not "Haven't Seen"). Please try again.`);
     }
   };
 
@@ -103,6 +114,7 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
     setStep('loading');
     setVotes([]);
     setCurrentMovieIndex(0);
+    setActualVoteCount(0);
     setError(null);
     loadOnboardingMovies();
   };
@@ -146,8 +158,8 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
               </div>
 
               <OnboardingProgress
-                current={currentMovieIndex + 1}
-                total={movies.length}
+                current={actualVoteCount}
+                total={REQUIRED_VOTES}
                 isDarkMode={isDarkMode}
               />
 

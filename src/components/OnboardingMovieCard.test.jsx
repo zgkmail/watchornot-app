@@ -22,7 +22,9 @@ describe('OnboardingMovieCard', () => {
     expect(screen.getByText('2020')).toBeInTheDocument();
     expect(screen.getByText('Action')).toBeInTheDocument();
     expect(screen.getByText('Drama')).toBeInTheDocument();
-    expect(screen.getByText('8.5')).toBeInTheDocument();
+    // Rating is no longer displayed
+    expect(screen.queryByText('8.5')).not.toBeInTheDocument();
+    expect(screen.getByText(/Director:/)).toBeInTheDocument();
     expect(screen.getByText(/Test Director/)).toBeInTheDocument();
   });
 
@@ -47,7 +49,7 @@ describe('OnboardingMovieCard', () => {
     const mockOnVote = vi.fn();
     render(<OnboardingMovieCard movie={mockMovie} onVote={mockOnVote} isDarkMode={false} />);
 
-    const likeButton = screen.getByText('I Like It');
+    const likeButton = screen.getByText('Like');
     fireEvent.click(likeButton);
 
     expect(mockOnVote).toHaveBeenCalledWith('up');
@@ -57,7 +59,7 @@ describe('OnboardingMovieCard', () => {
     const mockOnVote = vi.fn();
     render(<OnboardingMovieCard movie={mockMovie} onVote={mockOnVote} isDarkMode={false} />);
 
-    const dislikeButton = screen.getByText('Not For Me');
+    const dislikeButton = screen.getByText('Pass');
     fireEvent.click(dislikeButton);
 
     expect(mockOnVote).toHaveBeenCalledWith('down');
@@ -89,12 +91,14 @@ describe('OnboardingMovieCard', () => {
     expect(screen.queryByText(/Directed by/)).not.toBeInTheDocument();
   });
 
-  test('should handle missing IMDb rating gracefully', () => {
-    const movieWithoutRating = { ...mockMovie, imdbRating: null };
+  test('should call onVote with "skip" when haven\'t seen button clicked', () => {
     const mockOnVote = vi.fn();
-    render(<OnboardingMovieCard movie={movieWithoutRating} onVote={mockOnVote} isDarkMode={false} />);
+    render(<OnboardingMovieCard movie={mockMovie} onVote={mockOnVote} isDarkMode={false} />);
 
-    expect(screen.queryByText('8.5')).not.toBeInTheDocument();
+    const skipButton = screen.getByText("Haven't Seen");
+    fireEvent.click(skipButton);
+
+    expect(mockOnVote).toHaveBeenCalledWith('skip');
   });
 
   test('should handle empty genres array', () => {

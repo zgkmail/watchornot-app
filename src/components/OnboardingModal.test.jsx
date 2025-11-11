@@ -162,15 +162,19 @@ describe('OnboardingModal', () => {
     });
   });
 
-  test('should submit votes after rating all movies', async () => {
+  test('should submit votes after rating 5 movies', async () => {
     const mockMovies = [
-      { id: '1', title: 'Movie 1', year: 2020, genres: ['Action'], imdbRating: 8.0, director: 'Test', cast: 'Test', poster: '/test.jpg' }
+      { id: '1', title: 'Movie 1', year: 2020, genres: ['Action'], imdbRating: 8.0, director: 'Test', cast: 'Test', poster: '/test.jpg' },
+      { id: '2', title: 'Movie 2', year: 2021, genres: ['Drama'], imdbRating: 7.5, director: 'Test', cast: 'Test', poster: '/test.jpg' },
+      { id: '3', title: 'Movie 3', year: 2022, genres: ['Comedy'], imdbRating: 7.0, director: 'Test', cast: 'Test', poster: '/test.jpg' },
+      { id: '4', title: 'Movie 4', year: 2023, genres: ['Thriller'], imdbRating: 8.5, director: 'Test', cast: 'Test', poster: '/test.jpg' },
+      { id: '5', title: 'Movie 5', year: 2024, genres: ['Sci-Fi'], imdbRating: 9.0, director: 'Test', cast: 'Test', poster: '/test.jpg' }
     ];
 
     const mockCompletionData = {
       success: true,
-      tier: 'Newcomer',
-      totalVotes: 1,
+      tier: 'Explorer',
+      totalVotes: 5,
       topGenres: [{ genre: 'Action', count: 1 }]
     };
 
@@ -190,9 +194,12 @@ describe('OnboardingModal', () => {
       expect(screen.getByText('Movie 1')).toBeInTheDocument();
     });
 
-    // Vote on last movie
-    const likeButton = screen.getByText('Like');
-    fireEvent.click(likeButton);
+    // Vote on 5 movies
+    for (let i = 0; i < 5; i++) {
+      const likeButton = screen.getByText('Like');
+      fireEvent.click(likeButton);
+      await waitFor(() => {}, { timeout: 100 }); // Small delay for state updates
+    }
 
     // Should submit votes and show completion screen
     await waitFor(() => {
@@ -211,13 +218,17 @@ describe('OnboardingModal', () => {
 
   test('should handle completion and call onComplete', async () => {
     const mockMovies = [
-      { id: '1', title: 'Movie 1', year: 2020, genres: ['Action'], imdbRating: 8.0, director: 'Test', cast: 'Test', poster: '/test.jpg' }
+      { id: '1', title: 'Movie 1', year: 2020, genres: ['Action'], imdbRating: 8.0, director: 'Test', cast: 'Test', poster: '/test.jpg' },
+      { id: '2', title: 'Movie 2', year: 2021, genres: ['Drama'], imdbRating: 7.5, director: 'Test', cast: 'Test', poster: '/test.jpg' },
+      { id: '3', title: 'Movie 3', year: 2022, genres: ['Comedy'], imdbRating: 7.0, director: 'Test', cast: 'Test', poster: '/test.jpg' },
+      { id: '4', title: 'Movie 4', year: 2023, genres: ['Thriller'], imdbRating: 8.5, director: 'Test', cast: 'Test', poster: '/test.jpg' },
+      { id: '5', title: 'Movie 5', year: 2024, genres: ['Sci-Fi'], imdbRating: 9.0, director: 'Test', cast: 'Test', poster: '/test.jpg' }
     ];
 
     const mockCompletionData = {
       success: true,
-      tier: 'Newcomer',
-      totalVotes: 1,
+      tier: 'Explorer',
+      totalVotes: 5,
       topGenres: []
     };
 
@@ -237,9 +248,12 @@ describe('OnboardingModal', () => {
       expect(screen.getByText('Movie 1')).toBeInTheDocument();
     });
 
-    // Vote and complete
-    const likeButton = screen.getByText('Like');
-    fireEvent.click(likeButton);
+    // Vote on 5 movies to complete
+    for (let i = 0; i < 5; i++) {
+      const likeButton = screen.getByText('Like');
+      fireEvent.click(likeButton);
+      await waitFor(() => {}, { timeout: 100 }); // Small delay for state updates
+    }
 
     await waitFor(() => {
       expect(screen.getByTestId('complete')).toBeInTheDocument();
@@ -328,4 +342,5 @@ describe('OnboardingModal', () => {
     const modalContent = container.querySelector('.bg-gray-800');
     expect(modalContent).toBeInTheDocument();
   });
+
 });

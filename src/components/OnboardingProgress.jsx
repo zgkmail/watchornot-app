@@ -8,7 +8,7 @@ const OnboardingProgress = ({ current, total, isDarkMode }) => {
       {/* Progress text */}
       <div className="flex justify-between items-center mb-1.5">
         <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          Movie {current} of {total}
+          Vote {current} of {total}
         </span>
         <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           {Math.round(percentage)}%

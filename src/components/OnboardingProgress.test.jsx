@@ -6,7 +6,7 @@ describe('OnboardingProgress', () => {
   test('should render progress text', () => {
     render(<OnboardingProgress current={3} total={5} isDarkMode={false} />);
 
-    expect(screen.getByText('Movie 3 of 5')).toBeInTheDocument();
+    expect(screen.getByText('Vote 3 of 5')).toBeInTheDocument();
   });
 
   test('should render progress percentage', () => {
@@ -40,14 +40,14 @@ describe('OnboardingProgress', () => {
   test('should apply dark mode styles', () => {
     const { container } = render(<OnboardingProgress current={3} total={5} isDarkMode={true} />);
 
-    const progressText = screen.getByText('Movie 3 of 5');
+    const progressText = screen.getByText('Vote 3 of 5');
     expect(progressText).toHaveClass('text-gray-300');
   });
 
   test('should apply light mode styles', () => {
     const { container } = render(<OnboardingProgress current={3} total={5} isDarkMode={false} />);
 
-    const progressText = screen.getByText('Movie 3 of 5');
+    const progressText = screen.getByText('Vote 3 of 5');
     expect(progressText).toHaveClass('text-gray-600');
   });
 

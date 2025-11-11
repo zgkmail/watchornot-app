@@ -19,7 +19,7 @@ try {
 }
 
 /**
- * Get 5 random curated movies for onboarding
+ * Get 10 random curated movies for onboarding
  * GET /api/onboarding/movies
  */
 router.get('/movies', (req, res) => {
@@ -36,11 +36,11 @@ router.get('/movies', (req, res) => {
       });
     }
 
-    // Shuffle and select 5 movies
+    // Shuffle and select 10 movies (to account for skips, user needs to vote on at least 5)
     const shuffled = [...moviePool].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, 5);
+    const selected = shuffled.slice(0, 10);
 
-    console.log('✅ Selected 5 movies for onboarding:');
+    console.log('✅ Selected 10 movies for onboarding:');
     selected.forEach((movie, i) => {
       console.log(`   ${i + 1}. ${movie.title} (${movie.year}) - ${movie.genres.join(', ')}`);
     });
@@ -118,25 +118,33 @@ router.post('/complete', async (req, res) => {
         console.error('❌ Invalid vote data:', vote);
         return res.status(400).json({
           error: 'Invalid vote data',
-          debug: 'Each vote must have movieId, title, and vote (up/down)'
+          debug: 'Each vote must have movieId, title, and vote (up/down/skip)'
         });
       }
 
-      if (vote.vote !== 'up' && vote.vote !== 'down') {
+      if (vote.vote !== 'up' && vote.vote !== 'down' && vote.vote !== 'skip') {
         console.error('❌ Invalid vote value:', vote.vote);
         return res.status(400).json({
           error: 'Invalid vote value',
-          debug: 'vote must be either "up" or "down"'
+          debug: 'vote must be "up", "down", or "skip"'
         });
       }
     }
 
     console.log('✓ All votes validated');
 
-    // Save each vote
+    // Save each vote (skip movies that were marked as "skip")
     let savedCount = 0;
+    let skippedCount = 0;
     for (const vote of votes) {
       try {
+        // Don't save movies that were skipped (haven't seen)
+        if (vote.vote === 'skip') {
+          skippedCount++;
+          console.log(`   → Skipped: ${vote.title} (haven't seen)`);
+          continue;
+        }
+
         const movieData = {
           id: vote.movieId,
           title: vote.title,
@@ -154,14 +162,14 @@ router.post('/complete', async (req, res) => {
 
         saveMovieRating(req.session.userId, movieData);
         savedCount++;
-        console.log(`   ✓ Saved vote ${savedCount}/${votes.length}: ${vote.title} (${vote.vote})`);
+        console.log(`   ✓ Saved vote ${savedCount}: ${vote.title} (${vote.vote})`);
       } catch (error) {
         console.error(`   ❌ Failed to save vote for ${vote.title}:`, error.message);
         // Continue with other votes
       }
     }
 
-    console.log(`✅ Successfully saved ${savedCount}/${votes.length} votes`);
+    console.log(`✅ Successfully saved ${savedCount}/${votes.length} votes (${skippedCount} skipped)`);
 
     // Get updated ratings to calculate tier
     const allRatings = getUserMovieRatings(req.session.userId);
