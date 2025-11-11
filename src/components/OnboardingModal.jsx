@@ -101,6 +101,7 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
       if (response.ok && data.success) {
         setCompletionData(data);
+        isSubmittingRef.current = false; // Reset ref so complete screen shows
         setStep('complete');
       } else {
         throw new Error(data.error || 'Failed to save votes');
@@ -108,6 +109,7 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
     } catch (err) {
       console.error('Error submitting votes:', err);
       setError('Failed to save your preferences. Please try again.');
+      isSubmittingRef.current = false; // Reset ref on error
       setStep('voting');
     }
   };
