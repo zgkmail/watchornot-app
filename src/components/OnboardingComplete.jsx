@@ -40,11 +40,11 @@ const OnboardingComplete = ({ data, onContinue, isDarkMode }) => {
   const config = tierConfig[tier] || tierConfig['Newcomer'];
 
   return (
-    <div className="text-center py-8">
+    <div className="text-center py-4">
       {/* Success Animation */}
-      <div className="mb-6">
+      <div className="mb-3">
         <div className="relative inline-block">
-          <div className={`w-32 h-32 rounded-full bg-gradient-to-br ${config.color} flex items-center justify-center text-6xl animate-bounce-slow`}>
+          <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${config.color} flex items-center justify-center text-4xl animate-bounce-slow`}>
             {config.icon}
           </div>
           <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${config.color} opacity-20 animate-ping`}></div>
@@ -52,23 +52,23 @@ const OnboardingComplete = ({ data, onContinue, isDarkMode }) => {
       </div>
 
       {/* Congratulations */}
-      <h2 className="text-4xl font-bold mb-3">
+      <h2 className="text-2xl font-bold mb-2">
         Congratulations!
       </h2>
 
-      <p className={`text-xl mb-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-        Your taste profile has been created
+      <p className={`text-sm mb-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+        Taste profile created
       </p>
 
       {/* Tier Badge */}
-      <div className={`inline-block px-6 py-3 rounded-xl border-2 ${config.bgColor} ${config.borderColor} mb-6`}>
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">{config.icon}</span>
+      <div className={`inline-block px-4 py-2 rounded-lg border-2 ${config.bgColor} ${config.borderColor} mb-4`}>
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{config.icon}</span>
           <div className="text-left">
-            <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p className={`text-xs font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               You've reached
             </p>
-            <p className={`text-2xl font-bold bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
+            <p className={`text-lg font-bold bg-gradient-to-r ${config.color} bg-clip-text text-transparent`}>
               {tier} Tier
             </p>
           </div>
@@ -76,33 +76,33 @@ const OnboardingComplete = ({ data, onContinue, isDarkMode }) => {
       </div>
 
       {/* Stats */}
-      <div className={`grid grid-cols-1 gap-4 mb-8 max-w-md mx-auto`}>
+      <div className={`grid grid-cols-1 gap-3 mb-4 max-w-md mx-auto`}>
         {/* Total Votes */}
-        <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
-          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+          <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             Movies Rated
           </p>
-          <p className="text-3xl font-bold">{totalVotes}</p>
+          <p className="text-2xl font-bold">{totalVotes}</p>
         </div>
 
         {/* Top Genres */}
         {topGenres && topGenres.length > 0 && (
-          <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
-            <p className={`text-sm mb-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <div className={`p-3 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+            <p className={`text-xs mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               Your Favorite Genres
             </p>
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap justify-center gap-1.5">
               {topGenres.map((genreData, index) => (
                 <div
                   key={index}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${
                     isDarkMode
                       ? 'bg-gray-600 text-gray-200'
                       : 'bg-white text-gray-700'
                   }`}
                 >
-                  <span className="font-semibold">{genreData.genre}</span>
-                  <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <span className="font-semibold text-sm">{genreData.genre}</span>
+                  <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     ({genreData.count})
                   </span>
                 </div>
@@ -113,25 +113,25 @@ const OnboardingComplete = ({ data, onContinue, isDarkMode }) => {
       </div>
 
       {/* Next Steps */}
-      <div className={`p-4 rounded-lg mb-6 ${isDarkMode ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-        <p className={`text-sm ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
-          We'll use your preferences to give you personalized movie recommendations!
+      <div className={`p-3 rounded-lg mb-4 ${isDarkMode ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
+        <p className={`text-xs ${isDarkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+          We'll use your preferences to give you personalized recommendations!
         </p>
       </div>
 
       {/* Continue Button */}
       <button
         onClick={onContinue}
-        className={`w-full max-w-md py-4 px-6 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 bg-gradient-to-r ${config.color} text-white shadow-lg`}
+        className={`w-full max-w-md py-3 px-4 rounded-lg font-semibold text-sm transition-all bg-gradient-to-r ${config.color} text-white shadow-lg`}
       >
         Start Exploring Movies
       </button>
 
       {/* Tier Progression Info */}
-      <div className={`mt-6 text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-        <p>Keep rating movies to unlock higher tiers and better recommendations!</p>
-        <p className="mt-1">
-          Next tier: {tier === 'Newcomer' && 'Explorer (5 votes)'}
+      <div className={`mt-3 text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+        <p className="text-[10px]">Keep rating movies to unlock higher tiers!</p>
+        <p className="mt-0.5 text-[10px]">
+          Next: {tier === 'Newcomer' && 'Explorer (5 votes)'}
           {tier === 'Explorer' && 'Enthusiast (15 votes)'}
           {tier === 'Enthusiast' && 'Expert (30 votes)'}
           {tier === 'Expert' && 'Master (50 votes)'}

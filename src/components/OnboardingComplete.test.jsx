@@ -18,7 +18,7 @@ describe('OnboardingComplete', () => {
     render(<OnboardingComplete data={data} onContinue={mockOnContinue} isDarkMode={false} />);
 
     expect(screen.getByText('Congratulations!')).toBeInTheDocument();
-    expect(screen.getByText('Your taste profile has been created')).toBeInTheDocument();
+    expect(screen.getByText('Taste profile created')).toBeInTheDocument();
   });
 
   test('should display tier information', () => {
@@ -167,7 +167,7 @@ describe('OnboardingComplete', () => {
 
     render(<OnboardingComplete data={data} onContinue={mockOnContinue} isDarkMode={false} />);
 
-    expect(screen.getByText(/Next tier: Explorer \(5 votes\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Next: Explorer \(5 votes\)/)).toBeInTheDocument();
   });
 
   test('should show correct next tier message for Explorer', () => {
@@ -179,7 +179,7 @@ describe('OnboardingComplete', () => {
 
     render(<OnboardingComplete data={data} onContinue={mockOnContinue} isDarkMode={false} />);
 
-    expect(screen.getByText(/Next tier: Enthusiast \(15 votes\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Next: Enthusiast \(15 votes\)/)).toBeInTheDocument();
   });
 
   test('should show correct message for Master tier', () => {
@@ -231,6 +231,6 @@ describe('OnboardingComplete', () => {
 
     render(<OnboardingComplete data={data} onContinue={mockOnContinue} isDarkMode={false} />);
 
-    expect(screen.getByText("We'll use your preferences to give you personalized movie recommendations!")).toBeInTheDocument();
+    expect(screen.getByText("We'll use your preferences to give you personalized recommendations!")).toBeInTheDocument();
   });
 });

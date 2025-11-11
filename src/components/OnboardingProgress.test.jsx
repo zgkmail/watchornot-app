@@ -31,7 +31,7 @@ describe('OnboardingProgress', () => {
     const { container } = render(<OnboardingProgress current={3} total={5} isDarkMode={false} />);
 
     // Find all step indicator divs (they should be inside a flex container)
-    const stepContainer = container.querySelector('.flex.justify-between.mt-3');
+    const stepContainer = container.querySelector('.flex.justify-between.mt-2');
     const stepIndicators = stepContainer?.children;
 
     expect(stepIndicators).toHaveLength(5);

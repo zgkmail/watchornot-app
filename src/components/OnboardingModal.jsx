@@ -110,27 +110,27 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl m-4 ${
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-2">
+      <div className={`relative w-full max-w-sm max-h-[95vh] overflow-y-auto rounded-xl shadow-2xl ${
         isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
       }`}>
         {/* Close button */}
         <button
           onClick={handleSkip}
-          className="absolute top-4 right-4 z-10 p-2 rounded-lg transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+          className="absolute top-2 right-2 z-10 p-1.5 rounded-lg transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
           aria-label="Skip onboarding"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-4">
           {step === 'loading' && (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-              <p className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-3"></div>
+              <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 Loading movies...
               </p>
             </div>
@@ -138,10 +138,10 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
           {step === 'voting' && movies.length > 0 && (
             <>
-              <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold mb-2">Build Your Taste Profile</h2>
-                <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Vote on these movies to help us understand your preferences
+              <div className="text-center mb-4">
+                <h2 className="text-xl font-bold mb-1 leading-tight">Build Your Taste Profile</h2>
+                <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Vote on these movies
                 </p>
               </div>
 
@@ -157,10 +157,10 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
                 isDarkMode={isDarkMode}
               />
 
-              <div className="mt-6 text-center">
+              <div className="mt-3 text-center">
                 <button
                   onClick={handleSkip}
-                  className={`text-sm ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
+                  className={`text-xs ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
                 >
                   Skip for now
                 </button>

@@ -40,7 +40,7 @@ describe('OnboardingMovieCard', () => {
     const mockOnVote = vi.fn();
     render(<OnboardingMovieCard movie={movieWithoutPoster} onVote={mockOnVote} isDarkMode={false} />);
 
-    expect(screen.getByText('No Poster Available')).toBeInTheDocument();
+    expect(screen.getByText('No Poster')).toBeInTheDocument();
   });
 
   test('should call onVote with "up" when like button clicked', () => {

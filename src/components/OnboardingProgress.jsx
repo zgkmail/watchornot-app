@@ -4,19 +4,19 @@ const OnboardingProgress = ({ current, total, isDarkMode }) => {
   const percentage = (current / total) * 100;
 
   return (
-    <div className="mb-8">
+    <div className="mb-4">
       {/* Progress text */}
-      <div className="flex justify-between items-center mb-2">
-        <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+      <div className="flex justify-between items-center mb-1.5">
+        <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           Movie {current} of {total}
         </span>
-        <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+        <span className={`text-xs font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           {Math.round(percentage)}%
         </span>
       </div>
 
       {/* Progress bar */}
-      <div className={`w-full h-2 rounded-full overflow-hidden ${
+      <div className={`w-full h-1.5 rounded-full overflow-hidden ${
         isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
       }`}>
         <div
@@ -26,11 +26,11 @@ const OnboardingProgress = ({ current, total, isDarkMode }) => {
       </div>
 
       {/* Step indicators */}
-      <div className="flex justify-between mt-3">
+      <div className="flex justify-between mt-2">
         {Array.from({ length: total }, (_, index) => (
           <div
             key={index}
-            className={`w-full h-1 mx-0.5 rounded-full transition-all duration-300 ${
+            className={`w-full h-0.5 mx-0.5 rounded-full transition-all duration-300 ${
               index < current
                 ? 'bg-gradient-to-r from-blue-500 to-purple-500'
                 : isDarkMode
