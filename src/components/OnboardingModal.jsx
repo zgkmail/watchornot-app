@@ -151,16 +151,16 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
         {/* Content */}
         <div className="p-4">
-          {step === 'loading' && (
+          {(step === 'loading' || isSubmittingRef.current) && (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-3"></div>
               <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Loading movies...
+                {isSubmittingRef.current ? 'Saving your preferences...' : 'Loading movies...'}
               </p>
             </div>
           )}
 
-          {step === 'voting' && movies.length > 0 && (
+          {step === 'voting' && !isSubmittingRef.current && movies.length > 0 && (
             <>
               <div className="text-center mb-4">
                 <h2 className="text-xl font-bold mb-1 leading-tight">Build Your Taste Profile</h2>
