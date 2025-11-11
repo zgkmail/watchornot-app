@@ -148,6 +148,11 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   };
 
   const handleSkip = () => {
+    // If user completed voting (on congratulations screen), reload history before closing
+    if (step === 'complete') {
+      console.log('[handleSkip] User completed onboarding, calling onComplete()');
+      onComplete();
+    }
     onClose();
   };
 
