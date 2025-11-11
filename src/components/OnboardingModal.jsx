@@ -9,7 +9,6 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
   const [votes, setVotes] = useState([]);
   const [actualVoteCount, setActualVoteCount] = useState(0); // Count of up/down votes (not skips)
-  const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double-voting during submission
   const [completionData, setCompletionData] = useState(null);
   const [error, setError] = useState(null);
 
@@ -41,11 +40,6 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   };
 
   const handleVote = (vote) => {
-    // Prevent voting if already submitting
-    if (isSubmitting) {
-      return;
-    }
-
     const currentMovie = movies[currentMovieIndex];
     const voteData = {
       movieId: currentMovie.id,
@@ -68,8 +62,8 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
     // Check if we have enough actual votes
     if (newActualVoteCount >= REQUIRED_VOTES) {
-      // Enough votes collected, prevent further voting and submit to backend
-      setIsSubmitting(true);
+      // Enough votes collected, show loading screen immediately and submit to backend
+      setStep('loading');
       submitVotes(newVotes);
     } else if (currentMovieIndex < movies.length - 1) {
       // Move to next movie
@@ -82,7 +76,6 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
   const submitVotes = async (votesData) => {
     try {
-      setStep('loading');
       setError(null);
 
       const response = await fetchWithSession(`${backendUrl}/api/onboarding/complete`, {
@@ -105,7 +98,6 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
       console.error('Error submitting votes:', err);
       setError('Failed to save your preferences. Please try again.');
       setStep('voting');
-      setIsSubmitting(false); // Re-enable voting on error
     }
   };
 
@@ -123,7 +115,6 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
     setVotes([]);
     setCurrentMovieIndex(0);
     setActualVoteCount(0);
-    setIsSubmitting(false);
     setError(null);
     loadOnboardingMovies();
   };
@@ -176,7 +167,6 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
                 movie={movies[currentMovieIndex]}
                 onVote={handleVote}
                 isDarkMode={isDarkMode}
-                disabled={isSubmitting}
               />
 
               <div className="mt-3 text-center">
