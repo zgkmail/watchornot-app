@@ -4,7 +4,7 @@ import OnboardingProgress from './OnboardingProgress';
 import OnboardingComplete from './OnboardingComplete';
 
 const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, fetchWithSession }) => {
-  const [step, setStep] = useState('loading'); // 'loading', 'voting', 'complete'
+  const [step, setStep] = useState('loading'); // 'loading', 'voting', 'submitting', 'complete'
   const [movies, setMovies] = useState([]);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
   const [votes, setVotes] = useState([]);
@@ -18,10 +18,13 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
   const REQUIRED_VOTES = 5; // Minimum number of up/down votes needed
 
-  // Load onboarding movies when modal opens
+  // Load onboarding movies when modal opens (only when step is 'loading', not 'submitting')
   useEffect(() => {
     if (isOpen && step === 'loading') {
+      console.log('[useEffect] Loading movies because step === loading');
       loadOnboardingMovies();
+    } else {
+      console.log(`[useEffect] Not loading movies: isOpen=${isOpen}, step=${step}`);
     }
   }, [isOpen, step]);
 
@@ -97,9 +100,9 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
       // Set ref synchronously BEFORE any async operations to block subsequent clicks
       isSubmittingRef.current = true;
       console.log(`[handleVote] Set isSubmittingRef = true`);
-      // Enough votes collected, show loading screen immediately and submit to backend
-      setStep('loading');
-      console.log(`[handleVote] Set step = 'loading'`);
+      // Enough votes collected, show submitting screen (NOT 'loading' which triggers movie load)
+      setStep('submitting');
+      console.log(`[handleVote] Set step = 'submitting'`);
       submitVotes(newVotes);
       console.log(`[handleVote] Called submitVotes with ${newVotes.length} votes`);
       return; // Exit immediately to prevent any further execution
@@ -187,13 +190,13 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
         {/* Content */}
         <div className="p-4">
-          {(step === 'loading' || isSubmittingRef.current) && (() => {
-            console.log('[OnboardingModal RENDER] Showing loading spinner');
+          {(step === 'loading' || step === 'submitting') && (() => {
+            console.log(`[OnboardingModal RENDER] Showing loading spinner (step=${step})`);
             return (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-3"></div>
               <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                {isSubmittingRef.current ? 'Saving your preferences...' : 'Loading movies...'}
+                {step === 'submitting' ? 'Saving your preferences...' : 'Loading movies...'}
               </p>
             </div>
             );
