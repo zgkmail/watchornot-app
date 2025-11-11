@@ -18,6 +18,21 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
   const REQUIRED_VOTES = 5; // Minimum number of up/down votes needed
 
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setStep('loading');
+      setMovies([]);
+      setCurrentMovieIndex(0);
+      setVotes([]);
+      setActualVoteCount(0);
+      actualVoteCountRef.current = 0;
+      setCompletionData(null);
+      setError(null);
+      isSubmittingRef.current = false;
+    }
+  }, [isOpen]);
+
   // Load onboarding movies
   useEffect(() => {
     if (isOpen && step === 'loading') {
