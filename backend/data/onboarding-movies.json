@@ -1,0 +1,514 @@
+{
+  "movies": [
+    {
+      "tmdbId": 155,
+      "title": "The Dark Knight",
+      "year": 2008,
+      "imdbRating": 9.0,
+      "genres": ["Action", "Crime", "Drama"],
+      "director": "Christopher Nolan",
+      "cast": ["Christian Bale", "Heath Ledger", "Aaron Eckhart"],
+      "posterPath": "/qJ2tW6WMUDux911r6m7haRef0WH.jpg"
+    },
+    {
+      "tmdbId": 27205,
+      "title": "Inception",
+      "year": 2010,
+      "imdbRating": 8.8,
+      "genres": ["Action", "Science Fiction", "Thriller"],
+      "director": "Christopher Nolan",
+      "cast": ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page"],
+      "posterPath": "/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg"
+    },
+    {
+      "tmdbId": 13,
+      "title": "Forrest Gump",
+      "year": 1994,
+      "imdbRating": 8.8,
+      "genres": ["Comedy", "Drama", "Romance"],
+      "director": "Robert Zemeckis",
+      "cast": ["Tom Hanks", "Robin Wright", "Gary Sinise"],
+      "posterPath": "/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg"
+    },
+    {
+      "tmdbId": 238,
+      "title": "The Godfather",
+      "year": 1972,
+      "imdbRating": 9.2,
+      "genres": ["Crime", "Drama"],
+      "director": "Francis Ford Coppola",
+      "cast": ["Marlon Brando", "Al Pacino", "James Caan"],
+      "posterPath": "/3bhkrj58Vtu7enYsRolD1fZdja1.jpg"
+    },
+    {
+      "tmdbId": 680,
+      "title": "Pulp Fiction",
+      "year": 1994,
+      "imdbRating": 8.9,
+      "genres": ["Crime", "Drama", "Thriller"],
+      "director": "Quentin Tarantino",
+      "cast": ["John Travolta", "Uma Thurman", "Samuel L. Jackson"],
+      "posterPath": "/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg"
+    },
+    {
+      "tmdbId": 424,
+      "title": "Schindler's List",
+      "year": 1993,
+      "imdbRating": 9.0,
+      "genres": ["Drama", "History", "War"],
+      "director": "Steven Spielberg",
+      "cast": ["Liam Neeson", "Ralph Fiennes", "Ben Kingsley"],
+      "posterPath": "/sF1U4EUQS8YHUYjNl3pMGNIQyr0.jpg"
+    },
+    {
+      "tmdbId": 122,
+      "title": "The Lord of the Rings: The Return of the King",
+      "year": 2003,
+      "imdbRating": 9.0,
+      "genres": ["Action", "Adventure", "Fantasy"],
+      "director": "Peter Jackson",
+      "cast": ["Elijah Wood", "Viggo Mortensen", "Ian McKellen"],
+      "posterPath": "/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg"
+    },
+    {
+      "tmdbId": 550,
+      "title": "Fight Club",
+      "year": 1999,
+      "imdbRating": 8.8,
+      "genres": ["Drama", "Thriller"],
+      "director": "David Fincher",
+      "cast": ["Brad Pitt", "Edward Norton", "Helena Bonham Carter"],
+      "posterPath": "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg"
+    },
+    {
+      "tmdbId": 497,
+      "title": "The Green Mile",
+      "year": 1999,
+      "imdbRating": 8.6,
+      "genres": ["Crime", "Drama", "Fantasy"],
+      "director": "Frank Darabont",
+      "cast": ["Tom Hanks", "Michael Clarke Duncan", "David Morse"],
+      "posterPath": "/8VG8fDNiy50H4FedGwdSVUPoaJe.jpg"
+    },
+    {
+      "tmdbId": 603,
+      "title": "The Matrix",
+      "year": 1999,
+      "imdbRating": 8.7,
+      "genres": ["Action", "Science Fiction"],
+      "director": "Lana Wachowski",
+      "cast": ["Keanu Reeves", "Laurence Fishburne", "Carrie-Anne Moss"],
+      "posterPath": "/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg"
+    },
+    {
+      "tmdbId": 769,
+      "title": "GoodFellas",
+      "year": 1990,
+      "imdbRating": 8.7,
+      "genres": ["Crime", "Drama"],
+      "director": "Martin Scorsese",
+      "cast": ["Robert De Niro", "Ray Liotta", "Joe Pesci"],
+      "posterPath": "/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg"
+    },
+    {
+      "tmdbId": 389,
+      "title": "12 Angry Men",
+      "year": 1957,
+      "imdbRating": 9.0,
+      "genres": ["Drama"],
+      "director": "Sidney Lumet",
+      "cast": ["Henry Fonda", "Lee J. Cobb", "Martin Balsam"],
+      "posterPath": "/ow3wq89wM8qd5X7hWKxiRfsFf9C.jpg"
+    },
+    {
+      "tmdbId": 105,
+      "title": "Back to the Future",
+      "year": 1985,
+      "imdbRating": 8.5,
+      "genres": ["Adventure", "Comedy", "Science Fiction"],
+      "director": "Robert Zemeckis",
+      "cast": ["Michael J. Fox", "Christopher Lloyd", "Lea Thompson"],
+      "posterPath": "/fNOH9f1aA7XRTzl1sAOx9iF553Q.jpg"
+    },
+    {
+      "tmdbId": 19404,
+      "title": "Dilwale Dulhania Le Jayenge",
+      "year": 1995,
+      "imdbRating": 8.1,
+      "genres": ["Comedy", "Drama", "Romance"],
+      "director": "Aditya Chopra",
+      "cast": ["Shah Rukh Khan", "Kajol", "Amrish Puri"],
+      "posterPath": "/lfRkUr7DYdHldAqi3PwdQGBRBPM.jpg"
+    },
+    {
+      "tmdbId": 857,
+      "title": "Saving Private Ryan",
+      "year": 1998,
+      "imdbRating": 8.6,
+      "genres": ["Drama", "History", "War"],
+      "director": "Steven Spielberg",
+      "cast": ["Tom Hanks", "Tom Sizemore", "Edward Burns"],
+      "posterPath": "/uqx37cS8cpHg8U35f9U5IBlrCV3.jpg"
+    },
+    {
+      "tmdbId": 278,
+      "title": "The Shawshank Redemption",
+      "year": 1994,
+      "imdbRating": 9.3,
+      "genres": ["Drama", "Crime"],
+      "director": "Frank Darabont",
+      "cast": ["Tim Robbins", "Morgan Freeman", "Bob Gunton"],
+      "posterPath": "/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg"
+    },
+    {
+      "tmdbId": 244,
+      "title": "The Departed",
+      "year": 2006,
+      "imdbRating": 8.5,
+      "genres": ["Crime", "Drama", "Thriller"],
+      "director": "Martin Scorsese",
+      "cast": ["Leonardo DiCaprio", "Matt Damon", "Jack Nicholson"],
+      "posterPath": "/nT97ifVT2J1yMQmeq20Qblg61T.jpg"
+    },
+    {
+      "tmdbId": 637,
+      "title": "Life Is Beautiful",
+      "year": 1997,
+      "imdbRating": 8.6,
+      "genres": ["Comedy", "Drama", "Romance"],
+      "director": "Roberto Benigni",
+      "cast": ["Roberto Benigni", "Nicoletta Braschi", "Giorgio Cantarini"],
+      "posterPath": "/74hLDKjD5aGYOotO6esUVaeISa2.jpg"
+    },
+    {
+      "tmdbId": 539,
+      "title": "Psycho",
+      "year": 1960,
+      "imdbRating": 8.5,
+      "genres": ["Horror", "Thriller"],
+      "director": "Alfred Hitchcock",
+      "cast": ["Anthony Perkins", "Janet Leigh", "Vera Miles"],
+      "posterPath": "/yz4QVqPx3h1hD1DfqqQkCq3rmxW.jpg"
+    },
+    {
+      "tmdbId": 99,
+      "title": "Spirited Away",
+      "year": 2001,
+      "imdbRating": 8.6,
+      "genres": ["Animation", "Family", "Fantasy"],
+      "director": "Hayao Miyazaki",
+      "cast": ["Rumi Hiiragi", "Miyu Irino", "Mari Natsuki"],
+      "posterPath": "/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg"
+    },
+    {
+      "tmdbId": 129,
+      "title": "Sen to Chihiro no Kamikakushi",
+      "year": 2001,
+      "imdbRating": 8.6,
+      "genres": ["Animation", "Adventure", "Fantasy"],
+      "director": "Hayao Miyazaki",
+      "cast": ["Daveigh Chase", "Suzanne Pleshette", "Miyu Irino"],
+      "posterPath": "/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg"
+    },
+    {
+      "tmdbId": 12,
+      "title": "Finding Nemo",
+      "year": 2003,
+      "imdbRating": 8.2,
+      "genres": ["Animation", "Family"],
+      "director": "Andrew Stanton",
+      "cast": ["Albert Brooks", "Ellen DeGeneres", "Alexander Gould"],
+      "posterPath": "/eHuGQ10FUzK1mdOY69wF5pGgEf5.jpg"
+    },
+    {
+      "tmdbId": 129,
+      "title": "Up",
+      "year": 2009,
+      "imdbRating": 8.3,
+      "genres": ["Animation", "Comedy", "Family"],
+      "director": "Pete Docter",
+      "cast": ["Ed Asner", "Christopher Plummer", "Jordan Nagai"],
+      "posterPath": "/vpbaStTMt8qqXaEgnOR2EE4DNJk.jpg"
+    },
+    {
+      "tmdbId": 862,
+      "title": "Toy Story",
+      "year": 1995,
+      "imdbRating": 8.3,
+      "genres": ["Animation", "Adventure", "Family"],
+      "director": "John Lasseter",
+      "cast": ["Tom Hanks", "Tim Allen", "Don Rickles"],
+      "posterPath": "/uXDfjJbdP4ijW5hWSBrPrlKpxab.jpg"
+    },
+    {
+      "tmdbId": 568,
+      "title": "Apollo 13",
+      "year": 1995,
+      "imdbRating": 7.7,
+      "genres": ["Drama", "History"],
+      "director": "Ron Howard",
+      "cast": ["Tom Hanks", "Bill Paxton", "Kevin Bacon"],
+      "posterPath": "/6rwn9PKYcx8UJGjPMFiXFFqKlvO.jpg"
+    },
+    {
+      "tmdbId": 157336,
+      "title": "Interstellar",
+      "year": 2014,
+      "imdbRating": 8.7,
+      "genres": ["Adventure", "Drama", "Science Fiction"],
+      "director": "Christopher Nolan",
+      "cast": ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain"],
+      "posterPath": "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg"
+    },
+    {
+      "tmdbId": 11,
+      "title": "Star Wars",
+      "year": 1977,
+      "imdbRating": 8.6,
+      "genres": ["Adventure", "Action", "Science Fiction"],
+      "director": "George Lucas",
+      "cast": ["Mark Hamill", "Harrison Ford", "Carrie Fisher"],
+      "posterPath": "/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg"
+    },
+    {
+      "tmdbId": 672,
+      "title": "Harry Potter and the Chamber of Secrets",
+      "year": 2002,
+      "imdbRating": 7.4,
+      "genres": ["Adventure", "Fantasy"],
+      "director": "Chris Columbus",
+      "cast": ["Daniel Radcliffe", "Rupert Grint", "Emma Watson"],
+      "posterPath": "/sdEOH0992YZ0QSxgXNIGLq1ToUi.jpg"
+    },
+    {
+      "tmdbId": 120,
+      "title": "The Lord of the Rings: The Fellowship of the Ring",
+      "year": 2001,
+      "imdbRating": 8.8,
+      "genres": ["Adventure", "Fantasy", "Action"],
+      "director": "Peter Jackson",
+      "cast": ["Elijah Wood", "Ian McKellen", "Orlando Bloom"],
+      "posterPath": "/6oom5QYQ2yQTMJIbnvbkBL9cHo6.jpg"
+    },
+    {
+      "tmdbId": 274,
+      "title": "The Silence of the Lambs",
+      "year": 1991,
+      "imdbRating": 8.6,
+      "genres": ["Crime", "Drama", "Thriller"],
+      "director": "Jonathan Demme",
+      "cast": ["Jodie Foster", "Anthony Hopkins", "Scott Glenn"],
+      "posterPath": "/uS9m8OBk1A8eM9I042bx8XXpqAq.jpg"
+    },
+    {
+      "tmdbId": 346,
+      "title": "Seven Samurai",
+      "year": 1954,
+      "imdbRating": 8.6,
+      "genres": ["Action", "Drama"],
+      "director": "Akira Kurosawa",
+      "cast": ["Toshiro Mifune", "Takashi Shimura", "Keiko Tsushima"],
+      "posterPath": "/8OKmBV5BUFzmozIC3pPWKHy17kx.jpg"
+    },
+    {
+      "tmdbId": 510,
+      "title": "One Flew Over the Cuckoo's Nest",
+      "year": 1975,
+      "imdbRating": 8.7,
+      "genres": ["Drama"],
+      "director": "Milos Forman",
+      "cast": ["Jack Nicholson", "Louise Fletcher", "Michael Berryman"],
+      "posterPath": "/2Sns5oMb356JNdBHgBETjIpRYy9.jpg"
+    },
+    {
+      "tmdbId": 496243,
+      "title": "Parasite",
+      "year": 2019,
+      "imdbRating": 8.5,
+      "genres": ["Comedy", "Thriller", "Drama"],
+      "director": "Bong Joon-ho",
+      "cast": ["Song Kang-ho", "Lee Sun-kyun", "Cho Yeo-jeong"],
+      "posterPath": "/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"
+    },
+    {
+      "tmdbId": 76341,
+      "title": "Mad Max: Fury Road",
+      "year": 2015,
+      "imdbRating": 8.1,
+      "genres": ["Action", "Adventure", "Science Fiction"],
+      "director": "George Miller",
+      "cast": ["Tom Hardy", "Charlize Theron", "Nicholas Hoult"],
+      "posterPath": "/hA2ple9q4qnwxp3hKVNhroipsir.jpg"
+    },
+    {
+      "tmdbId": 98,
+      "title": "Gladiator",
+      "year": 2000,
+      "imdbRating": 8.5,
+      "genres": ["Action", "Drama", "Adventure"],
+      "director": "Ridley Scott",
+      "cast": ["Russell Crowe", "Joaquin Phoenix", "Connie Nielsen"],
+      "posterPath": "/ty8TGRuvJLPUmAR1H1nRIsgwvim.jpg"
+    },
+    {
+      "tmdbId": 118340,
+      "title": "Guardians of the Galaxy",
+      "year": 2014,
+      "imdbRating": 8.0,
+      "genres": ["Action", "Science Fiction", "Adventure"],
+      "director": "James Gunn",
+      "cast": ["Chris Pratt", "Zoe Saldana", "Dave Bautista"],
+      "posterPath": "/r7vmZjiyZw9rpJMQJdXpjgiCOk9.jpg"
+    },
+    {
+      "tmdbId": 299536,
+      "title": "Avengers: Infinity War",
+      "year": 2018,
+      "imdbRating": 8.4,
+      "genres": ["Adventure", "Action", "Science Fiction"],
+      "director": "Anthony Russo",
+      "cast": ["Robert Downey Jr.", "Chris Hemsworth", "Mark Ruffalo"],
+      "posterPath": "/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg"
+    },
+    {
+      "tmdbId": 299534,
+      "title": "Avengers: Endgame",
+      "year": 2019,
+      "imdbRating": 8.4,
+      "genres": ["Adventure", "Science Fiction", "Action"],
+      "director": "Anthony Russo",
+      "cast": ["Robert Downey Jr.", "Chris Evans", "Mark Ruffalo"],
+      "posterPath": "/or06FN3Dka5tukK1e9sl16pB3iy.jpg"
+    },
+    {
+      "tmdbId": 245891,
+      "title": "John Wick",
+      "year": 2014,
+      "imdbRating": 7.4,
+      "genres": ["Action", "Thriller"],
+      "director": "Chad Stahelski",
+      "cast": ["Keanu Reeves", "Michael Nyqvist", "Alfie Allen"],
+      "posterPath": "/fZPSd91yGE9fCcCe6OoQr6E3Bev.jpg"
+    },
+    {
+      "tmdbId": 475557,
+      "title": "Joker",
+      "year": 2019,
+      "imdbRating": 8.4,
+      "genres": ["Crime", "Thriller", "Drama"],
+      "director": "Todd Phillips",
+      "cast": ["Joaquin Phoenix", "Robert De Niro", "Zazie Beetz"],
+      "posterPath": "/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg"
+    },
+    {
+      "tmdbId": 324857,
+      "title": "Spider-Man: Into the Spider-Verse",
+      "year": 2018,
+      "imdbRating": 8.4,
+      "genres": ["Action", "Adventure", "Animation"],
+      "director": "Bob Persichetti",
+      "cast": ["Shameik Moore", "Jake Johnson", "Hailee Steinfeld"],
+      "posterPath": "/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg"
+    },
+    {
+      "tmdbId": 24428,
+      "title": "The Avengers",
+      "year": 2012,
+      "imdbRating": 8.0,
+      "genres": ["Science Fiction", "Action", "Adventure"],
+      "director": "Joss Whedon",
+      "cast": ["Robert Downey Jr.", "Chris Evans", "Scarlett Johansson"],
+      "posterPath": "/RYMX2wcKCBAr24UyPD7xwmjaTn.jpg"
+    },
+    {
+      "tmdbId": 335984,
+      "title": "Blade Runner 2049",
+      "year": 2017,
+      "imdbRating": 8.0,
+      "genres": ["Science Fiction", "Drama"],
+      "director": "Denis Villeneuve",
+      "cast": ["Ryan Gosling", "Harrison Ford", "Ana de Armas"],
+      "posterPath": "/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg"
+    },
+    {
+      "tmdbId": 19995,
+      "title": "Avatar",
+      "year": 2009,
+      "imdbRating": 7.9,
+      "genres": ["Action", "Adventure", "Fantasy"],
+      "director": "James Cameron",
+      "cast": ["Sam Worthington", "Zoe Saldana", "Sigourney Weaver"],
+      "posterPath": "/jRXYjXNq0Cs2TcJjLkki24MLp7u.jpg"
+    },
+    {
+      "tmdbId": 597,
+      "title": "Titanic",
+      "year": 1997,
+      "imdbRating": 7.9,
+      "genres": ["Drama", "Romance"],
+      "director": "James Cameron",
+      "cast": ["Leonardo DiCaprio", "Kate Winslet", "Billy Zane"],
+      "posterPath": "/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg"
+    },
+    {
+      "tmdbId": 36647,
+      "title": "The Social Network",
+      "year": 2010,
+      "imdbRating": 7.8,
+      "genres": ["Drama"],
+      "director": "David Fincher",
+      "cast": ["Jesse Eisenberg", "Andrew Garfield", "Justin Timberlake"],
+      "posterPath": "/n0ybibhJtQ5icDqTp8eRytcIHJx.jpg"
+    },
+    {
+      "tmdbId": 550988,
+      "title": "Free Guy",
+      "year": 2021,
+      "imdbRating": 7.1,
+      "genres": ["Comedy", "Adventure", "Science Fiction"],
+      "director": "Shawn Levy",
+      "cast": ["Ryan Reynolds", "Jodie Comer", "Taika Waititi"],
+      "posterPath": "/xmbU4JTUm8rsdtn7Y3Fcm30GpeT.jpg"
+    },
+    {
+      "tmdbId": 671,
+      "title": "Harry Potter and the Philosopher's Stone",
+      "year": 2001,
+      "imdbRating": 7.6,
+      "genres": ["Adventure", "Fantasy"],
+      "director": "Chris Columbus",
+      "cast": ["Daniel Radcliffe", "Rupert Grint", "Emma Watson"],
+      "posterPath": "/wuMc08IPKEatf9rnMNXvIDxqP4W.jpg"
+    },
+    {
+      "tmdbId": 122917,
+      "title": "The Hobbit: An Unexpected Journey",
+      "year": 2012,
+      "imdbRating": 7.8,
+      "genres": ["Adventure", "Fantasy", "Action"],
+      "director": "Peter Jackson",
+      "cast": ["Ian McKellen", "Martin Freeman", "Richard Armitage"],
+      "posterPath": "/yHA9Fc37VmpUA5UncTxxo3rTGVA.jpg"
+    },
+    {
+      "tmdbId": 458156,
+      "title": "John Wick: Chapter 3 - Parabellum",
+      "year": 2019,
+      "imdbRating": 7.4,
+      "genres": ["Action", "Thriller", "Crime"],
+      "director": "Chad Stahelski",
+      "cast": ["Keanu Reeves", "Halle Berry", "Ian McShane"],
+      "posterPath": "/ziEuG1essDuWuC5lpWUaw1uXY2O.jpg"
+    },
+    {
+      "tmdbId": 330457,
+      "title": "Frozen",
+      "year": 2013,
+      "imdbRating": 7.4,
+      "genres": ["Animation", "Adventure", "Family"],
+      "director": "Chris Buck",
+      "cast": ["Kristen Bell", "Idina Menzel", "Josh Gad"],
+      "posterPath": "/kgwjIb2JDHRhNk13lmSxiClFjc4.jpg"
+    }
+  ]
+}

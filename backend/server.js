@@ -13,6 +13,7 @@ const tmdbRouter = require('./routes/tmdb');
 const claudeRouter = require('./routes/claude');
 const omdbRouter = require('./routes/omdb');
 const ratingsRouter = require('./routes/ratings');
+const onboardingRouter = require('./routes/onboarding');
 
 // Import database utilities
 const { getOrCreateUser, closeDatabase } = require('./db/database');
@@ -276,6 +277,7 @@ app.use('/api/tmdb', strictLimiter, tmdbRouter);
 app.use('/api/claude', strictLimiter, claudeRouter);
 app.use('/api/omdb', strictLimiter, omdbRouter);
 app.use('/api/ratings', ratingsRouter); // No strict limiter for ratings (internal data)
+app.use('/api/onboarding', onboardingRouter); // Onboarding flow (no strict limiter)
 
 // Error handling middleware
 app.use((err, req, res, next) => {

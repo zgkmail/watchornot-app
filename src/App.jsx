@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import OnboardingModal from './components/OnboardingModal';
 
 
         // SVG Icon Components
@@ -198,6 +199,13 @@ import React, { useState, useRef, useEffect } from 'react';
                 return saved !== null ? JSON.parse(saved) : true; // Default to dark mode
             });
 
+            // Onboarding state
+            const [showOnboarding, setShowOnboarding] = useState(false);
+            const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
+                const saved = localStorage.getItem('hasCompletedOnboarding');
+                return saved === 'true';
+            });
+
             // Backend API configuration
             // Automatically use the same host as the frontend (for network testing on iPhone/devices)
             // If accessing via IP (e.g., http://192.168.1.5:3000), backend will be http://192.168.1.5:3001
@@ -300,6 +308,21 @@ import React, { useState, useRef, useEffect } from 'react';
                 return badgeNames[badgeType] || badgeType;
             };
 
+            // Helper function to normalize poster URLs (handles both full URLs and paths)
+            const getPosterUrl = (poster) => {
+                if (!poster) return null;
+                // If it's already a full URL, return as is
+                if (poster.startsWith('http://') || poster.startsWith('https://')) {
+                    return poster;
+                }
+                // If it's a path (starts with /), construct the TMDB URL
+                if (poster.startsWith('/')) {
+                    return `https://image.tmdb.org/t/p/w500${poster}`;
+                }
+                // Otherwise return as is
+                return poster;
+            };
+
             // Load movie history from backend on mount
             React.useEffect(() => {
                 const loadMovieHistory = async () => {
@@ -331,6 +354,11 @@ import React, { useState, useRef, useEffect } from 'react';
                             });
                             setMovieHistory(historyObj);
                             console.log('✅ Loaded', data.ratings.length, 'movies from backend');
+
+                            // Show onboarding if user has no ratings and hasn't completed it before
+                            if (data.ratings.length === 0 && !hasCompletedOnboarding) {
+                                setShowOnboarding(true);
+                            }
                         } else {
                             console.warn('Failed to load movie history from backend');
                         }
@@ -1694,6 +1722,51 @@ import React, { useState, useRef, useEffect } from 'react';
                 setCurrentMovie(null);
             };
 
+            // Onboarding handlers
+            const handleOnboardingComplete = async () => {
+                setHasCompletedOnboarding(true);
+                localStorage.setItem('hasCompletedOnboarding', 'true');
+
+                // Reload movie history to update UI
+                try {
+                    const response = await fetchWithSession(`${BACKEND_URL}/api/ratings`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const historyObj = {};
+                        data.ratings.forEach(movie => {
+                            historyObj[movie.movie_id] = {
+                                id: movie.movie_id,
+                                title: movie.title,
+                                year: movie.year,
+                                genre: movie.genre,
+                                cast: movie.cast,
+                                poster: movie.poster,
+                                imdbRating: movie.imdb_rating,
+                                rottenTomatoes: movie.rotten_tomatoes,
+                                metacritic: movie.metacritic,
+                                rating: movie.rating,
+                                timestamp: movie.timestamp,
+                                badge: movie.badge,
+                                badgeEmoji: movie.badgeEmoji,
+                                badgeDescription: movie.badgeDescription,
+                                tier: movie.tier
+                            };
+                        });
+                        setMovieHistory(historyObj);
+                        console.log('✅ Reloaded', data.ratings.length, 'movies after onboarding');
+                    }
+                } catch (error) {
+                    console.error('Error reloading movie history:', error);
+                }
+            };
+
+            const handleOnboardingClose = () => {
+                setShowOnboarding(false);
+                // Mark as completed even if skipped, so we don't show it again
+                setHasCompletedOnboarding(true);
+                localStorage.setItem('hasCompletedOnboarding', 'true');
+            };
+
             return (
                 <div className="flex items-center justify-center min-h-screen bg-gray-900 md:p-4">
                     <div className="app-container fixed md:relative top-0 left-0 md:top-auto md:left-auto w-full bg-black overflow-hidden md:max-w-sm md:rounded-[3rem] md:shadow-2xl" style={{ height: '100dvh', maxHeight: '100dvh' }}>
@@ -1834,9 +1907,9 @@ import React, { useState, useRef, useEffect } from 'react';
                                                                 onTouchMove={(e) => handleTouchMove(e, movie.id)}
                                                                 onTouchEnd={handleTouchEnd}
                                                             >
-                                                                {movie.poster ? (
+                                                                {getPosterUrl(movie.poster) ? (
                                                                     <img
-                                                                        src={movie.poster}
+                                                                        src={getPosterUrl(movie.poster)}
                                                                         alt={movie.title}
                                                                         className="w-24 h-36 rounded-lg flex-shrink-0 object-cover"
                                                                     />
@@ -2077,9 +2150,9 @@ import React, { useState, useRef, useEffect } from 'react';
                                         <div className="absolute bottom-0 left-0 right-0 px-4 pb-2">
                                             <div className={`rounded-2xl p-5 relative z-10 max-h-[70vh] overflow-y-auto ${isDarkMode ? 'bg-gray-800' : 'bg-white shadow-2xl'}`}>
                                                 <div className="flex gap-4 mb-4">
-                                                    {currentMovie.poster && (
-                                                        <img 
-                                                            src={currentMovie.poster}
+                                                    {getPosterUrl(currentMovie.poster) && (
+                                                        <img
+                                                            src={getPosterUrl(currentMovie.poster)}
                                                             alt={currentMovie.title}
                                                             className="w-24 h-36 rounded-lg flex-shrink-0 object-cover shadow-lg"
                                                         />
@@ -2340,7 +2413,8 @@ import React, { useState, useRef, useEffect } from 'react';
                                         <div className="space-y-3 mb-8">
                                             <button
                                                 onClick={async () => {
-                                                    if (confirm('Are you sure you want to delete all your history? This cannot be undone.')) {
+                                                    if (confirm('Are you sure you want to recreate your taste profile? This will delete all your ratings and restart the onboarding survey.')) {
+                                                        // Clear movie history from UI
                                                         setMovieHistory({});
 
                                                         // Delete all movies from backend
@@ -2354,17 +2428,22 @@ import React, { useState, useRef, useEffect } from 'react';
                                                                 )
                                                             );
                                                             console.log('✅ All movies deleted from backend');
-                                                            alert('History deleted successfully.');
                                                         } catch (error) {
                                                             console.error('Error deleting history:', error);
-                                                            alert('History deleted from UI, but backend deletion may have failed.');
+                                                            alert('Failed to delete some ratings. Please try again.');
+                                                            return; // Don't proceed to onboarding if deletion failed
                                                         }
+
+                                                        // Reset onboarding flag and show onboarding
+                                                        localStorage.removeItem('hasCompletedOnboarding');
+                                                        setHasCompletedOnboarding(false);
+                                                        setShowOnboarding(true);
                                                     }
                                                 }}
-                                                className={`w-full py-4 px-5 rounded-xl flex items-center gap-3 border transition-all focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white border-gray-700' : 'bg-white hover:bg-red-50 text-gray-900 border-gray-300 shadow-sm hover:border-red-200'}`}
+                                                className={`w-full py-4 px-5 rounded-xl flex items-center gap-3 border transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white border-gray-700' : 'bg-white hover:bg-purple-50 text-gray-900 border-gray-300 shadow-sm hover:border-purple-200'}`}
                                             >
-                                                <Trash2 className="w-6 h-6 text-red-500" />
-                                                <span className="text-lg">Delete Taste Profile</span>
+                                                <Palette className="w-6 h-6 text-purple-500" />
+                                                <span className="text-lg">Recreate Taste Profile</span>
                                             </button>
                                         </div>
                                         <div className={`border-t my-6 ${isDarkMode ? 'border-gray-800' : 'border-gray-300'}`}></div>
@@ -2444,9 +2523,9 @@ import React, { useState, useRef, useEffect } from 'react';
                                     <div className="p-6">
                                         {/* Poster and basic info */}
                                         <div className="flex gap-4 mb-6">
-                                            {detailModalMovie.poster ? (
+                                            {getPosterUrl(detailModalMovie.poster) ? (
                                                 <img
-                                                    src={detailModalMovie.poster}
+                                                    src={getPosterUrl(detailModalMovie.poster)}
                                                     alt={detailModalMovie.title}
                                                     className="w-32 h-48 rounded-lg object-cover shadow-lg"
                                                 />
@@ -2699,6 +2778,16 @@ import React, { useState, useRef, useEffect } from 'react';
                                 </div>
                             </div>
                         )}
+
+                        {/* Onboarding Modal */}
+                        <OnboardingModal
+                            isOpen={showOnboarding}
+                            onClose={handleOnboardingClose}
+                            onComplete={handleOnboardingComplete}
+                            isDarkMode={isDarkMode}
+                            backendUrl={BACKEND_URL}
+                            fetchWithSession={fetchWithSession}
+                        />
                     </div>
                 </div>
             );

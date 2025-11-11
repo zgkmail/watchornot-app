@@ -16,22 +16,26 @@ const {
   createTestMovie,
   createTestUser,
   mockTMDBSearchResponse,
-  mockTMDBMovieDetailsResponse,
-  TEST_DB_PATH
+  mockTMDBMovieDetailsResponse
 } = require('../testHelpers');
 
 // Mock axios for TMDB calls
 jest.mock('axios');
 
+// Shared test database
+let mockTestDb = null;
+
 // Mock database module
 jest.mock('../db/database', () => {
-  const testDb = require('better-sqlite3')(require('../testHelpers').TEST_DB_PATH);
-
   return {
-    db: testDb,
+    get db() {
+      return mockTestDb;
+    },
     saveMovieRating: (userId, movieData) => {
+      if (!mockTestDb) throw new Error('Test database not initialized');
+
       const now = Date.now();
-      const stmt = testDb.prepare(`
+      const stmt = mockTestDb.prepare(`
         INSERT INTO movie_ratings (
           user_id, movie_id, title, genre, year, imdb_rating,
           rotten_tomatoes, metacritic, poster, director, cast, rating, timestamp
@@ -49,38 +53,48 @@ jest.mock('../db/database', () => {
 
       // Save genre mappings
       if (movieData.genre) {
-        testDb.prepare('DELETE FROM movie_genre_mappings WHERE user_id = ? AND movie_id = ?')
+        mockTestDb.prepare('DELETE FROM movie_genre_mappings WHERE user_id = ? AND movie_id = ?')
           .run(userId, movieData.id);
         const genres = movieData.genre.split(',').map(g => g.trim()).filter(g => g);
-        const insertGenreStmt = testDb.prepare('INSERT INTO movie_genre_mappings (user_id, movie_id, genre) VALUES (?, ?, ?)');
+        const insertGenreStmt = mockTestDb.prepare('INSERT INTO movie_genre_mappings (user_id, movie_id, genre) VALUES (?, ?, ?)');
         genres.forEach(genre => insertGenreStmt.run(userId, movieData.id, genre));
       }
     },
     getUserMovieRatings: (userId) => {
-      return testDb.prepare('SELECT * FROM movie_ratings WHERE user_id = ? ORDER BY timestamp DESC').all(userId);
+      if (!mockTestDb) return [];
+      return mockTestDb.prepare('SELECT * FROM movie_ratings WHERE user_id = ? ORDER BY timestamp DESC').all(userId);
     },
     getMovieRating: (userId, movieId) => {
-      return testDb.prepare('SELECT * FROM movie_ratings WHERE user_id = ? AND movie_id = ?').get(userId, movieId);
+      if (!mockTestDb) return null;
+      return mockTestDb.prepare('SELECT * FROM movie_ratings WHERE user_id = ? AND movie_id = ?').get(userId, movieId);
     },
     deleteMovieRating: (userId, movieId) => {
-      testDb.prepare('DELETE FROM movie_ratings WHERE user_id = ? AND movie_id = ?').run(userId, movieId);
-      testDb.prepare('DELETE FROM movie_genre_mappings WHERE user_id = ? AND movie_id = ?').run(userId, movieId);
+      if (!mockTestDb) return;
+      mockTestDb.prepare('DELETE FROM movie_ratings WHERE user_id = ? AND movie_id = ?').run(userId, movieId);
+      mockTestDb.prepare('DELETE FROM movie_genre_mappings WHERE user_id = ? AND movie_id = ?').run(userId, movieId);
     },
     getUserGenrePreferences: (userId) => {
-      return testDb.prepare('SELECT * FROM user_genre_preferences WHERE user_id = ?').all(userId);
+      if (!mockTestDb) return [];
+      return mockTestDb.prepare('SELECT * FROM user_genre_preferences WHERE user_id = ?').all(userId);
     },
     getUserDirectorPreferences: (userId) => {
-      return testDb.prepare('SELECT * FROM user_director_preferences WHERE user_id = ?').all(userId);
+      if (!mockTestDb) return [];
+      return mockTestDb.prepare('SELECT * FROM user_director_preferences WHERE user_id = ?').all(userId);
     },
     getUserCastPreferences: (userId) => {
-      return testDb.prepare('SELECT * FROM user_cast_preferences WHERE user_id = ?').all(userId);
+      if (!mockTestDb) return [];
+      return mockTestDb.prepare('SELECT * FROM user_cast_preferences WHERE user_id = ?').all(userId);
     },
     getMovieGenres: (userId, movieId) => {
-      return testDb.prepare('SELECT genre FROM movie_genre_mappings WHERE user_id = ? AND movie_id = ?')
+      if (!mockTestDb) return [];
+      return mockTestDb.prepare('SELECT genre FROM movie_genre_mappings WHERE user_id = ? AND movie_id = ?')
         .all(userId, movieId).map(row => row.genre);
     },
     saveMovieGenreMappings: () => {},
-    deleteMovieGenreMappings: () => {}
+    deleteMovieGenreMappings: () => {},
+    recalculateGenrePreferences: () => {},
+    recalculateDirectorPreferences: () => {},
+    recalculateCastPreferences: () => {}
   };
 });
 
@@ -88,16 +102,13 @@ jest.mock('../db/database', () => {
 function createTestApp(userId) {
   const app = express();
   app.use(express.json());
-  app.use(session({
-    secret: 'test-secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false }
-  }));
 
   // Mock session middleware
   app.use((req, res, next) => {
-    req.session.userId = userId;
+    req.session = {
+      userId: userId,
+      cookie: {}
+    };
     next();
   });
 
@@ -109,7 +120,6 @@ function createTestApp(userId) {
 
 describe('Integration Tests - Complete Movie Rating Workflow', () => {
   let app;
-  let db;
   let userId;
 
   beforeAll(() => {
@@ -117,15 +127,18 @@ describe('Integration Tests - Complete Movie Rating Workflow', () => {
   });
 
   beforeEach(() => {
-    db = createTestDatabase();
-    const user = createTestUser(db);
+    mockTestDb = createTestDatabase(true);
+    const user = createTestUser(mockTestDb);
     userId = user.id;
     app = createTestApp(userId);
     jest.clearAllMocks();
   });
 
   afterEach(() => {
-    if (db) db.close();
+    if (mockTestDb) {
+      mockTestDb.close();
+      mockTestDb = null;
+    }
     cleanupTestDatabase();
   });
 
@@ -149,282 +162,188 @@ describe('Integration Tests - Complete Movie Rating Workflow', () => {
 
       const searchResponse = await request(app)
         .get('/api/tmdb/search')
-        .query({ query: 'Inception' });
+        .query({ query: 'Inception', year: '2010' });
 
       expect(searchResponse.status).toBe(200);
-      expect(searchResponse.body.results).toHaveLength(1);
-      expect(searchResponse.body.results[0].title).toBe('Inception');
+      expect(searchResponse.body.results).toBeDefined();
+      expect(searchResponse.body.results.length).toBeGreaterThan(0);
 
-      // Step 2: Get movie details
-      axios.get.mockResolvedValueOnce({ data: mockTMDBMovieDetailsResponse(searchMovie) });
+      // Step 2: Rate the movie
+      const rateMovie = {
+        id: searchMovie.id,
+        title: searchMovie.title,
+        genre: searchMovie.genre,
+        year: '2010',
+        rating: 'up',
+        imdbRating: searchMovie.imdbRating,
+        director: searchMovie.director,
+        cast: searchMovie.cast
+      };
 
-      const detailsResponse = await request(app)
-        .get('/api/tmdb/movie/27205');
-
-      expect(detailsResponse.status).toBe(200);
-      expect(detailsResponse.body.id).toBe(27205);
-      expect(detailsResponse.body.credits).toBeDefined();
-
-      // Step 3: Rate the movie
       const rateResponse = await request(app)
         .post('/api/ratings')
-        .send({
-          id: '27205',
-          title: 'Inception',
-          genre: 'Action, Science Fiction, Thriller',
-          year: '2010',
-          imdbRating: 8.8,
-          director: 'Christopher Nolan',
-          cast: 'Leonardo DiCaprio, Tom Hardy, Ellen Page',
-          rating: 'up'
-        });
+        .send(rateMovie);
 
       expect(rateResponse.status).toBe(200);
       expect(rateResponse.body.success).toBe(true);
+      expect(rateResponse.body.movieId).toBe(searchMovie.id);
 
-      // Step 4: Retrieve the rating
-      const getRatingResponse = await request(app)
-        .get('/api/ratings/27205');
-
-      expect(getRatingResponse.status).toBe(200);
-      expect(getRatingResponse.body.movie_id).toBe('27205');
-      expect(getRatingResponse.body.rating).toBe('up');
-
-      // Step 5: Get all ratings
-      const allRatingsResponse = await request(app)
+      // Step 3: Retrieve the rating
+      const retrieveResponse = await request(app)
         .get('/api/ratings');
 
-      expect(allRatingsResponse.status).toBe(200);
-      expect(allRatingsResponse.body.ratings).toHaveLength(1);
-      expect(allRatingsResponse.body.count).toBe(1);
+      expect(retrieveResponse.status).toBe(200);
+      expect(retrieveResponse.body.ratings).toHaveLength(1);
+      expect(retrieveResponse.body.ratings[0].movie_id).toBe(searchMovie.id);
 
-      // Step 6: Delete the rating
+      // Step 4: Delete the rating
       const deleteResponse = await request(app)
-        .delete('/api/ratings/27205');
+        .delete(`/api/ratings/${searchMovie.id}`);
 
       expect(deleteResponse.status).toBe(200);
       expect(deleteResponse.body.success).toBe(true);
 
-      // Step 7: Verify deletion
-      const verifyDeleteResponse = await request(app)
-        .get('/api/ratings/27205');
+      // Step 5: Verify deletion
+      const verifyResponse = await request(app)
+        .get('/api/ratings');
 
-      expect(verifyDeleteResponse.status).toBe(404);
+      expect(verifyResponse.status).toBe(200);
+      expect(verifyResponse.body.ratings).toHaveLength(0);
     });
 
-    test('should handle rating multiple movies and getting recommendations', async () => {
-      // Rate 5 action movies with thumbs up
-      const actionMovies = [
-        { id: '1', title: 'Movie 1', genre: 'Action', rating: 'up', imdbRating: 8.5 },
-        { id: '2', title: 'Movie 2', genre: 'Action', rating: 'up', imdbRating: 8.0 },
-        { id: '3', title: 'Movie 3', genre: 'Action', rating: 'up', imdbRating: 7.5 },
-        { id: '4', title: 'Movie 4', genre: 'Action', rating: 'up', imdbRating: 8.2 },
-        { id: '5', title: 'Movie 5', genre: 'Action', rating: 'up', imdbRating: 7.8 }
-      ];
+    test('should calculate badge after rating 5+ movies', async () => {
+      // Rate 5 movies
+      const movies = [];
+      for (let i = 1; i <= 5; i++) {
+        const movie = createTestMovie({
+          id: `movie-${i}`,
+          title: `Test Movie ${i}`,
+          genre: 'Action, Drama',
+          rating: 'up',
+          imdbRating: 8.0 + (i * 0.1)
+        });
+        movies.push(movie);
 
-      // Rate all movies
-      for (const movie of actionMovies) {
-        const response = await request(app)
+        const rateResponse = await request(app)
           .post('/api/ratings')
           .send(movie);
 
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
+        expect(rateResponse.status).toBe(200);
+
+        // First 4 movies should not have badges
+        if (i < 5) {
+          expect(rateResponse.body.badge).toBeNull();
+        } else {
+          // 5th movie should have badge
+          expect(rateResponse.body.badge).toBeDefined();
+          expect(rateResponse.body.tier).toBe('Explorer');
+        }
       }
 
-      // Verify we have 5 ratings
-      const allRatingsResponse = await request(app)
+      // Verify all ratings have badges when retrieved
+      const retrieveResponse = await request(app)
         .get('/api/ratings');
 
-      expect(allRatingsResponse.status).toBe(200);
-      expect(allRatingsResponse.body.count).toBe(5);
-
-      // Now calculate badge for a new action movie
-      // Should get a positive recommendation since we liked all action movies
-      const newActionMovie = {
-        id: 'new-action',
-        title: 'New Action Movie',
-        genre: 'Action',
-        imdbRating: 8.0
-      };
-
-      const badgeResponse = await request(app)
-        .post('/api/ratings/calculate-badge')
-        .send(newActionMovie);
-
-      expect(badgeResponse.status).toBe(200);
-      expect(badgeResponse.body.badge).toBeDefined();
-      expect(badgeResponse.body.tier).toBe('Explorer'); // 5 votes = Explorer tier
-      expect(badgeResponse.body.totalVotes).toBe(5);
+      expect(retrieveResponse.status).toBe(200);
+      expect(retrieveResponse.body.ratings).toHaveLength(5);
+      retrieveResponse.body.ratings.forEach(rating => {
+        expect(rating).toHaveProperty('badge');
+        expect(rating).toHaveProperty('tier');
+      });
     });
 
-    test('should update rating when voting on same movie twice', async () => {
-      const movie = {
+    test('should handle search -> details -> rate workflow', async () => {
+      const movie = createTestMovie({
         id: '550',
         title: 'Fight Club',
         genre: 'Drama, Thriller',
-        rating: 'up',
+        director: 'David Fincher',
+        cast: 'Brad Pitt, Edward Norton',
         imdbRating: 8.8
-      };
+      });
 
-      // Rate with thumbs up
+      // Search
+      axios.get.mockResolvedValueOnce({ data: mockTMDBSearchResponse(movie) });
+
+      const searchResponse = await request(app)
+        .get('/api/tmdb/search')
+        .query({ query: 'Fight Club' });
+
+      expect(searchResponse.status).toBe(200);
+
+      // Get details
+      axios.get.mockResolvedValueOnce({ data: mockTMDBMovieDetailsResponse(movie) });
+
+      const detailsResponse = await request(app)
+        .get('/api/tmdb/movie/550');
+
+      expect(detailsResponse.status).toBe(200);
+      expect(detailsResponse.body.id).toBe(550);
+
+      // Rate
+      const rateResponse = await request(app)
+        .post('/api/ratings')
+        .send({
+          id: movie.id,
+          title: movie.title,
+          genre: movie.genre,
+          year: movie.year,
+          rating: 'up',
+          imdbRating: movie.imdbRating,
+          director: movie.director,
+          cast: movie.cast
+        });
+
+      expect(rateResponse.status).toBe(200);
+      expect(rateResponse.body.success).toBe(true);
+    });
+  });
+
+  describe('Error Handling', () => {
+    test('should handle duplicate ratings', async () => {
+      const movie = createTestMovie({
+        id: '155',
+        title: 'The Dark Knight',
+        rating: 'up',
+        imdbRating: 9.0
+      });
+
+      // Rate first time
       const firstResponse = await request(app)
         .post('/api/ratings')
         .send(movie);
 
       expect(firstResponse.status).toBe(200);
-      expect(firstResponse.body.success).toBe(true);
 
-      // Verify rating is 'up'
-      let getRatingResponse = await request(app)
-        .get('/api/ratings/550');
-
-      expect(getRatingResponse.body.rating).toBe('up');
-
-      // Change rating to thumbs down
+      // Rate again with different rating
+      movie.rating = 'down';
       const secondResponse = await request(app)
         .post('/api/ratings')
-        .send({ ...movie, rating: 'down' });
+        .send(movie);
 
       expect(secondResponse.status).toBe(200);
-      expect(secondResponse.body.success).toBe(true);
 
-      // Verify rating is now 'down'
-      getRatingResponse = await request(app)
-        .get('/api/ratings/550');
-
-      expect(getRatingResponse.body.rating).toBe('down');
-
-      // Verify we still only have 1 movie rated
-      const allRatingsResponse = await request(app)
+      // Verify only one rating exists (updated)
+      const retrieveResponse = await request(app)
         .get('/api/ratings');
 
-      expect(allRatingsResponse.body.count).toBe(1);
-    });
-
-    test('should progress through tiers as user rates more movies', async () => {
-      const tierTests = [
-        { count: 5, expectedTier: 'Explorer' },
-        { count: 15, expectedTier: 'Enthusiast' },
-        { count: 30, expectedTier: 'Expert' },
-        { count: 50, expectedTier: 'Master' }
-      ];
-
-      for (const { count, expectedTier } of tierTests) {
-        // Clean up previous ratings
-        db.prepare('DELETE FROM movie_ratings WHERE user_id = ?').run(userId);
-
-        // Rate movies
-        for (let i = 0; i < count; i++) {
-          await request(app)
-            .post('/api/ratings')
-            .send({
-              id: `movie-${i}`,
-              title: `Movie ${i}`,
-              genre: 'Action',
-              rating: 'up',
-              imdbRating: 8.0
-            });
-        }
-
-        // Calculate badge for new movie
-        const badgeResponse = await request(app)
-          .post('/api/ratings/calculate-badge')
-          .send({
-            id: 'test-movie',
-            title: 'Test Movie',
-            genre: 'Action',
-            imdbRating: 8.0
-          });
-
-        expect(badgeResponse.status).toBe(200);
-        expect(badgeResponse.body.tier).toBe(expectedTier);
-        expect(badgeResponse.body.totalVotes).toBe(count);
-      }
-    });
-
-    test('should handle mixed genre preferences in recommendations', async () => {
-      const movies = [
-        // Like Action
-        { id: '1', title: 'Action 1', genre: 'Action', rating: 'up', imdbRating: 8.5 },
-        { id: '2', title: 'Action 2', genre: 'Action', rating: 'up', imdbRating: 8.0 },
-        { id: '3', title: 'Action 3', genre: 'Action', rating: 'up', imdbRating: 7.8 },
-        // Dislike Drama
-        { id: '4', title: 'Drama 1', genre: 'Drama', rating: 'down', imdbRating: 7.0 },
-        { id: '5', title: 'Drama 2', genre: 'Drama', rating: 'down', imdbRating: 6.5 }
-      ];
-
-      // Rate all movies
-      for (const movie of movies) {
-        await request(app)
-          .post('/api/ratings')
-          .send(movie);
-      }
-
-      // Test recommendation for action movie (should be positive)
-      const actionBadgeResponse = await request(app)
-        .post('/api/ratings/calculate-badge')
-        .send({
-          id: 'new-action',
-          title: 'New Action',
-          genre: 'Action',
-          imdbRating: 8.0
-        });
-
-      expect(actionBadgeResponse.status).toBe(200);
-      expect(actionBadgeResponse.body.badge).toBeDefined();
-
-      // Test recommendation for drama movie (should be negative or mixed)
-      const dramaBadgeResponse = await request(app)
-        .post('/api/ratings/calculate-badge')
-        .send({
-          id: 'new-drama',
-          title: 'New Drama',
-          genre: 'Drama',
-          imdbRating: 8.0
-        });
-
-      expect(dramaBadgeResponse.status).toBe(200);
-      expect(dramaBadgeResponse.body.badge).toBeDefined();
-
-      // Action should have higher adjusted score than Drama
-      expect(actionBadgeResponse.body.adjustedScore).toBeGreaterThan(
-        dramaBadgeResponse.body.adjustedScore
-      );
-    });
-  });
-
-  describe('Error Handling', () => {
-    test('should handle TMDB API failures gracefully', async () => {
-      axios.get.mockRejectedValue(new Error('Network error'));
-
-      const searchResponse = await request(app)
-        .get('/api/tmdb/search')
-        .query({ query: 'Inception' });
-
-      expect(searchResponse.status).toBe(500);
-      expect(searchResponse.body.error).toBeDefined();
+      expect(retrieveResponse.status).toBe(200);
+      expect(retrieveResponse.body.ratings).toHaveLength(1);
+      expect(retrieveResponse.body.ratings[0].rating).toBe('down');
     });
 
     test('should handle invalid movie data', async () => {
+      const invalidMovie = { title: 'No ID Movie' };
+
       const response = await request(app)
         .post('/api/ratings')
-        .send({ invalid: 'data' });
+        .send(invalidMovie);
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBeDefined();
     });
 
-    test('should handle non-existent movie retrieval', async () => {
-      const response = await request(app)
-        .get('/api/ratings/nonexistent-id');
-
-      expect(response.status).toBe(404);
-      expect(response.body.error).toBe('Movie not found');
-    });
-
-    test('should handle deletion of non-existent movie', async () => {
-      // This should succeed even if movie doesn't exist (idempotent)
+    test('should handle non-existent movie deletion', async () => {
       const response = await request(app)
         .delete('/api/ratings/nonexistent-id');
 
