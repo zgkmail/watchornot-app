@@ -2413,7 +2413,8 @@ import OnboardingModal from './components/OnboardingModal';
                                         <div className="space-y-3 mb-8">
                                             <button
                                                 onClick={async () => {
-                                                    if (confirm('Are you sure you want to delete all your history? This cannot be undone.')) {
+                                                    if (confirm('Are you sure you want to recreate your taste profile? This will delete all your ratings and restart the onboarding survey.')) {
+                                                        // Clear movie history from UI
                                                         setMovieHistory({});
 
                                                         // Delete all movies from backend
@@ -2427,17 +2428,22 @@ import OnboardingModal from './components/OnboardingModal';
                                                                 )
                                                             );
                                                             console.log('✅ All movies deleted from backend');
-                                                            alert('History deleted successfully.');
                                                         } catch (error) {
                                                             console.error('Error deleting history:', error);
-                                                            alert('History deleted from UI, but backend deletion may have failed.');
+                                                            alert('Failed to delete some ratings. Please try again.');
+                                                            return; // Don't proceed to onboarding if deletion failed
                                                         }
+
+                                                        // Reset onboarding flag and show onboarding
+                                                        localStorage.removeItem('hasCompletedOnboarding');
+                                                        setHasCompletedOnboarding(false);
+                                                        setShowOnboarding(true);
                                                     }
                                                 }}
-                                                className={`w-full py-4 px-5 rounded-xl flex items-center gap-3 border transition-all focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white border-gray-700' : 'bg-white hover:bg-red-50 text-gray-900 border-gray-300 shadow-sm hover:border-red-200'}`}
+                                                className={`w-full py-4 px-5 rounded-xl flex items-center gap-3 border transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white border-gray-700' : 'bg-white hover:bg-purple-50 text-gray-900 border-gray-300 shadow-sm hover:border-purple-200'}`}
                                             >
-                                                <Trash2 className="w-6 h-6 text-red-500" />
-                                                <span className="text-lg">Delete Taste Profile</span>
+                                                <Palette className="w-6 h-6 text-purple-500" />
+                                                <span className="text-lg">Recreate Taste Profile</span>
                                             </button>
                                         </div>
                                         <div className={`border-t my-6 ${isDarkMode ? 'border-gray-800' : 'border-gray-300'}`}></div>
