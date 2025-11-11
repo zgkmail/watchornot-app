@@ -107,13 +107,13 @@ describe('Onboarding API Endpoints', () => {
   });
 
   describe('GET /api/onboarding/movies', () => {
-    test('should return 5 random curated movies', async () => {
+    test('should return 10 random curated movies', async () => {
       const response = await request(app).get('/api/onboarding/movies');
 
       expect(response.status).toBe(200);
       expect(response.body.movies).toBeDefined();
       expect(Array.isArray(response.body.movies)).toBe(true);
-      expect(response.body.movies).toHaveLength(5);
+      expect(response.body.movies).toHaveLength(10);
 
       // Check movie structure
       const movie = response.body.movies[0];
@@ -379,7 +379,7 @@ describe('Onboarding API Endpoints', () => {
       expect(response.body.error).toBe('Invalid vote data');
     });
 
-    test('should validate vote value is up or down', async () => {
+    test('should validate vote value is up, down, or skip', async () => {
       const invalidVotes = [
         {
           movieId: '1',
@@ -400,6 +400,76 @@ describe('Onboarding API Endpoints', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Invalid vote value');
+    });
+
+    test('should accept skip as a valid vote type', async () => {
+      const votes = [
+        {
+          movieId: '1',
+          title: 'Test Movie 1',
+          vote: 'up',
+          year: 2020,
+          genres: ['Action'],
+          imdbRating: 8.0,
+          director: 'Test',
+          cast: 'Test',
+          poster: '/test.jpg'
+        },
+        {
+          movieId: '2',
+          title: 'Test Movie 2',
+          vote: 'skip',
+          year: 2020,
+          genres: ['Drama'],
+          imdbRating: 8.0,
+          director: 'Test',
+          cast: 'Test',
+          poster: '/test.jpg'
+        },
+        {
+          movieId: '3',
+          title: 'Test Movie 3',
+          vote: 'down',
+          year: 2020,
+          genres: ['Comedy'],
+          imdbRating: 8.0,
+          director: 'Test',
+          cast: 'Test',
+          poster: '/test.jpg'
+        },
+        {
+          movieId: '4',
+          title: 'Test Movie 4',
+          vote: 'up',
+          year: 2020,
+          genres: ['Thriller'],
+          imdbRating: 8.0,
+          director: 'Test',
+          cast: 'Test',
+          poster: '/test.jpg'
+        },
+        {
+          movieId: '5',
+          title: 'Test Movie 5',
+          vote: 'up',
+          year: 2020,
+          genres: ['Sci-Fi'],
+          imdbRating: 8.0,
+          director: 'Test',
+          cast: 'Test',
+          poster: '/test.jpg'
+        }
+      ];
+
+      const response = await request(app)
+        .post('/api/onboarding/complete')
+        .send({ votes });
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      // Only 4 votes should be saved (skipped movie is not saved)
+      expect(response.body.savedVotes).toBe(4);
+      expect(response.body.totalVotes).toBe(4);
     });
 
     test('should handle partial vote saves gracefully', async () => {
