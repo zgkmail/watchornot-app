@@ -7,20 +7,28 @@ const TEST_DB_PATH = path.join(__dirname, 'db', 'test-watchornot.db');
 
 /**
  * Create a fresh test database
+ * Uses in-memory database by default to avoid file permission issues
  */
-function createTestDatabase() {
-  // Ensure db directory exists
-  const dbDir = path.dirname(TEST_DB_PATH);
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
-  }
+function createTestDatabase(inMemory = true) {
+  let db;
 
-  // Remove existing test database
-  if (fs.existsSync(TEST_DB_PATH)) {
-    fs.unlinkSync(TEST_DB_PATH);
-  }
+  if (inMemory) {
+    // Use in-memory database for faster, isolated tests
+    db = new Database(':memory:');
+  } else {
+    // Use file-based database if needed
+    const dbDir = path.dirname(TEST_DB_PATH);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
 
-  const db = new Database(TEST_DB_PATH);
+    // Remove existing test database
+    if (fs.existsSync(TEST_DB_PATH)) {
+      fs.unlinkSync(TEST_DB_PATH);
+    }
+
+    db = new Database(TEST_DB_PATH);
+  }
 
   // Create tables
   db.exec(`

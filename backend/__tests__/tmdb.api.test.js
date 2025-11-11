@@ -174,7 +174,7 @@ describe('TMDB API Endpoints', () => {
         expect.objectContaining({
           params: {
             api_key: 'test-api-key',
-            append_to_response: 'credits,external_ids'
+            append_to_response: 'credits,external_ids,videos'
           }
         })
       );
@@ -200,7 +200,7 @@ describe('TMDB API Endpoints', () => {
         expect.objectContaining({
           params: {
             api_key: 'test-api-key',
-            append_to_response: 'credits,external_ids'
+            append_to_response: 'credits,external_ids,videos'
           }
         })
       );
