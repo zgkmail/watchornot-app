@@ -8,12 +8,13 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   const [movies, setMovies] = useState([]);
   const [currentMovieIndex, setCurrentMovieIndex] = useState(0);
   const [votes, setVotes] = useState([]);
-  const [actualVoteCount, setActualVoteCount] = useState(0); // Count of up/down votes (not skips)
+  const [actualVoteCount, setActualVoteCount] = useState(0); // For display only - DO NOT use for logic
   const [completionData, setCompletionData] = useState(null);
   const [error, setError] = useState(null);
 
-  // Ref to prevent race conditions - updates synchronously unlike state
+  // Refs to prevent race conditions - update synchronously unlike state
   const isSubmittingRef = useRef(false);
+  const actualVoteCountRef = useRef(0); // Source of truth for vote count
 
   const REQUIRED_VOTES = 5; // Minimum number of up/down votes needed
 
@@ -65,12 +66,17 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
     const newVotes = [...votes, voteData];
     setVotes(newVotes);
 
-    // Track actual votes (not skips)
-    const newActualVoteCount = vote !== 'skip' ? actualVoteCount + 1 : actualVoteCount;
-    setActualVoteCount(newActualVoteCount);
+    // Update vote count synchronously using ref (source of truth)
+    // Only increment for actual votes (not skips)
+    if (vote !== 'skip') {
+      actualVoteCountRef.current += 1;
+    }
 
-    // Check if we have enough actual votes
-    if (newActualVoteCount >= REQUIRED_VOTES) {
+    // Also update state for UI rendering (but don't use this for logic!)
+    setActualVoteCount(actualVoteCountRef.current);
+
+    // Check if we have enough actual votes (use ref, not state!)
+    if (actualVoteCountRef.current >= REQUIRED_VOTES) {
       // Set ref synchronously BEFORE any async operations to block subsequent clicks
       isSubmittingRef.current = true;
       // Enough votes collected, show loading screen immediately and submit to backend
@@ -128,6 +134,7 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
     setVotes([]);
     setCurrentMovieIndex(0);
     setActualVoteCount(0);
+    actualVoteCountRef.current = 0; // Reset the ref
     setError(null);
     isSubmittingRef.current = false; // Reset the submission guard
     loadOnboardingMovies();
