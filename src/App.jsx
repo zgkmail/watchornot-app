@@ -308,6 +308,21 @@ import OnboardingModal from './components/OnboardingModal';
                 return badgeNames[badgeType] || badgeType;
             };
 
+            // Helper function to normalize poster URLs (handles both full URLs and paths)
+            const getPosterUrl = (poster) => {
+                if (!poster) return null;
+                // If it's already a full URL, return as is
+                if (poster.startsWith('http://') || poster.startsWith('https://')) {
+                    return poster;
+                }
+                // If it's a path (starts with /), construct the TMDB URL
+                if (poster.startsWith('/')) {
+                    return `https://image.tmdb.org/t/p/w500${poster}`;
+                }
+                // Otherwise return as is
+                return poster;
+            };
+
             // Load movie history from backend on mount
             React.useEffect(() => {
                 const loadMovieHistory = async () => {
@@ -1892,9 +1907,9 @@ import OnboardingModal from './components/OnboardingModal';
                                                                 onTouchMove={(e) => handleTouchMove(e, movie.id)}
                                                                 onTouchEnd={handleTouchEnd}
                                                             >
-                                                                {movie.poster ? (
+                                                                {getPosterUrl(movie.poster) ? (
                                                                     <img
-                                                                        src={movie.poster}
+                                                                        src={getPosterUrl(movie.poster)}
                                                                         alt={movie.title}
                                                                         className="w-24 h-36 rounded-lg flex-shrink-0 object-cover"
                                                                     />
@@ -2135,9 +2150,9 @@ import OnboardingModal from './components/OnboardingModal';
                                         <div className="absolute bottom-0 left-0 right-0 px-4 pb-2">
                                             <div className={`rounded-2xl p-5 relative z-10 max-h-[70vh] overflow-y-auto ${isDarkMode ? 'bg-gray-800' : 'bg-white shadow-2xl'}`}>
                                                 <div className="flex gap-4 mb-4">
-                                                    {currentMovie.poster && (
-                                                        <img 
-                                                            src={currentMovie.poster}
+                                                    {getPosterUrl(currentMovie.poster) && (
+                                                        <img
+                                                            src={getPosterUrl(currentMovie.poster)}
                                                             alt={currentMovie.title}
                                                             className="w-24 h-36 rounded-lg flex-shrink-0 object-cover shadow-lg"
                                                         />
@@ -2502,9 +2517,9 @@ import OnboardingModal from './components/OnboardingModal';
                                     <div className="p-6">
                                         {/* Poster and basic info */}
                                         <div className="flex gap-4 mb-6">
-                                            {detailModalMovie.poster ? (
+                                            {getPosterUrl(detailModalMovie.poster) ? (
                                                 <img
-                                                    src={detailModalMovie.poster}
+                                                    src={getPosterUrl(detailModalMovie.poster)}
                                                     alt={detailModalMovie.title}
                                                     className="w-32 h-48 rounded-lg object-cover shadow-lg"
                                                 />
