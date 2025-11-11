@@ -201,6 +201,7 @@ import OnboardingModal from './components/OnboardingModal';
 
             // Onboarding state
             const [showOnboarding, setShowOnboarding] = useState(false);
+            const [onboardingKey, setOnboardingKey] = useState(0);
             const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
                 const saved = localStorage.getItem('hasCompletedOnboarding');
                 return saved === 'true';
@@ -2437,6 +2438,7 @@ import OnboardingModal from './components/OnboardingModal';
                                                         // Reset onboarding flag and show onboarding
                                                         localStorage.removeItem('hasCompletedOnboarding');
                                                         setHasCompletedOnboarding(false);
+                                                        setOnboardingKey(prev => prev + 1); // Force remount with fresh state
                                                         setShowOnboarding(true);
                                                     }
                                                 }}
@@ -2781,6 +2783,7 @@ import OnboardingModal from './components/OnboardingModal';
 
                         {/* Onboarding Modal */}
                         <OnboardingModal
+                            key={onboardingKey}
                             isOpen={showOnboarding}
                             onClose={handleOnboardingClose}
                             onComplete={handleOnboardingComplete}

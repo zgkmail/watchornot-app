@@ -18,22 +18,7 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
   const REQUIRED_VOTES = 5; // Minimum number of up/down votes needed
 
-  // Reset state when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setStep('loading');
-      setMovies([]);
-      setCurrentMovieIndex(0);
-      setVotes([]);
-      setActualVoteCount(0);
-      actualVoteCountRef.current = 0;
-      setCompletionData(null);
-      setError(null);
-      isSubmittingRef.current = false;
-    }
-  }, [isOpen]);
-
-  // Load onboarding movies
+  // Load onboarding movies when modal opens
   useEffect(() => {
     if (isOpen && step === 'loading') {
       loadOnboardingMovies();
@@ -61,12 +46,6 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
   const handleVote = (vote) => {
     // Guard: Prevent any votes from being processed if we're already submitting
     if (isSubmittingRef.current) {
-      return;
-    }
-
-    // Guard: Stop processing if we've already reached required votes
-    // Check BEFORE processing the vote to prevent over-voting
-    if (vote !== 'skip' && actualVoteCountRef.current >= REQUIRED_VOTES) {
       return;
     }
 
@@ -153,13 +132,14 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
   const handleRetry = () => {
     setStep('loading');
+    setMovies([]); // Reset movies for consistency
     setVotes([]);
     setCurrentMovieIndex(0);
     setActualVoteCount(0);
     actualVoteCountRef.current = 0; // Reset the ref
     setError(null);
     isSubmittingRef.current = false; // Reset the submission guard
-    loadOnboardingMovies();
+    // Don't call loadOnboardingMovies() - let useEffect handle it
   };
 
   if (!isOpen) return null;
