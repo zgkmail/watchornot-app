@@ -49,6 +49,13 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
       return;
     }
 
+    // Guard: Don't process more votes if we've already reached the required count
+    // This prevents adding votes beyond 5 even if something goes wrong later
+    if (vote !== 'skip' && actualVoteCountRef.current >= REQUIRED_VOTES) {
+      console.warn(`⚠️ Attempted to vote when already at ${actualVoteCountRef.current} votes`);
+      return;
+    }
+
     const currentMovie = movies[currentMovieIndex];
     const voteData = {
       movieId: currentMovie.id,
@@ -74,7 +81,7 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
     // Also update state for UI rendering (but don't use this for logic!)
     setActualVoteCount(actualVoteCountRef.current);
 
-    // Check if we have enough actual votes (use ref, not state!)
+    // Check if we just reached the required votes (use ref, not state!)
     if (actualVoteCountRef.current >= REQUIRED_VOTES) {
       // Set ref synchronously BEFORE any async operations to block subsequent clicks
       isSubmittingRef.current = true;
