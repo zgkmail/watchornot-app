@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import OnboardingModal from './components/OnboardingModal';
 
 
         // SVG Icon Components
@@ -198,6 +199,13 @@ import React, { useState, useRef, useEffect } from 'react';
                 return saved !== null ? JSON.parse(saved) : true; // Default to dark mode
             });
 
+            // Onboarding state
+            const [showOnboarding, setShowOnboarding] = useState(false);
+            const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
+                const saved = localStorage.getItem('hasCompletedOnboarding');
+                return saved === 'true';
+            });
+
             // Backend API configuration
             // Automatically use the same host as the frontend (for network testing on iPhone/devices)
             // If accessing via IP (e.g., http://192.168.1.5:3000), backend will be http://192.168.1.5:3001
@@ -331,6 +339,11 @@ import React, { useState, useRef, useEffect } from 'react';
                             });
                             setMovieHistory(historyObj);
                             console.log('✅ Loaded', data.ratings.length, 'movies from backend');
+
+                            // Show onboarding if user has no ratings and hasn't completed it before
+                            if (data.ratings.length === 0 && !hasCompletedOnboarding) {
+                                setShowOnboarding(true);
+                            }
                         } else {
                             console.warn('Failed to load movie history from backend');
                         }
@@ -1694,6 +1707,51 @@ import React, { useState, useRef, useEffect } from 'react';
                 setCurrentMovie(null);
             };
 
+            // Onboarding handlers
+            const handleOnboardingComplete = async () => {
+                setHasCompletedOnboarding(true);
+                localStorage.setItem('hasCompletedOnboarding', 'true');
+
+                // Reload movie history to update UI
+                try {
+                    const response = await fetchWithSession(`${BACKEND_URL}/api/ratings`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const historyObj = {};
+                        data.ratings.forEach(movie => {
+                            historyObj[movie.movie_id] = {
+                                id: movie.movie_id,
+                                title: movie.title,
+                                year: movie.year,
+                                genre: movie.genre,
+                                cast: movie.cast,
+                                poster: movie.poster,
+                                imdbRating: movie.imdb_rating,
+                                rottenTomatoes: movie.rotten_tomatoes,
+                                metacritic: movie.metacritic,
+                                rating: movie.rating,
+                                timestamp: movie.timestamp,
+                                badge: movie.badge,
+                                badgeEmoji: movie.badgeEmoji,
+                                badgeDescription: movie.badgeDescription,
+                                tier: movie.tier
+                            };
+                        });
+                        setMovieHistory(historyObj);
+                        console.log('✅ Reloaded', data.ratings.length, 'movies after onboarding');
+                    }
+                } catch (error) {
+                    console.error('Error reloading movie history:', error);
+                }
+            };
+
+            const handleOnboardingClose = () => {
+                setShowOnboarding(false);
+                // Mark as completed even if skipped, so we don't show it again
+                setHasCompletedOnboarding(true);
+                localStorage.setItem('hasCompletedOnboarding', 'true');
+            };
+
             return (
                 <div className="flex items-center justify-center min-h-screen bg-gray-900 md:p-4">
                     <div className="app-container fixed md:relative top-0 left-0 md:top-auto md:left-auto w-full bg-black overflow-hidden md:max-w-sm md:rounded-[3rem] md:shadow-2xl" style={{ height: '100dvh', maxHeight: '100dvh' }}>
@@ -2699,6 +2757,16 @@ import React, { useState, useRef, useEffect } from 'react';
                                 </div>
                             </div>
                         )}
+
+                        {/* Onboarding Modal */}
+                        <OnboardingModal
+                            isOpen={showOnboarding}
+                            onClose={handleOnboardingClose}
+                            onComplete={handleOnboardingComplete}
+                            isDarkMode={isDarkMode}
+                            backendUrl={BACKEND_URL}
+                            fetchWithSession={fetchWithSession}
+                        />
                     </div>
                 </div>
             );
