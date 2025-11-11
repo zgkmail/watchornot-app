@@ -45,8 +45,13 @@ const OnboardingModal = ({ isOpen, onClose, onComplete, isDarkMode, backendUrl, 
 
   const handleVote = (vote) => {
     // Guard: Prevent any votes from being processed if we're already submitting
-    // This check happens synchronously and prevents race conditions from rapid clicks
     if (isSubmittingRef.current) {
+      return;
+    }
+
+    // Guard: Stop processing if we've already reached required votes
+    // Check BEFORE processing the vote to prevent over-voting
+    if (vote !== 'skip' && actualVoteCountRef.current >= REQUIRED_VOTES) {
       return;
     }
 
