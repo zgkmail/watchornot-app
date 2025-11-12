@@ -162,9 +162,9 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                                     </div>
 
                                     <div className="flex-1 flex items-center">
-                                        <div className="w-full bg-gray-800/50 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50 shadow-2xl">
+                                        <div className="w-full bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700/50 shadow-2xl">
                                             {/* Vertical 3-step flow */}
-                                            <div className="flex flex-col items-center gap-3">
+                                            <div className="flex flex-col items-center gap-2">
                                                 {/* Step 1 */}
                                                 <div className="flex items-center gap-4 w-full">
                                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold flex items-center justify-center text-base shadow-lg flex-shrink-0">
@@ -186,8 +186,8 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                                                 </div>
 
                                                 {/* Arrow down */}
-                                                <div className="flex justify-center py-1">
-                                                    <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <div className="flex justify-center">
+                                                    <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
                                                     </svg>
                                                 </div>
@@ -235,7 +235,7 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                                                 </div>
 
                                                 {/* Description */}
-                                                <div className="text-center pt-4 mt-2 border-t border-gray-700/50 w-full">
+                                                <div className="text-center pt-2 mt-1 border-t border-gray-700/50 w-full">
                                                     <p className="text-sm text-gray-300 leading-snug">
                                                         Instant recommendations<br/>based on your taste
                                                     </p>
@@ -246,7 +246,7 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                                 </div>
 
                                 {/* CTAs */}
-                                <div className="px-6 pb-6">
+                                <div className="px-6 pb-10">
                                     <button
                                         onClick={onStartOnboarding}
                                         className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold text-base px-6 py-3.5 rounded-xl shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2"
