@@ -16,6 +16,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Verify Fly.io configuration
+        working-directory: packages/backend
+        run: |
+          echo "Checking for fly.toml..."
+          ls -la fly.toml
+          echo "Checking Fly.io app status..."
+          flyctl status --app watchornot-backend || echo "App may not exist yet"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        continue-on-error: true
+
       - name: Deploy backend to Fly.io
         working-directory: packages/backend
         run: flyctl deploy --remote-only
