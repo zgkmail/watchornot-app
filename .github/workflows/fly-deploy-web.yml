@@ -22,7 +22,7 @@ jobs:
       - name: Deploy web app to Fly.io
         run: |
           flyctl deploy packages/web \
-            --app watchornot-web \
+            --app watchornot-frontend \
             --config fly.toml \
             --dockerfile Dockerfile \
             --remote-only

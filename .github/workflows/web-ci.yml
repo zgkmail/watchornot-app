@@ -79,6 +79,7 @@ jobs:
           sleep 5
         env:
           NODE_ENV: test
+          PORT: 3001
           SESSION_SECRET: test-secret-key-for-ci
           TMDB_API_KEY: test-tmdb-key
           CLAUDE_API_KEY: test-claude-key
@@ -87,7 +88,7 @@ jobs:
       - name: Test API compatibility
         run: |
           # Check if backend is running
-          curl -f http://localhost:3000/health || exit 1
+          curl -f http://localhost:3001/health || exit 1
           echo "✓ Backend is responsive"
 
       - name: Stop backend
