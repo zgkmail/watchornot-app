@@ -162,82 +162,84 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                                     </div>
 
                                     <div className="flex-1 flex items-center">
-                                        <div className="w-full bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700/50 shadow-2xl">
-                                            {/* Horizontal 3-step flow */}
-                                            <div className="grid grid-cols-5 gap-2 mb-4">
+                                        <div className="w-full bg-gray-800/50 backdrop-blur-sm rounded-2xl p-5 border border-gray-700/50 shadow-2xl">
+                                            {/* Vertical 3-step flow */}
+                                            <div className="flex flex-col items-center gap-3">
                                                 {/* Step 1 */}
-                                                <div className="col-span-2 flex flex-col items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-lg">
+                                                <div className="flex items-center gap-4 w-full">
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold flex items-center justify-center text-base shadow-lg flex-shrink-0">
                                                         1
                                                     </div>
-                                                    <div className="w-full aspect-[3/4] bg-gray-900/50 rounded-lg border border-gray-700/30 p-2 flex items-center justify-center">
-                                                        <div className="relative">
-                                                            <div className="w-11 h-14 bg-gradient-to-br from-blue-900 to-black rounded border border-gray-600 flex items-center justify-center">
-                                                                <div className="text-lg">🎬</div>
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="relative">
+                                                                <div className="w-12 h-16 bg-gradient-to-br from-blue-900 to-black rounded border border-gray-600 flex items-center justify-center">
+                                                                    <div className="text-2xl">🎬</div>
+                                                                </div>
+                                                                <div className="absolute -bottom-1 -right-1 text-xl">📺</div>
                                                             </div>
-                                                            <div className="absolute -bottom-1 -right-1 text-base">📺</div>
                                                         </div>
+                                                        <p className="text-sm text-gray-200 font-medium">
+                                                            See a movie<br/>on your screen
+                                                        </p>
                                                     </div>
-                                                    <p className="text-xs text-gray-300 text-center leading-tight">
-                                                        See a<br />movie
-                                                    </p>
                                                 </div>
 
-                                                {/* Arrow */}
-                                                <div className="flex items-center justify-center pt-10">
-                                                    <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5-5 5"/>
+                                                {/* Arrow down */}
+                                                <div className="flex justify-center py-1">
+                                                    <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
                                                     </svg>
                                                 </div>
 
                                                 {/* Step 2 */}
-                                                <div className="col-span-2 flex flex-col items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white font-bold flex items-center justify-center text-sm shadow-lg">
+                                                <div className="flex items-center gap-4 w-full">
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 text-white font-bold flex items-center justify-center text-base shadow-lg flex-shrink-0">
                                                         2
                                                     </div>
-                                                    <div className="w-full aspect-[3/4] bg-gray-900/50 rounded-lg border border-gray-700/30 p-2 flex items-center justify-center">
-                                                        <div className="relative w-14 h-18 bg-gradient-to-br from-gray-800 to-black rounded-lg border-2 border-gray-700 flex items-center justify-center">
-                                                            <div className="text-xl">📷</div>
-                                                            <div className="absolute -top-1 -right-1 text-xs animate-pulse">✨</div>
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <div className="relative w-16 h-20 bg-gradient-to-br from-gray-800 to-black rounded-lg border-2 border-gray-700 flex items-center justify-center">
+                                                            <div className="text-3xl">📷</div>
+                                                            <div className="absolute -top-1 -right-1 text-base animate-pulse">✨</div>
                                                         </div>
+                                                        <p className="text-sm text-gray-200 font-medium">
+                                                            Snap a quick<br/>photo
+                                                        </p>
                                                     </div>
-                                                    <p className="text-xs text-gray-300 text-center leading-tight">
-                                                        Snap<br />photo
-                                                    </p>
                                                 </div>
-                                            </div>
 
-                                            {/* Second row */}
-                                            <div className="grid grid-cols-5 gap-2 mb-3">
-                                                <div className="col-span-2"></div>
-                                                <div className="flex items-start justify-center pt-1">
-                                                    <svg className="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                {/* Arrow down */}
+                                                <div className="flex justify-center py-1">
+                                                    <svg className="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
                                                     </svg>
                                                 </div>
-                                                <div className="col-span-2 flex flex-col items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white font-bold flex items-center justify-center text-sm shadow-lg">
+
+                                                {/* Step 3 */}
+                                                <div className="flex items-center gap-4 w-full">
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 text-white font-bold flex items-center justify-center text-base shadow-lg flex-shrink-0">
                                                         3
                                                     </div>
-                                                    <div className="w-full aspect-[3/4] bg-gray-900/50 rounded-lg border border-gray-700/30 p-2 flex items-center justify-center">
-                                                        <div className="relative w-14 h-18 bg-gradient-to-br from-gray-800 to-black rounded-lg border-2 border-gray-700 flex flex-col items-center justify-center gap-1 p-1">
-                                                            <div className="text-lg">✅</div>
-                                                            <div className="bg-gradient-to-r from-green-500 to-green-600 px-2 py-1 rounded text-[9px] font-bold text-white text-center leading-tight">
-                                                                Watch<br />It!
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <div className="relative w-16 h-20 bg-gradient-to-br from-gray-800 to-black rounded-lg border-2 border-gray-700 flex flex-col items-center justify-center gap-1 p-1">
+                                                            <div className="text-2xl">✅</div>
+                                                            <div className="bg-gradient-to-r from-green-500 to-green-600 px-2 py-1 rounded text-[10px] font-bold text-white text-center leading-tight">
+                                                                Watch It!
                                                             </div>
-                                                            <div className="absolute -top-1 -right-1 text-xs">🎉</div>
+                                                            <div className="absolute -top-1 -right-1 text-base">🎉</div>
                                                         </div>
+                                                        <p className="text-sm text-gray-200 font-medium">
+                                                            Get personalized<br/>answer
+                                                        </p>
                                                     </div>
-                                                    <p className="text-xs text-gray-300 text-center leading-tight">
-                                                        Get<br />answer
+                                                </div>
+
+                                                {/* Description */}
+                                                <div className="text-center pt-4 mt-2 border-t border-gray-700/50 w-full">
+                                                    <p className="text-sm text-gray-300 leading-snug">
+                                                        Instant recommendations<br/>based on your taste
                                                     </p>
                                                 </div>
-                                            </div>
-
-                                            <div className="text-center pt-3 border-t border-gray-700/50">
-                                                <p className="text-sm text-gray-200 leading-snug">
-                                                    Instant personalized<br />movie recommendations
-                                                </p>
                                             </div>
                                         </div>
                                     </div>
