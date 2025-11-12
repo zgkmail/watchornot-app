@@ -19,6 +19,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Debug - List all apps visible to token
+        run: flyctl apps list
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        continue-on-error: true
+
+      - name: Debug - Check frontend app status
+        run: flyctl status --app watchornot-frontend
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        continue-on-error: true
+
       - name: Deploy web app to Fly.io
         run: |
           cd packages/web
