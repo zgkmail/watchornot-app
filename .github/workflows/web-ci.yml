@@ -79,6 +79,10 @@ jobs:
           sleep 5
         env:
           NODE_ENV: test
+          SESSION_SECRET: test-secret-key-for-ci
+          TMDB_API_KEY: test-tmdb-key
+          CLAUDE_API_KEY: test-claude-key
+          OMDB_API_KEY: test-omdb-key
 
       - name: Test API compatibility
         run: |
