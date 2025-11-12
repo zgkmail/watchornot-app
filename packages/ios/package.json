@@ -1,0 +1,20 @@
+{
+  "name": "@watchornot/ios",
+  "version": "1.0.0",
+  "description": "WatchOrNot iOS app (SwiftUI)",
+  "scripts": {
+    "codegen": "node ../../scripts/generate-swift-models.js",
+    "build": "xcodebuild -scheme WatchOrNot -configuration Release",
+    "test": "xcodebuild test -scheme WatchOrNot -destination 'platform=iOS Simulator,name=iPhone 15'",
+    "clean": "xcodebuild clean -scheme WatchOrNot",
+    "archive": "xcodebuild archive -scheme WatchOrNot -archivePath build/WatchOrNot.xcarchive"
+  },
+  "keywords": [
+    "ios",
+    "swiftui",
+    "watchornot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {}
+}

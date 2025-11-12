@@ -1,338 +1,334 @@
-# WatchOrNot - One Snap. One Answer.
+# WatchOrNot
 
-See a movie on TV? Just snap the title. WatchOrNot gives you a personalized yes-or-no recommendation based on your taste profile—instantly. No more endless scrolling or wondering if that movie is worth your time.
+> **One Snap. One Answer. Should you watch it or not?**
+
+Native iOS app for discovering movies you'll love, powered by AI vision recognition and personalized recommendations.
+
+## 📱 Primary Focus: iOS App
+
+This repository is now organized as a **monorepo** with iOS development as the **primary focus**.
+
+```
+📱 iOS App (SwiftUI) ⭐ PRIMARY
+🔧 Backend API (Node.js) ⭐ SHARED
+🌐 Web App (React) 🔒 LEGACY/REFERENCE
+```
 
 ## Features
 
-- **Image Recognition**: Use your camera or upload images to detect movie/TV show titles
-- **Movie Database**: Powered by TMDB API with comprehensive movie and TV show information
-- **Taste Profile**: Rate movies to build your personalized taste profile
-- **Secure API Keys**: Backend server keeps API keys secure on the server
-- **Session Management**: Automatic user session handling
-- **Rate Limiting**: Built-in protection against API abuse
-- **Zero Configuration**: No API key input required from users
+- 📸 **Movie Snap** - Point your camera at any movie poster for instant recognition
+- 🎯 **Personalized Recommendations** - Get movies tailored to your taste
+- 🏆 **Progress Tracking** - Level up from Newcomer to Master Cinephile
+- 🎨 **Beautiful Native UI** - SwiftUI design with dark mode
+- ⚡ **Fast & Offline-Ready** - Core features work offline
 
-## Architecture
-
-### Frontend
-- **Framework**: React 18
-- **Build Tool**: Vite (fast development & optimized production builds)
-- **Styling**: Tailwind CSS (via PostCSS)
-- **Bundler**: Vite + esbuild
-- **Storage**: localStorage for ratings
-
-### Backend (NEW!)
-- **Server**: Node.js + Express.js
-- **Database**: SQLite for session management
-- **API Proxy**: Secure proxy for TMDB API
-- **Authentication**: Session-based with express-session
-- **Security**: Rate limiting, CORS protection, environment-based API keys
-
-## Quick Start
-
-### Prerequisites
-- Node.js 18+ and npm
-- A modern web browser
-- **For server admin**: API keys from:
-  - [TMDB](https://www.themoviedb.org/settings/api) (free)
-  - [Claude AI](https://console.anthropic.com/) ($5 free credit)
-  - [OMDB](https://www.omdbapi.com/apikey.aspx) (free)
-
-### Option 1: Quick Start Script (Easiest!)
-
-```bash
-# Install dependencies (first time only)
-npm install
-cd backend && npm install && cd ..
-
-# Configure backend (first time only)
-cd backend
-cp .env.example .env
-# Edit .env with your API keys
-cd ..
-
-# Start both frontend and backend
-./start-dev.sh
-```
-
-### Option 2: Manual Setup
-
-### 1. Setup Frontend Dependencies
-
-```bash
-# Install frontend dependencies
-npm install
-```
-
-### 2. Setup Backend
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install dependencies
-npm install
-
-# Create environment file
-cp .env.example .env
-
-# Generate session secret
-node -e "console.log('SESSION_SECRET=' + require('crypto').randomBytes(32).toString('hex'))"
-
-# Edit .env and add:
-# - Generated SESSION_SECRET
-# - Your TMDB_API_KEY
-# - Your CLAUDE_API_KEY
-# - Your OMDB_API_KEY
-nano .env
-
-# Start the backend server
-npm start
-```
-
-The backend will run on `http://localhost:3001`
-
-### 3. Setup Frontend (in a new terminal)
-
-```bash
-# Start the Vite development server
-npm run dev
-```
-
-The frontend will be available at `http://localhost:3000`
-
-### 4. Start Using the App
-
-1. Open the app in your browser (http://localhost:3000)
-2. The backend securely handles all API requests
-3. Start snapping movies!
-
-## Project Structure
+## Repository Structure
 
 ```
 watchornot-app/
-├── index.html              # Main HTML entry point
-├── package.json            # Frontend dependencies
-├── vite.config.js          # Vite configuration
-├── tailwind.config.js      # Tailwind CSS configuration
-├── postcss.config.js       # PostCSS configuration
-├── start-dev.sh            # Convenience script to start both servers
-├── src/
-│   ├── main.jsx            # React entry point
-│   ├── App.jsx             # Main React component
-│   └── index.css           # Global styles + Tailwind directives
-├── README.md               # This file
-└── backend/
-    ├── server.js           # Main Express server
-    ├── package.json        # Backend dependencies
-    ├── .env.example        # Environment template
-    ├── README.md           # Backend documentation
-    ├── db/
-    │   ├── database.js     # SQLite setup & queries
-    │   └── watchornot.db   # Database (auto-created)
-    └── routes/
-        ├── tmdb.js         # TMDB proxy
-        ├── claude.js       # Claude API proxy
-        ├── omdb.js         # OMDB proxy
-        └── ratings.js      # Ratings endpoints
+├── packages/
+│   ├── ios/              # 📱 iOS App (SwiftUI) - PRIMARY
+│   ├── backend/          # 🔧 Backend API (Node.js) - SHARED
+│   ├── web/              # 🌐 Web App (React) - LEGACY
+│   └── shared/           # 📦 API Contracts & Types
+├── docs/                 # 📚 Comprehensive Documentation
+├── scripts/              # 🛠️ Build & Automation Scripts
+└── .github/workflows/    # ⚙️ CI/CD (iOS + Backend Priority)
 ```
+
+## Quick Start
+
+### For iOS Development (Recommended)
+
+```bash
+# 1. Clone repository
+git clone https://github.com/zgkmail/watchornot-app.git
+cd watchornot-app
+
+# 2. Install dependencies
+npm install
+
+# 3. Setup backend
+cd packages/backend
+cp .env.example .env
+# Edit .env with your API keys (Claude, TMDB, OMDb)
+npm install
+npm run dev
+
+# 4. Open iOS project
+cd ../ios
+open WatchOrNot.xcodeproj
+
+# 5. Build & Run in Xcode (⌘R)
+```
+
+**Full guide:** [iOS Setup Documentation](./docs/01-getting-started/setup-ios.md)
+
+### For Backend Development
+
+```bash
+# Start backend server
+cd packages/backend
+npm install
+npm run dev
+# Server runs at http://localhost:3000
+```
+
+**Full guide:** [Backend Documentation](./packages/backend/README.md)
+
+### For Web Development (Legacy)
+
+```bash
+# Web app is in maintenance mode
+cd packages/web
+npm install
+npm run dev
+```
+
+**Note:** Web app is feature-frozen. See [Web README](./packages/web/README.md)
+
+## Development Priorities
+
+### ✅ Active Development (iOS)
+- New features implemented in iOS first
+- Full CI/CD with automated testing
+- Primary documentation focus
+- Regular updates and improvements
+
+### ✅ Maintained (Backend)
+- Shared by all platforms
+- Full test coverage
+- API versioning for compatibility
+- Regular security updates
+
+### 🔒 Legacy Mode (Web)
+- Feature-frozen (no new features)
+- Critical bug fixes only
+- Kept as reference implementation
+- Basic CI to ensure compatibility
+
+## Technology Stack
+
+### iOS App
+- **UI:** SwiftUI
+- **Language:** Swift 5.9+
+- **iOS:** 17.0+
+- **Architecture:** MVVM
+- **Networking:** URLSession + async/await
+- **Persistence:** SwiftData / CoreData
+- **Camera:** AVFoundation
+
+### Backend (Shared)
+- **Runtime:** Node.js 18+
+- **Framework:** Express 4.18
+- **Database:** SQLite3
+- **AI:** Anthropic Claude (Vision)
+- **Movie Data:** TMDB + OMDb APIs
+
+### Web App (Legacy)
+- **Framework:** React 18.2
+- **Build:** Vite 5.0
+- **Styling:** Tailwind CSS 3.4
+
+## Architecture
+
+```mermaid
+graph LR
+    iOS[📱 iOS App] -->|HTTPS| API[🔧 Backend API]
+    Web[🌐 Web App<br/>LEGACY] -.->|HTTPS| API
+    API -->|AI Vision| Claude[Claude API]
+    API -->|Movie Data| TMDB[TMDB API]
+    API -->|Details| OMDb[OMDb API]
+    API -->|Store| DB[(SQLite)]
+
+    style iOS fill:#4A90E2
+    style API fill:#50C878
+    style Web fill:#E8E8E8
+```
+
+**Full architecture:** [System Overview](./docs/02-architecture/overview.md)
+
+## Documentation
+
+Comprehensive documentation is available in the [`/docs`](./docs) directory:
+
+### For iOS Developers ⭐
+- [📱 iOS Setup Guide](./docs/01-getting-started/setup-ios.md)
+- [🏗️ iOS Architecture](./docs/02-architecture/ios-frontend.md)
+- [📸 Camera Integration](./docs/05-ios-specific/camera-integration.md)
+- [🚀 App Store Submission](./docs/05-ios-specific/app-store-submission.md)
+
+### For Backend Developers
+- [🔧 Backend API](./docs/02-architecture/backend-api.md)
+- [📖 API Reference](./docs/04-api-reference/endpoints.md)
+- [🚀 Deployment Guide](./docs/06-deployment/backend-deployment.md)
+
+### For Web Developers (Maintenance)
+- [🌐 Web Setup](./docs/01-getting-started/setup-web.md)
+- [🔒 Web Architecture](./docs/02-architecture/web-frontend.md)
 
 ## API Endpoints
 
-### Backend API
+The backend provides a RESTful API used by all clients:
 
-- `GET /health` - Health check
-- `GET /api/session` - Session info
-- `GET /api/tmdb/search?query=name` - Search movies/TV
-- `GET /api/tmdb/:type/:id` - Get movie/TV details
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/claude/analyze` | POST | Analyze movie poster image |
+| `/api/onboarding/movies` | GET | Get curated onboarding movies |
+| `/api/onboarding/vote` | POST | Submit movie vote |
+| `/api/recommendations` | GET | Get personalized recommendations |
+| `/api/ratings/history` | GET | Get user's vote history |
 
-See [backend/README.md](backend/README.md) for detailed API documentation.
+**Complete API docs:** [API Reference](./docs/04-api-reference/endpoints.md)
 
-## Security Features
+## Development Workflow
 
-### API Key Protection
-- **Server-side Storage**: API keys stored in environment variables
-- **No Client Exposure**: API keys never sent to frontend
-- **Proxy Architecture**: Backend proxies all external API requests
-- **Session-based Auth**: Secure HTTP-only cookies
-
-### Rate Limiting
-- General endpoints: 100 req/15min per IP
-- External API proxies: 30 req/15min per IP
-
-### CORS Protection
-- Configurable allowed origins
-- Credentials support for sessions
-
-## Development
-
-### Frontend Development
+### Monorepo Commands
 
 ```bash
-# Start development server with hot reload
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-The frontend uses Vite for fast development with hot module replacement (HMR). Edit files in `src/` and see changes instantly.
-
-### Backend Development
-
-```bash
-cd backend
-
-# Install dev dependencies
+# Install all dependencies
 npm install
 
-# Run with auto-reload
-npm run dev
+# Run backend
+npm run dev:backend
 
-# The server will restart on file changes
+# Run web (legacy)
+npm run dev:web
+
+# Run all tests
+npm run test:all
+
+# Build everything
+npm run build:all
+
+# Clean all node_modules
+npm run clean
 ```
 
-## Configuration
-
-### Backend Environment Variables
-
-Create `backend/.env` with:
-
-```env
-PORT=3001
-NODE_ENV=development
-FRONTEND_URL=http://localhost:3000
-SESSION_SECRET=your_session_secret
-TMDB_API_KEY=your_tmdb_api_key
-CLAUDE_API_KEY=your_claude_api_key
-OMDB_API_KEY=your_omdb_api_key
-```
-
-### Frontend Backend URL
-
-In `src/App.jsx`, update the backend URL if needed:
-
-```javascript
-const BACKEND_URL = 'http://localhost:3001';
-```
-
-## Mobile Testing
-
-Want to test the app on your iPhone while the servers run on your computer? It's easy!
-
-Both the frontend and backend are configured to work on your local network automatically. Just:
-
-1. Find your computer's IP address (e.g., `192.168.1.5`)
-2. Start both servers with `npm run dev` (frontend) and `cd backend && npm start`
-3. Open `http://YOUR-IP:3000` on your iPhone's Safari
-
-The app automatically detects the network URL and connects to the backend on the same IP!
-
-📱 **See [MOBILE_TESTING.md](MOBILE_TESTING.md) for detailed instructions.**
-
-## Deployment
-
-**📚 Complete deployment guides available:**
-- **[QUICK_DEPLOY.md](QUICK_DEPLOY.md)** - 30-minute quick start (recommended)
-- **[DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md)** - Complete deployment strategy
-- **[DEPLOYMENT_OPTIONS.md](DEPLOYMENT_OPTIONS.md)** - Platform comparison
-- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Step-by-step checklist
-
-**Cost:** ~$0-5/month (mostly free, only Claude API is paid)
-
-### Frontend
-Build the production version and deploy to any static hosting:
+### iOS Commands
 
 ```bash
-# Build for production
-npm run build
+cd packages/ios
 
-# The dist/ folder contains your production-ready files
+# Build
+xcodebuild -scheme WatchOrNot -destination 'platform=iOS Simulator,name=iPhone 15'
+
+# Test
+xcodebuild test -scheme WatchOrNot
+
+# Or use Xcode: ⌘B to build, ⌘R to run, ⌘U to test
 ```
 
-Deploy `dist/` folder to:
-- GitHub Pages
-- Netlify
-- Vercel
-- AWS S3 + CloudFront
-- Any static hosting service
+## CI/CD
 
-### Backend
-Deploy to any Node.js hosting platform:
-- Railway
-- Render
-- Heroku
-- DigitalOcean App Platform
+Automated workflows for quality assurance:
 
-**Important**:
-- Update `FRONTEND_URL` in backend `.env` to match your frontend domain
-- Set `NODE_ENV=production` in production environment
-
-## Troubleshooting
-
-### Backend not connecting
-- Ensure backend is running on port 3001
-- Check browser console for CORS errors
-- Verify `FRONTEND_URL` matches frontend URL
-
-### API errors
-- Check backend logs for detailed error messages
-- Ensure all API keys are correctly set in backend `.env` (TMDB, Claude, OMDB)
-- Verify API keys are valid and have proper permissions
-- Note: Claude API requires payment after $5 free credit is exhausted
-
-### Session not persisting
-- Clear browser cookies and try again
-- Ensure `credentials: 'include'` in fetch calls
-- Check backend session secret is set
-
-## Technologies Used
-
-### Frontend
-- React 18
-- Vite
-- Tailwind CSS
-- PostCSS & Autoprefixer
-
-### Backend
-- Node.js
-- Express.js
-- better-sqlite3
-- express-session
-- express-rate-limit
-- crypto (built-in)
-- axios
-- cors
+| Platform | Status | Priority | Runs On |
+|----------|--------|----------|---------|
+| iOS | ![iOS CI](https://github.com/zgkmail/watchornot-app/workflows/iOS%20CI/badge.svg) | **HIGH** | Every PR |
+| Backend | ![Backend CI](https://github.com/zgkmail/watchornot-app/workflows/Backend%20CI/badge.svg) | **HIGH** | Every PR |
+| Web | ![Web CI](https://github.com/zgkmail/watchornot-app/workflows/Web%20CI/badge.svg) | Low | Weekly |
 
 ## Contributing
 
+We welcome contributions! Please see our [Contributing Guide](./docs/07-contributing/) for:
+
+- [Code Style Guide](./docs/07-contributing/code-style.md)
+- [Testing Guidelines](./docs/07-contributing/testing-guidelines.md)
+- [Pull Request Template](./docs/07-contributing/pull-request-template.md)
+
+### Quick Contribution Steps
+
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+4. Run tests (`npm test`)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+## Roadmap
+
+### Phase 1: MVP (Current) - Weeks 1-8
+- [x] Monorepo setup
+- [ ] iOS core infrastructure
+- [ ] Camera integration
+- [ ] Onboarding flow
+- [ ] Recommendations
+- [ ] User profile
+
+### Phase 2: Polish - Weeks 9-10
+- [ ] Dark mode
+- [ ] Animations
+- [ ] App Store assets
+- [ ] TestFlight beta
+
+### Phase 3: Launch - Week 11
+- [ ] App Store submission
+- [ ] Public release
+
+### Phase 4: Future
+- [ ] Watch provider integration
+- [ ] Social features
+- [ ] Widgets
+- [ ] Android app
+
+## Deployment
+
+### Backend
+- **Production:** [Fly.io](https://fly.io) / [Railway](https://railway.app)
+- **Staging:** Separate instance for testing
+
+See [Backend Deployment Guide](./docs/06-deployment/backend-deployment.md)
+
+### iOS
+- **TestFlight:** Beta testing
+- **App Store:** Public distribution
+
+See [iOS Deployment Guide](./docs/06-deployment/ios-deployment.md)
+
+### Web (Legacy)
+- **Hosting:** [Vercel](https://vercel.com)
+- **Status:** Maintenance mode
+
+## Environment Variables
+
+### Backend (.env)
+```env
+# Required
+CLAUDE_API_KEY=sk-ant-...
+TMDB_API_KEY=...
+OMDB_API_KEY=...
+
+# Optional
+PORT=3000
+NODE_ENV=development
+```
+
+Get API keys from:
+- **Claude:** https://console.anthropic.com
+- **TMDB:** https://www.themoviedb.org/settings/api
+- **OMDb:** http://www.omdbapi.com/apikey.aspx
 
 ## License
 
-MIT License - feel free to use this project for learning or production!
-
-## Acknowledgments
-
-- [TMDB](https://www.themoviedb.org/) for movie data
-- [Claude API](https://www.anthropic.com/) for image recognition
-- All open source contributors
+MIT License - See [LICENSE](./LICENSE) for details.
 
 ## Support
 
-For issues or questions:
-1. Check the troubleshooting section
-2. Review backend logs
-3. Check browser console for errors
-4. Open an issue on GitHub
+- 🐛 **Bug Reports:** [GitHub Issues](https://github.com/zgkmail/watchornot-app/issues)
+- 💬 **Questions:** [GitHub Discussions](https://github.com/zgkmail/watchornot-app/discussions)
+- 📧 **Security:** See [SECURITY.md](./SECURITY.md)
+
+## Acknowledgments
+
+- **Anthropic Claude** - AI vision recognition
+- **TMDB** - Movie database
+- **OMDb** - Movie details and ratings
+- **Apple** - iOS platform and tools
 
 ---
 
-Built with ❤️ for movie lovers everywhere!
+**Built with ❤️ by the WatchOrNot Team**
+
+**Status:** 🚀 Active iOS Development | 🔧 Backend Maintained | 🔒 Web Legacy

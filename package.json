@@ -1,33 +1,43 @@
 {
-  "name": "watchornot-app",
+  "name": "watchornot-monorepo",
   "version": "1.0.0",
-  "description": "WatchOrNot - One Snap. One Answer.",
-  "type": "module",
+  "description": "WatchOrNot - Multi-platform movie recommendation app (iOS-focused)",
+  "private": true,
+  "workspaces": [
+    "packages/backend",
+    "packages/web",
+    "packages/ios",
+    "packages/shared"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "serve": "vite preview",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "dev:backend": "npm run dev --workspace=packages/backend",
+    "dev:web": "npm run dev --workspace=packages/web",
+    "build:web": "npm run build --workspace=packages/web",
+    "build:backend": "npm run build --workspace=packages/backend",
+    "test:backend": "npm run test --workspace=packages/backend",
+    "test:web": "npm run test --workspace=packages/web",
+    "test:all": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "rm -rf packages/*/node_modules node_modules",
+    "setup": "npm install && npm run setup:backend",
+    "setup:backend": "npm run setup --workspace=packages/backend --if-present"
   },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.1",
-    "@testing-library/jest-dom": "^6.1.5",
-    "@testing-library/react": "^14.1.2",
-    "@testing-library/user-event": "^14.5.1",
-    "@vitest/ui": "^1.0.4",
-    "autoprefixer": "^10.4.16",
-    "jsdom": "^23.0.1",
-    "postcss": "^8.4.32",
-    "sharp": "^0.34.5",
-    "tailwindcss": "^3.4.0",
-    "vite": "^5.0.8",
-    "vitest": "^1.0.4"
-  }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zgkmail/watchornot-app"
+  },
+  "keywords": [
+    "movies",
+    "recommendations",
+    "ai",
+    "ios",
+    "mobile",
+    "swiftui"
+  ],
+  "author": "",
+  "license": "MIT"
 }

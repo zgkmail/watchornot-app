@@ -1,0 +1,90 @@
+name: Web CI (Legacy)
+
+# Low priority - runs less frequently
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/web/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/web/**'
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+
+jobs:
+  test:
+    name: Test Web App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install web dependencies
+        working-directory: packages/web
+        run: npm ci
+
+      - name: Run tests
+        working-directory: packages/web
+        run: npm test
+        continue-on-error: true  # Legacy mode - don't fail CI
+
+      - name: Build web app
+        working-directory: packages/web
+        run: npm run build
+
+      - name: Check for build errors
+        working-directory: packages/web
+        run: |
+          if [ -d "dist" ]; then
+            echo "✓ Web app builds successfully"
+          else
+            echo "⚠️ Web app build failed"
+            exit 1
+          fi
+
+  compatibility:
+    name: Backend Compatibility Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start backend
+        working-directory: packages/backend
+        run: |
+          npm ci
+          npm start &
+          sleep 5
+        env:
+          NODE_ENV: test
+
+      - name: Test API compatibility
+        run: |
+          # Check if backend is running
+          curl -f http://localhost:3000/health || exit 1
+          echo "✓ Backend is responsive"
+
+      - name: Stop backend
+        run: pkill -f "node.*server.js" || true
