@@ -22,8 +22,8 @@ jobs:
         run: |
           flyctl deploy packages/backend \
             --app watchornot-backend \
-            --config packages/backend/fly.toml \
-            --dockerfile packages/backend/Dockerfile \
+            --config fly.toml \
+            --dockerfile Dockerfile \
             --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
