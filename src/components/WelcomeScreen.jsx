@@ -69,19 +69,17 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                 </div>
 
                 {/* Swipeable container - positioned relative for child absolute positioning */}
-                <div
-                    className="relative w-full h-full overflow-hidden"
-                >
-                    {/* Inner sliding wrapper */}
+                <div className="relative w-full h-full overflow-hidden">
+                    {/* Inner sliding wrapper - 200vw wide containing two 100vw screens */}
                     <div
                         className="absolute top-0 left-0 h-full flex transition-transform duration-300 ease-out"
                         style={{
                             width: '200vw',
-                            transform: `translateX(-${currentScreen * 50}%)`
+                            transform: `translateX(-${currentScreen * 100}vw)`
                         }}
                     >
-                        {/* Screen 1: Welcome & Introduction */}
-                        <div className="relative w-[50vw] h-full flex-shrink-0">
+                        {/* Screen 1: Welcome & Introduction - FULL viewport width */}
+                        <div className="relative w-screen h-full flex-shrink-0">
                             <div className="w-full h-full flex flex-col justify-between safe-area-top safe-area-bottom">
                                 {/* Debug indicator */}
                                 <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-50">
@@ -148,8 +146,8 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                             </div>
                         </div>
 
-                        {/* Screen 2: How It Works */}
-                        <div className="relative w-[50vw] h-full flex-shrink-0">
+                        {/* Screen 2: How It Works - FULL viewport width */}
+                        <div className="relative w-screen h-full flex-shrink-0">
                             <div className="w-full h-full flex flex-col justify-between safe-area-top safe-area-bottom">
                                 {/* Debug indicator */}
                                 <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded z-50">
