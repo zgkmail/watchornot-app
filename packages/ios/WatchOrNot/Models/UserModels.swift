@@ -7,24 +7,24 @@
 
 import Foundation
 
-/// User tier levels
+/// User tier levels (matches backend tier system)
 enum UserTier: String, Codable {
-    case newcomer = "newcomer"
-    case enthusiast = "enthusiast"
-    case cinephile = "cinephile"
-    case critic = "critic"
-    case master = "master"
+    case newcomer = "Newcomer"      // 0-4 votes
+    case explorer = "Explorer"      // 5-14 votes
+    case enthusiast = "Enthusiast"  // 15-29 votes
+    case expert = "Expert"          // 30-49 votes
+    case master = "Master"          // 50+ votes
 
     var displayName: String {
-        rawValue.capitalized
+        rawValue
     }
 
     var emoji: String {
         switch self {
         case .newcomer: return "🌱"
-        case .enthusiast: return "🎬"
-        case .cinephile: return "🎥"
-        case .critic: return "⭐"
+        case .explorer: return "🎬"
+        case .enthusiast: return "🎥"
+        case .expert: return "⭐"
         case .master: return "👑"
         }
     }
@@ -32,9 +32,9 @@ enum UserTier: String, Codable {
     var description: String {
         switch self {
         case .newcomer: return "Just getting started"
+        case .explorer: return "Exploring movies"
         case .enthusiast: return "Growing your taste"
-        case .cinephile: return "Serious movie lover"
-        case .critic: return "Expert opinion"
+        case .expert: return "Expert opinion"
         case .master: return "Ultimate movie master"
         }
     }
@@ -42,10 +42,10 @@ enum UserTier: String, Codable {
     var votesRequired: Int {
         switch self {
         case .newcomer: return 0
-        case .enthusiast: return 10
-        case .cinephile: return 25
-        case .critic: return 50
-        case .master: return 100
+        case .explorer: return Config.Tier.explorerMin
+        case .enthusiast: return Config.Tier.enthusiastMin
+        case .expert: return Config.Tier.expertMin
+        case .master: return Config.Tier.masterMin
         }
     }
 }

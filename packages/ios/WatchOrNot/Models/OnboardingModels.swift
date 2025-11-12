@@ -87,3 +87,8 @@ struct OnboardingStatusResponse: Codable {
         case hasCompletedOnboarding = "has_completed_onboarding"
     }
 }
+
+/// Onboarding complete request (batch submission)
+struct OnboardingCompleteRequest: Codable {
+    let votes: [VoteRequest]
+}

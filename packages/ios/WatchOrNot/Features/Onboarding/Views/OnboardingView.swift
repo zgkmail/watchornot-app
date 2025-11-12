@@ -24,6 +24,17 @@ struct OnboardingView: View {
             VStack(spacing: 0) {
                 if viewModel.isComplete {
                     OnboardingCompleteView()
+                } else if viewModel.isSubmitting {
+                    // Submitting votes to server
+                    VStack(spacing: 24) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.5)
+
+                        Text("Saving your preferences...")
+                            .font(.bodyMedium)
+                            .foregroundColor(.textSecondary)
+                    }
                 } else if let movie = viewModel.currentMovie {
                     VStack(spacing: 20) {
                         // Header

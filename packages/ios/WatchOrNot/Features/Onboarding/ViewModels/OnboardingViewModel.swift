@@ -12,12 +12,14 @@ class OnboardingViewModel: ObservableObject {
     @Published var movies: [OnboardingMovie] = []
     @Published var currentIndex: Int = 0
     @Published var isLoading: Bool = false
+    @Published var isSubmitting: Bool = false
     @Published var error: String?
-    @Published var votedMovies: Set<String> = []
+    @Published var actualVoteCount: Int = 0 // Only up/down votes, not skips
     @Published var isComplete: Bool = false
 
     private let apiClient: APIClient
-    private let totalMoviesNeeded = Config.onboardingMovieCount
+    private let requiredVotes = Config.onboardingRequiredVotes // 5 actual votes needed
+    private var allVotes: [VoteRequest] = [] // Store all votes locally
 
     init(apiClient: APIClient = .shared) {
         self.apiClient = apiClient
@@ -29,11 +31,11 @@ class OnboardingViewModel: ObservableObject {
     }
 
     var progress: Double {
-        Double(votedMovies.count) / Double(totalMoviesNeeded)
+        Double(actualVoteCount) / Double(requiredVotes)
     }
 
     var votesRemaining: Int {
-        max(0, totalMoviesNeeded - votedMovies.count)
+        max(0, requiredVotes - actualVoteCount)
     }
 
     /// Load onboarding movies
@@ -54,12 +56,16 @@ class OnboardingViewModel: ObservableObject {
         }
     }
 
-    /// Submit a vote
+    /// Submit a vote (stored locally until batch submission)
     func vote(_ voteType: VoteType) async {
         guard let movie = currentMovie else { return }
 
-        isLoading = true
+        // Don't allow voting if we've already reached the required count
+        if voteType != .skip && actualVoteCount >= requiredVotes {
+            return
+        }
 
+        // Create vote request
         let request = VoteRequest(
             movieId: movie.id,
             vote: voteType,
@@ -70,24 +76,48 @@ class OnboardingViewModel: ObservableObject {
             cast: movie.cast
         )
 
+        // Store vote locally
+        allVotes.append(request)
+
+        // Only increment for actual votes (not skips)
+        if voteType != .skip {
+            actualVoteCount += 1
+        }
+
+        // Check if we've reached required votes
+        if actualVoteCount >= requiredVotes {
+            // Submit all votes to backend
+            await submitAllVotes()
+        } else if currentIndex < movies.count - 1 {
+            // Move to next movie
+            moveToNext()
+        } else {
+            // Ran out of movies without enough votes
+            error = "You need to vote on at least \(requiredVotes) movies (not \"Skip\"). Please try again."
+        }
+    }
+
+    /// Submit all votes to backend in a batch
+    private func submitAllVotes() async {
+        isSubmitting = true
+        error = nil
+
         do {
             let response = try await apiClient.request(
-                .submitVote(request),
+                .completeOnboarding(allVotes),
                 expecting: VoteResponse.self
             )
 
-            votedMovies.insert(movie.id)
-
-            if response.onboardingComplete == true || votedMovies.count >= totalMoviesNeeded {
+            if response.success {
                 isComplete = true
             } else {
-                moveToNext()
+                error = response.message
             }
 
-            isLoading = false
+            isSubmitting = false
         } catch {
-            self.error = "Failed to submit vote: \(error.localizedDescription)"
-            isLoading = false
+            self.error = "Failed to save your preferences: \(error.localizedDescription)"
+            isSubmitting = false
         }
     }
 
@@ -106,7 +136,8 @@ class OnboardingViewModel: ObservableObject {
     /// Restart onboarding
     func restart() {
         currentIndex = 0
-        votedMovies.removeAll()
+        actualVoteCount = 0
+        allVotes = []
         isComplete = false
         error = nil
     }

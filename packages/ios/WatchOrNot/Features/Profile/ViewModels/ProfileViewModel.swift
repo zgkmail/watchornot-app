@@ -126,17 +126,17 @@ class ProfileViewModel: ObservableObject {
     // MARK: - Helpers
 
     private func calculateTier(votes: Int) -> UserTier {
-        switch votes {
-        case 0..<Config.Tier.newcomerMax:
-            return .newcomer
-        case Config.Tier.newcomerMax..<Config.Tier.explorerMax:
-            return .enthusiast
-        case Config.Tier.explorerMax..<Config.Tier.enthusiastMax:
-            return .cinephile
-        case Config.Tier.enthusiastMax..<Config.Tier.aficionadoMax:
-            return .critic
-        default:
+        // Match backend tier calculation exactly
+        if votes >= Config.Tier.masterMin {
             return .master
+        } else if votes >= Config.Tier.expertMin {
+            return .expert
+        } else if votes >= Config.Tier.enthusiastMin {
+            return .enthusiast
+        } else if votes >= Config.Tier.explorerMin {
+            return .explorer
+        } else {
+            return .newcomer
         }
     }
 
@@ -144,15 +144,15 @@ class ProfileViewModel: ObservableObject {
         let tier = calculateTier(votes: votes)
         switch tier {
         case .newcomer:
-            return Config.Tier.newcomerMax
+            return Config.Tier.explorerMin
+        case .explorer:
+            return Config.Tier.enthusiastMin
         case .enthusiast:
-            return Config.Tier.explorerMax
-        case .cinephile:
-            return Config.Tier.enthusiastMax
-        case .critic:
-            return Config.Tier.aficionadoMax
+            return Config.Tier.expertMin
+        case .expert:
+            return Config.Tier.masterMin
         case .master:
-            return nil
+            return nil // Already at max tier
         }
     }
 }

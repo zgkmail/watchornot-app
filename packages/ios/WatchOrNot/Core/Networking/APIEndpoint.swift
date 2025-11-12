@@ -14,7 +14,7 @@ enum APIEndpoint {
 
     // Onboarding
     case getOnboardingMovies
-    case submitVote(VoteRequest)
+    case completeOnboarding([VoteRequest]) // Submit all votes at once
     case getOnboardingStatus
 
     // Recommendations
@@ -42,8 +42,8 @@ enum APIEndpoint {
             return "/api/claude/analyze"
         case .getOnboardingMovies:
             return "/api/onboarding/movies"
-        case .submitVote:
-            return "/api/onboarding/vote"
+        case .completeOnboarding:
+            return "/api/onboarding/complete"
         case .getOnboardingStatus:
             return "/api/onboarding/status"
         case .getRecommendations:
@@ -69,7 +69,7 @@ enum APIEndpoint {
 
     var method: HTTPMethod {
         switch self {
-        case .analyzeImage, .submitVote, .submitRating:
+        case .analyzeImage, .completeOnboarding, .submitRating:
             return .post
         case .deleteHistoryEntry:
             return .delete
@@ -101,8 +101,9 @@ enum APIEndpoint {
 
     var body: Encodable? {
         switch self {
-        case .submitVote(let request):
-            return request
+        case .completeOnboarding(let votes):
+            // Match web app format: { votes: [...] }
+            return OnboardingCompleteRequest(votes: votes)
         case .submitRating(let movieId, let rating):
             return ["movieId": movieId, "rating": rating]
         default:

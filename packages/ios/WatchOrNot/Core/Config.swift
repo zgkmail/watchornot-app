@@ -35,15 +35,17 @@ enum Config {
     /// JPEG compression quality
     static let imageCompressionQuality: CGFloat = 0.8
 
-    /// Onboarding movie count
-    static let onboardingMovieCount: Int = 10
+    /// Onboarding required votes (backend provides 10 movies, user must vote on 5)
+    static let onboardingRequiredVotes: Int = 5
 
-    /// User tier thresholds
+    /// Onboarding total movies provided
+    static let onboardingTotalMovies: Int = 10
+
+    /// User tier thresholds (matches backend)
     enum Tier {
-        static let newcomerMax = 10
-        static let explorerMax = 25
-        static let enthusiastMax = 50
-        static let aficionadoMax = 100
-        static let masterMin = 101
+        static let explorerMin = 5      // Explorer: 5-14 votes
+        static let enthusiastMin = 15   // Enthusiast: 15-29 votes
+        static let expertMin = 30       // Expert: 30-49 votes
+        static let masterMin = 50       // Master: 50+ votes
     }
 }
