@@ -20,7 +20,10 @@ jobs:
 
       - name: Deploy backend to Fly.io
         run: |
-          cd packages/backend
-          flyctl deploy --remote-only --config fly.toml
+          flyctl deploy packages/backend \
+            --app watchornot-backend \
+            --config packages/backend/fly.toml \
+            --dockerfile packages/backend/Dockerfile \
+            --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
