@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import OnboardingModal from './components/OnboardingModal';
+import WelcomeScreen from './components/WelcomeScreen';
 
 
         // SVG Icon Components
@@ -207,6 +208,14 @@ import OnboardingModal from './components/OnboardingModal';
                 return saved === 'true';
             });
 
+            // Welcome screen state
+            const [showWelcomeScreen, setShowWelcomeScreen] = useState(() => {
+                const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+                const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding');
+                // Show welcome screen only if user hasn't seen it AND hasn't completed onboarding
+                return hasSeenWelcome !== 'true' && hasCompletedOnboarding !== 'true';
+            });
+
             // Backend API configuration
             // Automatically use the same host as the frontend (for network testing on iPhone/devices)
             // If accessing via IP (e.g., http://192.168.1.5:3000), backend will be http://192.168.1.5:3001
@@ -356,8 +365,9 @@ import OnboardingModal from './components/OnboardingModal';
                             setMovieHistory(historyObj);
                             console.log('✅ Loaded', data.ratings.length, 'movies from backend');
 
-                            // Show onboarding if user has no ratings and hasn't completed it before
-                            if (data.ratings.length === 0 && !hasCompletedOnboarding) {
+                            // Show onboarding if user has no ratings, hasn't completed it, and has already seen welcome screen
+                            const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+                            if (data.ratings.length === 0 && !hasCompletedOnboarding && hasSeenWelcome === 'true') {
                                 setShowOnboarding(true);
                             }
                         } else {
@@ -1768,6 +1778,24 @@ import OnboardingModal from './components/OnboardingModal';
                 localStorage.setItem('hasCompletedOnboarding', 'true');
             };
 
+            // Welcome screen handlers
+            const handleWelcomeStartOnboarding = () => {
+                // Hide welcome screen and mark as seen
+                setShowWelcomeScreen(false);
+                localStorage.setItem('hasSeenWelcome', 'true');
+                // Show onboarding modal
+                setShowOnboarding(true);
+            };
+
+            const handleWelcomeSkip = () => {
+                // Hide welcome screen and mark as seen
+                setShowWelcomeScreen(false);
+                localStorage.setItem('hasSeenWelcome', 'true');
+                // Mark onboarding as completed so it doesn't show after refresh
+                localStorage.setItem('hasCompletedOnboarding', 'true');
+                // Don't show onboarding
+            };
+
             return (
                 <div className="flex items-center justify-center min-h-screen bg-gray-900 md:p-4">
                     <div className="app-container fixed md:relative top-0 left-0 md:top-auto md:left-auto w-full bg-black overflow-hidden md:max-w-sm md:rounded-[3rem] md:shadow-2xl" style={{ height: '100dvh', maxHeight: '100dvh' }}>
@@ -2791,6 +2819,15 @@ import OnboardingModal from './components/OnboardingModal';
                             backendUrl={BACKEND_URL}
                             fetchWithSession={fetchWithSession}
                         />
+
+                        {/* Welcome Screen */}
+                        {showWelcomeScreen && (
+                            <WelcomeScreen
+                                onStartOnboarding={handleWelcomeStartOnboarding}
+                                onSkip={handleWelcomeSkip}
+                                isDarkMode={isDarkMode}
+                            />
+                        )}
                     </div>
                 </div>
             );
