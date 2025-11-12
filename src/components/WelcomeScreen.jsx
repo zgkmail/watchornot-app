@@ -238,7 +238,7 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                                     >
                                         <span className="text-xl">🎬</span>
                                         <div className="flex flex-col items-start">
-                                            <span className="text-base">Build Your Profile</span>
+                                            <span className="text-base">Build Your Taste Profile</span>
                                             <span className="text-xs font-normal opacity-90">(5 quick votes)</span>
                                         </div>
                                     </button>

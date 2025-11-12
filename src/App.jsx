@@ -1791,6 +1791,8 @@ import WelcomeScreen from './components/WelcomeScreen';
                 // Hide welcome screen and mark as seen
                 setShowWelcomeScreen(false);
                 localStorage.setItem('hasSeenWelcome', 'true');
+                // Mark onboarding as completed so it doesn't show after refresh
+                localStorage.setItem('hasCompletedOnboarding', 'true');
                 // Don't show onboarding
             };
 
