@@ -7,6 +7,7 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
 
     const handleTouchStart = (e) => {
         touchStartX.current = e.touches[0].clientX;
+        console.log('Touch start:', touchStartX.current);
     };
 
     const handleTouchMove = (e) => {
@@ -20,14 +21,25 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
         const isLeftSwipe = distance > 50;
         const isRightSwipe = distance < -50;
 
+        console.log('Swipe distance:', distance, 'Left:', isLeftSwipe, 'Right:', isRightSwipe, 'Current:', currentScreen);
+
         if (isLeftSwipe && currentScreen === 0) {
+            console.log('Switching to screen 2');
             setCurrentScreen(1);
         } else if (isRightSwipe && currentScreen === 1) {
+            console.log('Switching to screen 1');
             setCurrentScreen(0);
         }
 
         touchStartX.current = null;
         touchEndX.current = null;
+    };
+
+    // Debug: Add click handler to switch screens
+    const handleScreenClick = () => {
+        const newScreen = currentScreen === 0 ? 1 : 0;
+        console.log('Click: switching to screen', newScreen);
+        setCurrentScreen(newScreen);
     };
 
     // WatchOrNot Icon Component
@@ -55,7 +67,12 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
 
     // Screen 1: Welcome & Introduction
     const Screen1 = () => (
-        <div className="h-full flex flex-col justify-between safe-area-top safe-area-bottom">
+        <div className="h-full flex flex-col justify-between safe-area-top safe-area-bottom bg-gradient-to-b from-gray-900 via-black to-gray-900">
+            {/* Debug indicator */}
+            <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-50">
+                Screen 1
+            </div>
+
             <div className="flex-1 flex flex-col px-6 pt-4">
                 <WatchOrNotIcon />
 
@@ -95,8 +112,8 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                         </svg>
                     </div>
 
-                    {/* Progress dots */}
-                    <div className="flex items-center gap-2">
+                    {/* Progress dots - clickable for debug */}
+                    <div className="flex items-center gap-2" onClick={handleScreenClick}>
                         <div className="w-8 h-1 rounded-full bg-blue-500"></div>
                         <div className="w-2 h-2 rounded-full bg-gray-600"></div>
                     </div>
@@ -107,7 +124,12 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
 
     // Screen 2: How It Works
     const Screen2 = () => (
-        <div className="h-full flex flex-col justify-between safe-area-top safe-area-bottom">
+        <div className="h-full flex flex-col justify-between safe-area-top safe-area-bottom bg-gradient-to-b from-gray-900 via-black to-gray-900">
+            {/* Debug indicator */}
+            <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded z-50">
+                Screen 2
+            </div>
+
             <div className="flex-1 flex flex-col px-5 pt-4">
                 <div className="text-center mb-4">
                     <h2 className="text-2xl font-bold text-white">
@@ -228,8 +250,8 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                     </button>
                 </div>
 
-                {/* Progress dots */}
-                <div className="mt-3">
+                {/* Progress dots - clickable for debug */}
+                <div className="mt-3" onClick={handleScreenClick}>
                     <div className="flex items-center justify-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-gray-600"></div>
                         <div className="w-8 h-1 rounded-full bg-blue-500"></div>
@@ -258,6 +280,11 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
             >
+                {/* Debug info - top left */}
+                <div className="fixed top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded z-[60]">
+                    Active: {currentScreen}
+                </div>
+
                 <div className="relative max-w-md mx-auto overflow-hidden" style={{ height: '100dvh' }}>
                     {/* Screens container */}
                     <div
@@ -269,12 +296,12 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                         }}
                     >
                         {/* Screen 1 */}
-                        <div className="w-1/2 flex-shrink-0 h-full">
+                        <div className="w-1/2 flex-shrink-0 h-full relative">
                             <Screen1 />
                         </div>
 
                         {/* Screen 2 */}
-                        <div className="w-1/2 flex-shrink-0 h-full">
+                        <div className="w-1/2 flex-shrink-0 h-full relative">
                             <Screen2 />
                         </div>
                     </div>
