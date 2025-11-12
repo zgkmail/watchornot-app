@@ -63,11 +63,6 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
             >
-                {/* Debug info - top left */}
-                <div className="fixed top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded z-[60]">
-                    Active: {currentScreen}
-                </div>
-
                 {/* Swipeable container - positioned relative for child absolute positioning */}
                 <div className="relative w-full h-full overflow-hidden">
                     {/* Inner sliding wrapper - 200vw wide containing two 100vw screens */}
@@ -81,11 +76,6 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                         {/* Screen 1: Welcome & Introduction - FULL viewport width */}
                         <div className="relative w-screen h-full flex-shrink-0">
                             <div className="w-full h-full flex flex-col justify-between safe-area-top safe-area-bottom">
-                                {/* Debug indicator */}
-                                <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-50">
-                                    Screen 1
-                                </div>
-
                                 <div className="flex-1 flex flex-col px-6 pt-4">
                                     {/* Icon */}
                                     <div className="flex justify-center mt-8 mb-6">
@@ -149,11 +139,6 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                         {/* Screen 2: How It Works - FULL viewport width */}
                         <div className="relative w-screen h-full flex-shrink-0">
                             <div className="w-full h-full flex flex-col justify-between safe-area-top safe-area-bottom">
-                                {/* Debug indicator */}
-                                <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded z-50">
-                                    Screen 2
-                                </div>
-
                                 <div className="flex-1 flex flex-col px-5 pt-4">
                                     <div className="text-center mb-4">
                                         <h2 className="text-2xl font-bold text-white">
@@ -173,7 +158,7 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                                                     <div className="flex items-center gap-3 flex-1">
                                                         <div className="flex items-center gap-2">
                                                             <div className="relative">
-                                                                <div className="w-12 h-16 bg-gradient-to-br from-blue-900 to-black rounded border border-gray-600 flex items-center justify-center">
+                                                                <div className="w-16 h-16 bg-gradient-to-br from-blue-900 to-black rounded border border-gray-600 flex items-center justify-center">
                                                                     <div className="text-2xl">🎬</div>
                                                                 </div>
                                                                 <div className="absolute -bottom-1 -right-1 text-xl">📺</div>
@@ -198,8 +183,8 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                                                         2
                                                     </div>
                                                     <div className="flex items-center gap-3 flex-1">
-                                                        <div className="relative w-16 h-20 bg-gradient-to-br from-gray-800 to-black rounded-lg border-2 border-gray-700 flex items-center justify-center">
-                                                            <div className="text-3xl">📷</div>
+                                                        <div className="relative w-16 h-16 bg-gradient-to-br from-gray-800 to-black rounded-lg border-2 border-gray-700 flex items-center justify-center">
+                                                            <div className="text-3xl">📱</div>
                                                             <div className="absolute -top-1 -right-1 text-base animate-pulse">✨</div>
                                                         </div>
                                                         <p className="text-sm text-gray-200 font-medium">
@@ -221,7 +206,7 @@ const WelcomeScreen = ({ onStartOnboarding, onSkip, isDarkMode }) => {
                                                         3
                                                     </div>
                                                     <div className="flex items-center gap-3 flex-1">
-                                                        <div className="relative w-16 h-20 bg-gradient-to-br from-gray-800 to-black rounded-lg border-2 border-gray-700 flex flex-col items-center justify-center gap-1 p-1">
+                                                        <div className="relative w-16 h-16 bg-gradient-to-br from-gray-800 to-black rounded-lg border-2 border-gray-700 flex flex-col items-center justify-center gap-1 p-1">
                                                             <div className="text-2xl">✅</div>
                                                             <div className="bg-gradient-to-r from-green-500 to-green-600 px-2 py-1 rounded text-[10px] font-bold text-white text-center leading-tight">
                                                                 Watch It!
