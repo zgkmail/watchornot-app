@@ -2,12 +2,14 @@
 
 name: Fly Deploy
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/backend/**'
-      - '.github/workflows/fly-deploy.yml'
+  workflow_dispatch:  # Manual trigger only
+  # Disabled auto-deploy until app is configured
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'packages/backend/**'
+  #     - '.github/workflows/fly-deploy.yml'
 jobs:
   deploy:
     name: Deploy app
