@@ -123,6 +123,28 @@ class ProfileViewModel: ObservableObject {
         await loadHistory()
     }
 
+    /// Recreate taste profile (delete all ratings and restart onboarding)
+    func recreateTasteProfile() async {
+        do {
+            // Delete all history entries
+            for entry in history {
+                _ = try await apiClient.request(
+                    .deleteHistoryEntry(String(entry.id)),
+                    expecting: VoteResponse.self
+                )
+            }
+
+            // Clear local state
+            history.removeAll()
+            userStats = nil
+
+            // Reload stats
+            await loadStats()
+        } catch {
+            self.error = "Failed to recreate profile: \(error.localizedDescription)"
+        }
+    }
+
     // MARK: - Helpers
 
     private func calculateTier(votes: Int) -> UserTier {

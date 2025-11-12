@@ -21,7 +21,7 @@ struct ContentView: View {
                 TabView(selection: $selectedTab) {
                     RecommendationsView()
                         .tabItem {
-                            Label("Discover", systemImage: "film")
+                            Label("Discover", systemImage: "star")
                         }
                         .tag(0)
 
@@ -31,11 +31,17 @@ struct ContentView: View {
                         }
                         .tag(1)
 
-                    ProfileView()
+                    HistoryView()
+                        .tabItem {
+                            Label("History", systemImage: "clock")
+                        }
+                        .tag(2)
+
+                    SimplifiedProfileView()
                         .tabItem {
                             Label("Profile", systemImage: "person")
                         }
-                        .tag(2)
+                        .tag(3)
                 }
                 .accentColor(.accent)
             }
