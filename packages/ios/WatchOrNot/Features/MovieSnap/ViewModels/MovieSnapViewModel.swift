@@ -17,11 +17,29 @@ class MovieSnapViewModel: ObservableObject {
     @Published var isLoadingDetails: Bool = false
     @Published var error: String?
     @Published var showCamera: Bool = false
+    @Published var showPhotoPicker: Bool = false
+    @Published var searchQuery: String = ""
 
     private let apiClient: APIClient
 
     init(apiClient: APIClient = .shared) {
         self.apiClient = apiClient
+    }
+
+    /// Open photo library picker
+    func openPhotoPicker() {
+        showPhotoPicker = true
+    }
+
+    /// Search for a movie by name
+    func searchMovie(query: String) async {
+        guard !query.isEmpty else { return }
+
+        isLoadingDetails = true
+        error = nil
+        movieDetails = nil
+
+        await loadMovieDetails(title: query, year: nil)
     }
 
     /// Analyze captured image

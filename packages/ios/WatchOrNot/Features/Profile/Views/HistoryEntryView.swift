@@ -32,18 +32,10 @@ struct HistoryEntryView: View {
                     .font(.bodySmall)
                     .foregroundColor(.textSecondary)
 
-                // Genres
-                if let genres = entry.genres, !genres.isEmpty {
-                    Text(genres.prefix(2).joined(separator: ", "))
-                        .font(.caption)
-                        .foregroundColor(.textTertiary)
-                        .lineLimit(1)
-                }
-
                 Spacer()
 
                 // Timestamp
-                Text(formatDate(entry.date))
+                Text(formatDate(entry.timestamp))
                     .font(.caption)
                     .foregroundColor(.textTertiary)
             }
@@ -52,10 +44,10 @@ struct HistoryEntryView: View {
 
             // Vote indicator
             VStack {
-                Text(entry.vote.emoji)
+                Text(ratingEmoji(entry.rating))
                     .font(.title)
 
-                Text(entry.vote.rawValue)
+                Text(entry.rating ?? "Unknown")
                     .font(.caption)
                     .foregroundColor(.textSecondary)
             }
@@ -76,19 +68,30 @@ struct HistoryEntryView: View {
         formatter.unitsStyle = .abbreviated
         return formatter.localizedString(for: date, relativeTo: Date())
     }
+
+    private func ratingEmoji(_ rating: String?) -> String {
+        switch rating {
+        case "up": return "👍"
+        case "down": return "👎"
+        case "skip": return "⏭️"
+        default: return "❓"
+        }
+    }
 }
 
 #Preview {
     HistoryEntryView(
         entry: HistoryEntry(
-            id: 1,
+            id: "1",
             movieId: "1",
             title: "The Shawshank Redemption",
             year: 1994,
-            vote: .up,
-            timestamp: ISO8601DateFormatter().string(from: Date()),
             poster: nil,
-            genres: ["Drama", "Crime"]
+            rating: "up",
+            timestamp: Date(),
+            badge: "perfect-match",
+            badgeEmoji: "🎯",
+            badgeDescription: "This is right up your alley!"
         ),
         onDelete: {}
     )

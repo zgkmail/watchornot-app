@@ -23,12 +23,20 @@ struct MovieSnapView: View {
                             analysisData: viewModel.analysisResult?.data,
                             onReset: { viewModel.reset() }
                         )
-                    } else if viewModel.capturedImage != nil && viewModel.isAnalyzing {
-                        // Analyzing
+                    } else if viewModel.isAnalyzing || viewModel.isLoadingDetails {
+                        // Analyzing or loading
                         AnalyzingView()
                     } else {
-                        // Initial state - show snap button
-                        SnapPromptView(onSnap: { viewModel.openCamera() })
+                        // Initial state - show options
+                        SnapPromptView(
+                            onTakePhoto: { viewModel.openCamera() },
+                            onUploadImage: { viewModel.openPhotoPicker() },
+                            onSearch: { query in
+                                Task {
+                                    await viewModel.searchMovie(query: query)
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -37,6 +45,14 @@ struct MovieSnapView: View {
             .sheet(isPresented: $viewModel.showCamera) {
                 CameraView { image in
                     viewModel.showCamera = false
+                    Task {
+                        await viewModel.analyzeImage(image)
+                    }
+                }
+            }
+            .sheet(isPresented: $viewModel.showPhotoPicker) {
+                PhotoPicker { image in
+                    viewModel.showPhotoPicker = false
                     Task {
                         await viewModel.analyzeImage(image)
                     }
@@ -56,59 +72,152 @@ struct MovieSnapView: View {
 }
 
 struct SnapPromptView: View {
-    let onSnap: () -> Void
+    let onTakePhoto: () -> Void
+    let onUploadImage: () -> Void
+    let onSearch: (String) -> Void
+
+    @State private var searchQuery: String = ""
+    @FocusState private var isSearchFocused: Bool
 
     var body: some View {
-        VStack(spacing: 32) {
-            Spacer()
+        ScrollView {
+            VStack(spacing: 32) {
+                Spacer()
+                    .frame(height: 20)
 
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(Color.accent.opacity(0.2))
-                    .frame(width: 160, height: 160)
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(Color.accent.opacity(0.2))
+                        .frame(width: 120, height: 120)
 
-                Image(systemName: "camera.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(.accent)
-            }
-
-            // Instructions
-            VStack(spacing: 12) {
-                Text("Snap a Movie Poster")
-                    .font(.headlineMedium)
-                    .foregroundColor(.textPrimary)
-
-                Text("Take a photo of any movie poster\nand we'll identify it for you")
-                    .font(.bodyMedium)
-                    .foregroundColor(.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-            }
-
-            Spacer()
-
-            // Snap button
-            Button {
-                onSnap()
-            } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "camera")
-                        .font(.titleMedium)
-
-                    Text("Open Camera")
-                        .font(.titleMedium)
-                        .fontWeight(.semibold)
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.accent)
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(Color.accent)
-                .cornerRadius(16)
+
+                // Title
+                VStack(spacing: 12) {
+                    Text("Discover Movies")
+                        .font(.headlineLarge)
+                        .foregroundColor(.textPrimary)
+
+                    Text("Snap, upload, or search\nto find your next watch")
+                        .font(.bodyMedium)
+                        .foregroundColor(.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+
+                // Action Buttons
+                VStack(spacing: 16) {
+                    // Take Photo Button
+                    Button {
+                        onTakePhoto()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "camera")
+                                .font(.titleMedium)
+
+                            Text("Take Photo")
+                                .font(.titleMedium)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.blue, Color.purple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(16)
+                        .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 4)
+                    }
+
+                    // Upload Image Button
+                    Button {
+                        onUploadImage()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "photo")
+                                .font(.titleMedium)
+
+                            Text("Upload Image")
+                                .font(.titleMedium)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(.accent)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(Color.surface)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.accent, lineWidth: 2)
+                        )
+                        .cornerRadius(16)
+                    }
+
+                    // Manual Search Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.textSecondary)
+
+                            TextField("Enter movie or TV show name...", text: $searchQuery)
+                                .font(.bodyMedium)
+                                .foregroundColor(.textPrimary)
+                                .focused($isSearchFocused)
+                                .submitLabel(.search)
+                                .onSubmit {
+                                    if !searchQuery.isEmpty {
+                                        onSearch(searchQuery)
+                                    }
+                                }
+
+                            if !searchQuery.isEmpty {
+                                Button {
+                                    searchQuery = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.textSecondary)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 16)
+                        .background(Color.surface)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(isSearchFocused ? Color.accent : Color.gray.opacity(0.3), lineWidth: isSearchFocused ? 2 : 1)
+                        )
+                        .cornerRadius(16)
+
+                        if !searchQuery.isEmpty {
+                            Button {
+                                onSearch(searchQuery)
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Text("Search")
+                                        .font(.bodyMedium)
+                                        .fontWeight(.semibold)
+                                    Image(systemName: "arrow.right")
+                                }
+                                .foregroundColor(.accent)
+                                .padding(.horizontal, 4)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 32)
+
+                Spacer()
             }
-            .padding(.horizontal, 40)
-            .padding(.bottom, 40)
         }
+        .scrollDismissesKeyboard(.interactively)
     }
 }
 

@@ -98,11 +98,9 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
     let badgeDescription: String?
 
     enum CodingKeys: String, CodingKey {
-        case title, year, rating, poster, badge, badgeDescription
-        case id = "movie_id"
+        case title, year, rating, poster, badge, badgeDescription, badgeEmoji
         case movieId = "movie_id"
         case timestamp = "rated_at"
-        case badgeEmoji = "badgeEmoji"
     }
 
     init(id: String, movieId: String, title: String, year: Int, poster: String?, rating: String?, timestamp: Date, badge: String?, badgeEmoji: String?, badgeDescription: String?) {
