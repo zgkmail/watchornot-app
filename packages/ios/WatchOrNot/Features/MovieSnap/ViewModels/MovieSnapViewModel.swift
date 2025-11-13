@@ -98,18 +98,32 @@ class MovieSnapViewModel: ObservableObject {
                 expecting: TMDBSearchResponse.self
             )
 
+            // Filter to only movies and TV shows
+            let validResults = searchResults.results.filter { result in
+                result.mediaType == "movie" || result.mediaType == "tv"
+            }
+
             // Find best match
-            guard let tmdbMovie = searchResults.results.first(where: { result in
+            guard let tmdbMovie = validResults.first(where: { result in
                 year == nil || result.year == year
-            }) ?? searchResults.results.first else {
+            }) ?? validResults.first else {
                 error = "Movie not found in database"
                 isLoadingDetails = false
                 return
             }
 
+            // Validate media type
+            guard tmdbMovie.mediaType == "movie" || tmdbMovie.mediaType == "tv" else {
+                error = "Invalid media type: \(tmdbMovie.mediaType)"
+                isLoadingDetails = false
+                return
+            }
+
+            print("📦 Fetching details for: \(tmdbMovie.displayTitle) (\(tmdbMovie.mediaType))")
+
             // Get full TMDB details including genres, credits, videos
             let tmdbDetails = try await apiClient.request(
-                .getMovieDetails(id: String(tmdbMovie.id)),
+                .getMovieDetails(mediaType: tmdbMovie.mediaType, id: String(tmdbMovie.id)),
                 expecting: TMDBDetailsResponse.self
             )
 
@@ -153,7 +167,7 @@ class MovieSnapViewModel: ObservableObject {
 
             movieDetails = MovieDetails(
                 id: String(tmdbMovie.id),
-                title: tmdbMovie.title,
+                title: tmdbMovie.displayTitle,
                 year: tmdbMovie.year,
                 genres: Array(genres),
                 director: director,
@@ -177,6 +191,12 @@ class MovieSnapViewModel: ObservableObject {
                 trailerUrl: trailerUrl,
                 genreString: genreString
             )
+
+            print("✅ Movie details loaded successfully")
+            print("   Title: \(tmdbMovie.displayTitle)")
+            print("   Poster: \(movieDetails?.poster ?? "none")")
+            print("   IMDb Rating: \(movieDetails?.imdbRating.map { String($0) } ?? "none")")
+            print("   RT Score: \(movieDetails?.rottenTomatoes.map { String($0) } ?? "none")")
 
             // Save to backend automatically (without rating)
             await saveMovieToBackend()
@@ -266,18 +286,38 @@ struct TMDBSearchResponse: Codable {
 
 struct TMDBSearchResult: Codable {
     let id: Int
-    let title: String
-    let year: Int
+    let mediaType: String
+    let title: String?  // Movies have "title"
+    let name: String?   // TV shows have "name"
+    let releaseDate: String?  // Movies have "release_date"
+    let firstAirDate: String?  // TV shows have "first_air_date"
     let overview: String
     let posterPath: String?
     let voteAverage: Double
     let popularity: Double
 
     enum CodingKeys: String, CodingKey {
-        case id, title, overview, popularity
-        case year = "release_year"
+        case id, overview, popularity
+        case mediaType = "media_type"
+        case title, name
+        case releaseDate = "release_date"
+        case firstAirDate = "first_air_date"
         case posterPath = "poster_path"
         case voteAverage = "vote_average"
+    }
+
+    // Helper properties
+    var displayTitle: String {
+        title ?? name ?? "Unknown"
+    }
+
+    var year: Int {
+        let dateString = releaseDate ?? firstAirDate ?? ""
+        if let yearString = dateString.split(separator: "-").first,
+           let yearInt = Int(yearString) {
+            return yearInt
+        }
+        return 0
     }
 }
 

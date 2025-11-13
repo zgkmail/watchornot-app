@@ -28,7 +28,7 @@ enum APIEndpoint {
 
     // TMDB
     case searchMovies(query: String)
-    case getMovieDetails(id: String)
+    case getMovieDetails(mediaType: String, id: String)
 
     // OMDb
     case getOMDbDetails(imdbId: String)
@@ -57,8 +57,8 @@ enum APIEndpoint {
             return "/api/ratings/\(movieId)"
         case .searchMovies:
             return "/api/tmdb/search"
-        case .getMovieDetails(let id):
-            return "/api/tmdb/movie/\(id)"
+        case .getMovieDetails(let mediaType, let id):
+            return "/api/tmdb/\(mediaType)/\(id)"
         case .getOMDbDetails:
             return "/api/omdb/details"
         case .healthCheck:
