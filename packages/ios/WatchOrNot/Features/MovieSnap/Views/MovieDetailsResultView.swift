@@ -155,17 +155,21 @@ struct MovieDetailsResultView: View {
             poster: nil,
             plot: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
             imdbRating: 9.3,
+            rottenTomatoes: 91,
+            metacritic: 80,
             runtime: "142 min",
             imdbId: "tt0111161",
             rated: "R",
             released: nil,
             writer: nil,
             awards: nil,
-            metascore: nil,
+            metascore: 80,
             imdbVotes: nil,
             boxOffice: nil,
             production: nil,
-            website: nil
+            website: nil,
+            trailerUrl: "https://www.youtube.com/watch?v=6hB3S9bIaco",
+            genreString: "Drama"
         ),
         analysisData: ClaudeImageAnalysisResponse.AnalysisData(
             title: "The Shawshank Redemption",

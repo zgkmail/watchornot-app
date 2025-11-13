@@ -49,17 +49,21 @@ struct MovieDetails: Codable, Identifiable {
     let poster: String?
     let plot: String?
     let imdbRating: Double?
+    let rottenTomatoes: Int?
+    let metacritic: Int?
     let runtime: String?
     let imdbId: String?
     let rated: String?
     let released: String?
     let writer: String?
     let awards: String?
-    let metascore: String?
+    let metascore: Int?
     let imdbVotes: String?
     let boxOffice: String?
     let production: String?
     let website: String?
+    let trailerUrl: String?
+    let genreString: String?
 
     // Computed properties for backwards compatibility
     var directors: [String] {
@@ -75,6 +79,7 @@ struct MovieDetails: Codable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id, title, year, genres, director, cast, poster, plot, runtime, imdbRating
         case rated, released, writer, awards, metascore, production, website
+        case rottenTomatoes, metacritic, trailerUrl, genreString
         case imdbId = "imdb_id"
         case imdbVotes = "imdb_votes"
         case boxOffice = "box_office"

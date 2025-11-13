@@ -26,19 +26,15 @@ struct HistoryView: View {
                             ForEach(viewModel.history) { entry in
                                 HistoryEntryView(
                                     entry: entry,
-                                    votedCount: viewModel.history.count,
                                     onDelete: {
                                         Task {
                                             await viewModel.deleteEntry(entry)
                                         }
                                     },
-                                    onRatingToggle: { newRating in
+                                    onRate: { rating in
                                         Task {
-                                            await viewModel.toggleRating(for: entry, newRating: newRating)
+                                            await viewModel.updateRating(entry, newRating: rating)
                                         }
-                                    },
-                                    onTap: {
-                                        selectedEntry = entry
                                     }
                                 )
                                 .padding(.horizontal)

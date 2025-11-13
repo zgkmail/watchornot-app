@@ -98,43 +98,162 @@ class MovieSnapViewModel: ObservableObject {
                 expecting: TMDBSearchResponse.self
             )
 
-            // Find best match
-            if let tmdbMovie = searchResults.results.first(where: { result in
-                year == nil || result.year == year
-            }) ?? searchResults.results.first {
-
-                // Get full details from OMDb if we have IMDb ID
-                // For now, create MovieDetails from TMDB data
-                movieDetails = MovieDetails(
-                    id: String(tmdbMovie.id),
-                    title: tmdbMovie.title,
-                    year: tmdbMovie.year,
-                    genres: [],
-                    director: nil,
-                    cast: nil,
-                    poster: tmdbMovie.posterPath.map { "https://image.tmdb.org/t/p/w500\($0)" },
-                    plot: tmdbMovie.overview,
-                    imdbRating: tmdbMovie.voteAverage,
-                    runtime: nil,
-                    imdbId: nil,
-                    rated: nil,
-                    released: nil,
-                    writer: nil,
-                    awards: nil,
-                    metascore: nil,
-                    imdbVotes: nil,
-                    boxOffice: nil,
-                    production: nil,
-                    website: nil
-                )
-            } else {
-                error = "Movie not found in database"
+            // Filter to only movies and TV shows
+            let validResults = searchResults.results.filter { result in
+                result.mediaType == "movie" || result.mediaType == "tv"
             }
+
+            // Find best match
+            guard let tmdbMovie = validResults.first(where: { result in
+                year == nil || result.year == year
+            }) ?? validResults.first else {
+                error = "Movie not found in database"
+                isLoadingDetails = false
+                return
+            }
+
+            // Validate media type
+            guard tmdbMovie.mediaType == "movie" || tmdbMovie.mediaType == "tv" else {
+                error = "Invalid media type: \(tmdbMovie.mediaType)"
+                isLoadingDetails = false
+                return
+            }
+
+            print("📦 Fetching details for: \(tmdbMovie.displayTitle) (\(tmdbMovie.mediaType))")
+
+            // Get full TMDB details including genres, credits, videos
+            let tmdbDetails = try await apiClient.request(
+                .getMovieDetails(mediaType: tmdbMovie.mediaType, id: String(tmdbMovie.id)),
+                expecting: TMDBDetailsResponse.self
+            )
+
+            // Get OMDb ratings if we have IMDb ID
+            var omdbData: OMDbDetailsResponse? = nil
+            if let imdbId = tmdbDetails.externalIds?.imdbId {
+                do {
+                    omdbData = try await apiClient.request(
+                        .getOMDbDetails(imdbId: imdbId),
+                        expecting: OMDbDetailsResponse.self
+                    )
+                } catch {
+                    print("⚠️ Could not fetch OMDb ratings:", error.localizedDescription)
+                }
+            }
+
+            // Extract trailer URL
+            var trailerUrl: String? = nil
+            if let videos = tmdbDetails.videos?.results {
+                if let trailer = videos.first(where: { $0.site == "YouTube" && ($0.type == "Trailer" || $0.type == "Teaser") }) {
+                    trailerUrl = "https://www.youtube.com/watch?v=\(trailer.key)"
+                }
+            }
+
+            // Extract genres (first 3)
+            let genres = tmdbDetails.genres.prefix(3).map { $0.name }
+            let genreString = genres.joined(separator: ", ")
+
+            // Extract director from credits
+            let director = tmdbDetails.credits?.crew.first(where: { $0.job == "Director" })?.name ?? omdbData?.director
+
+            // Extract cast (first 3)
+            let cast: String?
+            if let omdbActors = omdbData?.actors {
+                cast = omdbActors
+            } else if let tmdbCast = tmdbDetails.credits?.cast.prefix(3).map({ $0.name }) {
+                cast = tmdbCast.joined(separator: ", ")
+            } else {
+                cast = nil
+            }
+
+            movieDetails = MovieDetails(
+                id: String(tmdbMovie.id),
+                title: tmdbMovie.displayTitle,
+                year: tmdbMovie.year,
+                genres: Array(genres),
+                director: director,
+                cast: cast,
+                poster: tmdbMovie.posterPath.map { "https://image.tmdb.org/t/p/w500\($0)" },
+                plot: tmdbMovie.overview,
+                imdbRating: omdbData?.imdbRating ?? tmdbDetails.voteAverage,
+                rottenTomatoes: omdbData?.rottenTomatoes,
+                metacritic: omdbData?.metacritic,
+                runtime: tmdbDetails.runtime.map { "\($0) min" },
+                imdbId: tmdbDetails.externalIds?.imdbId,
+                rated: omdbData?.rated,
+                released: nil,
+                writer: nil,
+                awards: nil,
+                metascore: omdbData?.metacritic,
+                imdbVotes: nil,
+                boxOffice: nil,
+                production: nil,
+                website: nil,
+                trailerUrl: trailerUrl,
+                genreString: genreString
+            )
+
+            print("✅ Movie details loaded successfully")
+            print("   Title: \(tmdbMovie.displayTitle)")
+            print("   Poster: \(movieDetails?.poster ?? "none")")
+            print("   IMDb Rating: \(movieDetails?.imdbRating.map { String($0) } ?? "none")")
+            print("   RT Score: \(movieDetails?.rottenTomatoes.map { String($0) } ?? "none")")
+
+            // Save to backend automatically (without rating)
+            await saveMovieToBackend()
 
             isLoadingDetails = false
         } catch {
             self.error = "Failed to load movie details: \(error.localizedDescription)"
             isLoadingDetails = false
+        }
+    }
+
+    /// Save movie to backend
+    private func saveMovieToBackend() async {
+        guard let movie = movieDetails else { return }
+
+        struct SaveMovieRequest: Codable {
+            let id: String
+            let title: String
+            let year: Int
+            let genre: String
+            let director: String?
+            let cast: String?
+            let poster: String?
+            let imdbRating: Double?
+            let rottenTomatoes: Int?
+            let metacritic: Int?
+            let trailerUrl: String?
+            let rating: String?
+        }
+
+        let request = SaveMovieRequest(
+            id: movie.id,
+            title: movie.title,
+            year: movie.year,
+            genre: movie.genreString ?? "Drama",
+            director: movie.director,
+            cast: movie.cast,
+            poster: movie.poster,
+            imdbRating: movie.imdbRating,
+            rottenTomatoes: movie.rottenTomatoes,
+            metacritic: movie.metacritic,
+            trailerUrl: movie.trailerUrl,
+            rating: nil  // No rating yet
+        )
+
+        do {
+            struct SaveRatingResponse: Codable {
+                let success: Bool
+            }
+
+            _ = try await apiClient.request(
+                .saveRating(request),
+                expecting: SaveRatingResponse.self
+            )
+            print("✅ Movie saved to backend")
+        } catch {
+            print("⚠️ Could not save movie to backend:", error.localizedDescription)
         }
     }
 
@@ -167,17 +286,111 @@ struct TMDBSearchResponse: Codable {
 
 struct TMDBSearchResult: Codable {
     let id: Int
-    let title: String
-    let year: Int
+    let mediaType: String
+    let title: String?  // Movies have "title"
+    let name: String?   // TV shows have "name"
+    let releaseDate: String?  // Movies have "release_date"
+    let firstAirDate: String?  // TV shows have "first_air_date"
     let overview: String
     let posterPath: String?
     let voteAverage: Double
     let popularity: Double
 
     enum CodingKeys: String, CodingKey {
-        case id, title, overview, popularity
-        case year = "release_year"
+        case id, overview, popularity
+        case mediaType = "media_type"
+        case title, name
+        case releaseDate = "release_date"
+        case firstAirDate = "first_air_date"
         case posterPath = "poster_path"
         case voteAverage = "vote_average"
+    }
+
+    // Helper properties
+    var displayTitle: String {
+        title ?? name ?? "Unknown"
+    }
+
+    var year: Int {
+        let dateString = releaseDate ?? firstAirDate ?? ""
+        if let yearString = dateString.split(separator: "-").first,
+           let yearInt = Int(yearString) {
+            return yearInt
+        }
+        return 0
+    }
+}
+
+// TMDB Details Response
+struct TMDBDetailsResponse: Codable {
+    let id: Int
+    let title: String
+    let overview: String
+    let voteAverage: Double
+    let runtime: Int?
+    let genres: [TMDBGenre]
+    let externalIds: TMDBExternalIds?
+    let credits: TMDBCredits?
+    let videos: TMDBVideos?
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, overview, runtime, genres, credits, videos
+        case voteAverage = "vote_average"
+        case externalIds = "external_ids"
+    }
+}
+
+struct TMDBGenre: Codable {
+    let id: Int
+    let name: String
+}
+
+struct TMDBExternalIds: Codable {
+    let imdbId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case imdbId = "imdb_id"
+    }
+}
+
+struct TMDBCredits: Codable {
+    let cast: [TMDBCastMember]
+    let crew: [TMDBCrewMember]
+}
+
+struct TMDBCastMember: Codable {
+    let name: String
+}
+
+struct TMDBCrewMember: Codable {
+    let name: String
+    let job: String
+}
+
+struct TMDBVideos: Codable {
+    let results: [TMDBVideo]
+}
+
+struct TMDBVideo: Codable {
+    let key: String
+    let site: String
+    let type: String
+}
+
+// OMDb Response
+struct OMDbDetailsResponse: Codable {
+    let found: Bool?
+    let imdbRating: Double?
+    let rottenTomatoes: Int?
+    let metacritic: Int?
+    let director: String?
+    let actors: String?
+    let rated: String?
+
+    enum CodingKeys: String, CodingKey {
+        case found, director, actors, rated
+        case imdbRating = "imdb_rating"
+        case rottenTomatoes = "rotten_tomatoes"
+        case metacritic
     }
 }

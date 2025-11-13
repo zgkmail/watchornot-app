@@ -71,88 +71,81 @@ class HistoryViewModel: ObservableObject {
         await loadHistory()
     }
 
-    /// Toggle rating for a history entry
-    func toggleRating(for entry: HistoryEntry, newRating: String) async {
-        // Optimistically update the UI
-        if let index = history.firstIndex(where: { $0.id == entry.id }) {
-            var updatedEntry = entry
-            // If toggling to the same rating, set to nil (toggle off)
-            let finalRating = (entry.rating == newRating) ? nil : newRating
+    /// Update rating for a history entry
+    func updateRating(_ entry: HistoryEntry, newRating: String) async {
+        do {
+            struct RatingRequest: Codable {
+                let id: String
+                let title: String
+                let year: Int
+                let genre: String?
+                let imdbRating: Double?
+                let rottenTomatoes: Int?
+                let metacritic: Int?
+                let poster: String?
+                let director: String?
+                let cast: String?
+                let rating: String?  // Optional to support null for canceling
+                // CodingKeys not needed - backend expects camelCase which is the default Swift encoding
+            }
 
-            // Create updated entry with new rating
-            let updated = HistoryEntry(
-                id: updatedEntry.id,
-                movieId: updatedEntry.movieId,
-                title: updatedEntry.title,
-                year: updatedEntry.year,
-                genre: updatedEntry.genre,
-                imdbRating: updatedEntry.imdbRating,
-                rottenTomatoes: updatedEntry.rottenTomatoes,
-                metacritic: updatedEntry.metacritic,
-                poster: updatedEntry.poster,
-                rating: finalRating,
-                timestamp: updatedEntry.timestamp,
-                badge: updatedEntry.badge,
-                badgeEmoji: updatedEntry.badgeEmoji,
-                badgeDescription: updatedEntry.badgeDescription
+            struct RatingResponse: Codable {
+                let success: Bool
+                let movieId: String
+                let badge: String?
+                let badgeEmoji: String?
+                let badgeDescription: String?
+            }
+
+            // Convert empty string to nil for backend (web app sends null to cancel vote)
+            let ratingValue: String? = newRating.isEmpty ? nil : newRating
+
+            let request = RatingRequest(
+                id: entry.movieId,
+                title: entry.title,
+                year: entry.year,
+                genre: entry.genre,
+                imdbRating: entry.imdbRating,
+                rottenTomatoes: entry.rottenTomatoes,
+                metacritic: entry.metacritic,
+                poster: entry.poster,
+                director: entry.director,
+                cast: entry.cast,
+                rating: ratingValue
             )
 
-            history[index] = updated
+            let response = try await apiClient.request(
+                .saveRating(request),
+                expecting: RatingResponse.self
+            )
 
-            // Send update to backend
-            do {
-                struct UpdateRatingResponse: Codable {
-                    let success: Bool
-                    let badge: String?
-                    let badgeEmoji: String?
-                    let badgeDescription: String?
-                }
-
-                let request = UpdateRatingRequest(
-                    id: entry.movieId,
-                    title: entry.title,
-                    genre: entry.genre,
-                    year: entry.year,
-                    imdbRating: entry.imdbRating,
-                    rottenTomatoes: entry.rottenTomatoes,
-                    metacritic: entry.metacritic,
-                    poster: entry.poster,
-                    director: nil, // Not stored in HistoryEntry
-                    cast: nil, // Not stored in HistoryEntry
-                    rating: finalRating,
-                    timestamp: Int(entry.timestamp.timeIntervalSince1970 * 1000)
+            // Update local state
+            if let index = history.firstIndex(where: { $0.id == entry.id }) {
+                var updatedEntry = entry
+                // Create a new HistoryEntry with updated values
+                let newEntry = HistoryEntry(
+                    id: updatedEntry.id,
+                    movieId: updatedEntry.movieId,
+                    title: updatedEntry.title,
+                    year: updatedEntry.year,
+                    poster: updatedEntry.poster,
+                    rating: ratingValue,  // Use nil if canceled
+                    timestamp: updatedEntry.timestamp,
+                    genre: updatedEntry.genre,
+                    imdbRating: updatedEntry.imdbRating,
+                    rottenTomatoes: updatedEntry.rottenTomatoes,
+                    metacritic: updatedEntry.metacritic,
+                    director: updatedEntry.director,
+                    cast: updatedEntry.cast,
+                    trailerUrl: updatedEntry.trailerUrl,
+                    badge: response.badge ?? updatedEntry.badge,
+                    badgeEmoji: response.badgeEmoji ?? updatedEntry.badgeEmoji,
+                    badgeDescription: response.badgeDescription ?? updatedEntry.badgeDescription
                 )
-
-                let response = try await apiClient.request(
-                    .updateRating(request),
-                    expecting: UpdateRatingResponse.self
-                )
-
-                // Update badge if returned from backend
-                if response.success {
-                    let updatedWithBadge = HistoryEntry(
-                        id: updated.id,
-                        movieId: updated.movieId,
-                        title: updated.title,
-                        year: updated.year,
-                        genre: updated.genre,
-                        imdbRating: updated.imdbRating,
-                        rottenTomatoes: updated.rottenTomatoes,
-                        metacritic: updated.metacritic,
-                        poster: updated.poster,
-                        rating: finalRating,
-                        timestamp: updated.timestamp,
-                        badge: response.badge,
-                        badgeEmoji: response.badgeEmoji,
-                        badgeDescription: response.badgeDescription
-                    )
-                    history[index] = updatedWithBadge
-                }
-            } catch {
-                // Revert on error
-                history[index] = entry
-                self.error = "Failed to update rating: \(error.localizedDescription)"
+                history[index] = newEntry
             }
+        } catch {
+            self.error = "Failed to update rating: \(error.localizedDescription)"
         }
     }
 }

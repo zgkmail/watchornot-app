@@ -73,7 +73,11 @@ class OnboardingViewModel: ObservableObject {
             year: movie.year,
             genres: movie.genres,
             director: movie.director ?? "",
-            cast: movie.cast ?? ""
+            cast: movie.cast ?? "",
+            poster: movie.poster,
+            imdbRating: movie.imdbRating,
+            rottenTomatoes: nil,  // Not available in onboarding data
+            metacritic: nil       // Not available in onboarding data
         )
 
         // Store vote locally
