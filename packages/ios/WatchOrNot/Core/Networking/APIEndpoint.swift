@@ -21,7 +21,8 @@ enum APIEndpoint {
     case getRecommendations(page: Int, limit: Int)
 
     // Ratings
-    case submitRating(String, Int) // movieId, rating
+    case submitRating(String, Int) // movieId, rating (legacy - for onboarding)
+    case updateRating(UpdateRatingRequest) // Full movie data update (for History toggle)
     case getRatings // Get all ratings (for history)
     case deleteRating(String) // movieId
 
@@ -48,7 +49,7 @@ enum APIEndpoint {
             return "/api/onboarding/status"
         case .getRecommendations:
             return "/api/recommendations"
-        case .submitRating:
+        case .submitRating, .updateRating:
             return "/api/ratings"
         case .getRatings:
             return "/api/ratings"
@@ -69,7 +70,7 @@ enum APIEndpoint {
 
     var method: HTTPMethod {
         switch self {
-        case .analyzeImage, .completeOnboarding, .submitRating:
+        case .analyzeImage, .completeOnboarding, .submitRating, .updateRating:
             return .post
         case .deleteRating:
             return .delete
@@ -101,6 +102,8 @@ enum APIEndpoint {
             return OnboardingCompleteRequest(votes: votes)
         case .submitRating(let movieId, let rating):
             return SubmitRatingRequest(movieId: movieId, rating: rating)
+        case .updateRating(let request):
+            return request
         default:
             return nil
         }
@@ -112,4 +115,20 @@ enum APIEndpoint {
 struct SubmitRatingRequest: Codable {
     let movieId: String
     let rating: Int
+}
+
+/// Update rating request - matches backend expected format
+struct UpdateRatingRequest: Codable {
+    let id: String
+    let title: String
+    let genre: String?
+    let year: Int
+    let imdbRating: Double?
+    let rottenTomatoes: Int?
+    let metacritic: Int?
+    let poster: String?
+    let director: String?
+    let cast: String?
+    let rating: String? // "up", "down", or null to toggle off
+    let timestamp: Int
 }

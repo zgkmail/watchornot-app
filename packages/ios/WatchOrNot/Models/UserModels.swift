@@ -90,6 +90,10 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
     let movieId: String
     let title: String
     let year: Int
+    let genre: String?
+    let imdbRating: Double?
+    let rottenTomatoes: Int?
+    let metacritic: Int?
     let rating: String?
     let timestamp: Date
     let poster: String?
@@ -98,15 +102,22 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
     let badgeDescription: String?
 
     enum CodingKeys: String, CodingKey {
-        case title, year, rating, poster, badge, badgeDescription, badgeEmoji, timestamp
+        case title, year, genre, rating, poster, badge, badgeDescription, badgeEmoji, timestamp
         case movieId = "movie_id"
+        case imdbRating = "imdb_rating"
+        case rottenTomatoes = "rotten_tomatoes"
+        case metacritic
     }
 
-    init(id: String, movieId: String, title: String, year: Int, poster: String?, rating: String?, timestamp: Date, badge: String?, badgeEmoji: String?, badgeDescription: String?) {
+    init(id: String, movieId: String, title: String, year: Int, genre: String?, imdbRating: Double?, rottenTomatoes: Int?, metacritic: Int?, poster: String?, rating: String?, timestamp: Date, badge: String?, badgeEmoji: String?, badgeDescription: String?) {
         self.id = id
         self.movieId = movieId
         self.title = title
         self.year = year
+        self.genre = genre
+        self.imdbRating = imdbRating
+        self.rottenTomatoes = rottenTomatoes
+        self.metacritic = metacritic
         self.poster = poster
         self.rating = rating
         self.timestamp = timestamp
@@ -132,6 +143,10 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
             self.year = 0
         }
 
+        self.genre = try container.decodeIfPresent(String.self, forKey: .genre)
+        self.imdbRating = try container.decodeIfPresent(Double.self, forKey: .imdbRating)
+        self.rottenTomatoes = try container.decodeIfPresent(Int.self, forKey: .rottenTomatoes)
+        self.metacritic = try container.decodeIfPresent(Int.self, forKey: .metacritic)
         self.poster = try container.decodeIfPresent(String.self, forKey: .poster)
         self.rating = try container.decodeIfPresent(String.self, forKey: .rating)
 

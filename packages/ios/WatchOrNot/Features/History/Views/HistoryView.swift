@@ -23,11 +23,20 @@ struct HistoryView: View {
                     ScrollView {
                         LazyVStack(spacing: 16) {
                             ForEach(viewModel.history) { entry in
-                                HistoryEntryView(entry: entry) {
-                                    Task {
-                                        await viewModel.deleteEntry(entry)
+                                HistoryEntryView(
+                                    entry: entry,
+                                    votedCount: viewModel.history.count,
+                                    onDelete: {
+                                        Task {
+                                            await viewModel.deleteEntry(entry)
+                                        }
+                                    },
+                                    onRatingToggle: { newRating in
+                                        Task {
+                                            await viewModel.toggleRating(for: entry, newRating: newRating)
+                                        }
                                     }
-                                }
+                                )
                                 .padding(.horizontal)
                             }
 
