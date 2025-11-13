@@ -10,6 +10,7 @@ import SwiftUI
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject var sessionManager: SessionManager
+    @State private var selectedEntry: HistoryEntry?
 
     var body: some View {
         NavigationView {
@@ -39,11 +40,23 @@ struct ProfileView: View {
                                         .padding(.horizontal)
                                 } else {
                                     ForEach(viewModel.history) { entry in
-                                        HistoryEntryView(entry: entry) {
-                                            Task {
-                                                await viewModel.deleteEntry(entry)
+                                        HistoryEntryView(
+                                            entry: entry,
+                                            votedCount: viewModel.userStats?.totalVotes ?? 0,
+                                            onDelete: {
+                                                Task {
+                                                    await viewModel.deleteEntry(entry)
+                                                }
+                                            },
+                                            onRatingToggle: { newRating in
+                                                Task {
+                                                    await viewModel.updateRating(entry, newRating: newRating)
+                                                }
+                                            },
+                                            onTap: {
+                                                selectedEntry = entry
                                             }
-                                        }
+                                        )
                                         .padding(.horizontal)
                                     }
 
@@ -86,6 +99,23 @@ struct ProfileView: View {
             if let error = viewModel.error {
                 Text(error)
             }
+        }
+        .sheet(item: $selectedEntry) { entry in
+            MovieDetailView(
+                entry: entry,
+                votedCount: viewModel.userStats?.totalVotes ?? 0,
+                onRatingChange: { newRating in
+                    Task {
+                        await viewModel.updateRating(entry, newRating: newRating)
+                    }
+                },
+                onDelete: {
+                    Task {
+                        await viewModel.deleteEntry(entry)
+                        selectedEntry = nil
+                    }
+                }
+            )
         }
     }
 }

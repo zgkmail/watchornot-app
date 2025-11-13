@@ -12,6 +12,7 @@ struct HistoryEntryView: View {
     let votedCount: Int // Total number of votes to determine if badge should be shown
     let onDelete: () -> Void
     let onRatingToggle: (String) -> Void // Callback for rating toggle (up/down)
+    let onTap: () -> Void // Callback when card is tapped
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -109,6 +110,10 @@ struct HistoryEntryView: View {
         }
         .padding(12)
         .cardStyle()
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 onDelete()
@@ -139,7 +144,8 @@ struct HistoryEntryView: View {
         ),
         votedCount: 10,
         onDelete: {},
-        onRatingToggle: { _ in }
+        onRatingToggle: { _ in },
+        onTap: {}
     )
     .padding()
     .background(Color.background)

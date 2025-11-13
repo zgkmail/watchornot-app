@@ -15,7 +15,8 @@ struct MoviePosterView: View {
     var body: some View {
         Group {
             if let urlString = posterURL,
-               let url = URL(string: urlString) {
+               !urlString.isEmpty,
+               let url = URL(string: urlString.toPosterURL()) {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
