@@ -55,7 +55,7 @@ class APIClient: ObservableObject {
 
         do {
             let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            // Backend returns camelCase, not snake_case
             decoder.dateDecodingStrategy = .iso8601
             return try decoder.decode(T.self, from: data)
         } catch {
@@ -78,7 +78,7 @@ class APIClient: ObservableObject {
         )
 
         let encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase
+        // Don't convert to snake_case - backend expects camelCase
         request.httpBody = try encoder.encode(payload)
 
         let (data, response) = try await session.data(for: request)
@@ -92,7 +92,7 @@ class APIClient: ObservableObject {
         }
 
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        // Backend returns camelCase, not snake_case
         return try decoder.decode(ClaudeImageAnalysisResponse.self, from: data)
     }
 
@@ -116,7 +116,7 @@ class APIClient: ObservableObject {
         // Add body if needed
         if let body = endpoint.body {
             let encoder = JSONEncoder()
-            encoder.keyEncodingStrategy = .convertToSnakeCase
+            // Don't convert to snake_case - backend expects camelCase
             request.httpBody = try encoder.encode(body)
         }
 

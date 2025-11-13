@@ -35,7 +35,7 @@ struct ProfileView: View {
                                     .padding(.horizontal)
 
                                 if viewModel.history.isEmpty {
-                                    EmptyHistoryView()
+                                    EmptyVoteHistoryView()
                                         .padding(.horizontal)
                                 } else {
                                     ForEach(viewModel.history) { entry in
@@ -90,7 +90,7 @@ struct ProfileView: View {
     }
 }
 
-struct EmptyHistoryView: View {
+struct EmptyVoteHistoryView: View {
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "clock")

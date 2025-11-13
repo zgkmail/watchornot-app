@@ -72,8 +72,8 @@ class OnboardingViewModel: ObservableObject {
             title: movie.title,
             year: movie.year,
             genres: movie.genres,
-            directors: movie.directors,
-            cast: movie.cast
+            director: movie.director ?? "",
+            cast: movie.cast ?? ""
         )
 
         // Store vote locally

@@ -105,9 +105,16 @@ enum APIEndpoint {
             // Match web app format: { votes: [...] }
             return OnboardingCompleteRequest(votes: votes)
         case .submitRating(let movieId, let rating):
-            return ["movieId": movieId, "rating": rating]
+            return SubmitRatingRequest(movieId: movieId, rating: rating)
         default:
             return nil
         }
     }
+}
+
+// MARK: - Request Models
+
+struct SubmitRatingRequest: Codable {
+    let movieId: String
+    let rating: Int
 }
