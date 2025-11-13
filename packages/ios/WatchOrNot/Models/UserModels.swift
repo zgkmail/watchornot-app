@@ -86,27 +86,63 @@ struct UserStatsResponse: Codable {
 
 /// History entry
 struct HistoryEntry: Codable, Identifiable, Hashable {
-    let id: Int
+    let id: String
     let movieId: String
     let title: String
     let year: Int
-    let vote: VoteType
-    let timestamp: String
+    let rating: String?
+    let timestamp: Date
     let poster: String?
-    let genres: [String]?
+    let badge: String?
+    let badgeEmoji: String?
+    let badgeDescription: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, title, year, vote, timestamp, poster, genres
+        case title, year, rating, poster, badge, badgeDescription
+        case id = "movie_id"
         case movieId = "movie_id"
+        case timestamp = "rated_at"
+        case badgeEmoji = "badgeEmoji"
     }
 
-    var date: Date {
-        let formatter = ISO8601DateFormatter()
-        return formatter.date(from: timestamp) ?? Date()
+    init(id: String, movieId: String, title: String, year: Int, poster: String?, rating: String?, timestamp: Date, badge: String?, badgeEmoji: String?, badgeDescription: String?) {
+        self.id = id
+        self.movieId = movieId
+        self.title = title
+        self.year = year
+        self.poster = poster
+        self.rating = rating
+        self.timestamp = timestamp
+        self.badge = badge
+        self.badgeEmoji = badgeEmoji
+        self.badgeDescription = badgeDescription
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let movieId = try container.decode(String.self, forKey: .movieId)
+        self.id = movieId
+        self.movieId = movieId
+        self.title = try container.decode(String.self, forKey: .title)
+        self.year = try container.decode(Int.self, forKey: .year)
+        self.poster = try container.decodeIfPresent(String.self, forKey: .poster)
+        self.rating = try container.decodeIfPresent(String.self, forKey: .rating)
+
+        // Handle timestamp - backend returns ISO8601 string
+        if let timestampString = try? container.decode(String.self, forKey: .timestamp) {
+            let formatter = ISO8601DateFormatter()
+            self.timestamp = formatter.date(from: timestampString) ?? Date()
+        } else {
+            self.timestamp = Date()
+        }
+
+        self.badge = try container.decodeIfPresent(String.self, forKey: .badge)
+        self.badgeEmoji = try container.decodeIfPresent(String.self, forKey: .badgeEmoji)
+        self.badgeDescription = try container.decodeIfPresent(String.self, forKey: .badgeDescription)
     }
 }
 
-/// History response
+/// History response (deprecated - use RatingsResponse)
 struct HistoryResponse: Codable {
     let history: [HistoryEntry]
     let totalCount: Int
@@ -119,4 +155,10 @@ struct HistoryResponse: Codable {
         case totalCount = "total_count"
         case hasMore = "has_more"
     }
+}
+
+/// Ratings response from GET /api/ratings
+struct RatingsResponse: Codable {
+    let ratings: [HistoryEntry]
+    let count: Int
 }

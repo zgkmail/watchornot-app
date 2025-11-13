@@ -60,16 +60,31 @@ class ProfileViewModel: ObservableObject {
     /// Load history
     func loadHistory() async {
         isLoadingHistory = true
-        currentPage = 1
 
         do {
             let response = try await apiClient.request(
-                .getRatingHistory(page: currentPage, limit: itemsPerPage),
-                expecting: HistoryResponse.self
+                .getRatings,
+                expecting: RatingsResponse.self
             )
 
-            history = response.history
-            hasMoreHistory = response.hasMore
+            // Convert ratings to history entries
+            history = response.ratings.map { rating in
+                HistoryEntry(
+                    id: rating.movieId,
+                    movieId: rating.movieId,
+                    title: rating.title,
+                    year: rating.year,
+                    poster: rating.poster,
+                    rating: rating.rating,
+                    timestamp: rating.timestamp ?? Date(),
+                    badge: rating.badge,
+                    badgeEmoji: rating.badgeEmoji,
+                    badgeDescription: rating.badgeDescription
+                )
+            }
+
+            // Backend returns all ratings, no pagination
+            hasMoreHistory = false
             isLoadingHistory = false
         } catch {
             self.error = "Failed to load history: \(error.localizedDescription)"
@@ -77,35 +92,21 @@ class ProfileViewModel: ObservableObject {
         }
     }
 
-    /// Load more history
+    /// Load more history (not needed since backend returns all ratings)
     func loadMoreHistory() async {
-        guard !isLoadingHistory && hasMoreHistory else { return }
-
-        isLoadingHistory = true
-        currentPage += 1
-
-        do {
-            let response = try await apiClient.request(
-                .getRatingHistory(page: currentPage, limit: itemsPerPage),
-                expecting: HistoryResponse.self
-            )
-
-            history.append(contentsOf: response.history)
-            hasMoreHistory = response.hasMore
-            isLoadingHistory = false
-        } catch {
-            self.error = "Failed to load more: \(error.localizedDescription)"
-            currentPage -= 1
-            isLoadingHistory = false
-        }
+        // No-op: Backend returns all ratings at once
     }
 
     /// Delete history entry
     func deleteEntry(_ entry: HistoryEntry) async {
         do {
+            struct DeleteResponse: Codable {
+                let success: Bool
+            }
+
             _ = try await apiClient.request(
-                .deleteHistoryEntry(String(entry.id)),
-                expecting: VoteResponse.self
+                .deleteRating(entry.movieId),
+                expecting: DeleteResponse.self
             )
 
             history.removeAll { $0.id == entry.id }
@@ -126,11 +127,15 @@ class ProfileViewModel: ObservableObject {
     /// Recreate taste profile (delete all ratings and restart onboarding)
     func recreateTasteProfile() async {
         do {
+            struct DeleteResponse: Codable {
+                let success: Bool
+            }
+
             // Delete all history entries
             for entry in history {
                 _ = try await apiClient.request(
-                    .deleteHistoryEntry(String(entry.id)),
-                    expecting: VoteResponse.self
+                    .deleteRating(entry.movieId),
+                    expecting: DeleteResponse.self
                 )
             }
 

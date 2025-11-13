@@ -22,8 +22,8 @@ enum APIEndpoint {
 
     // Ratings
     case submitRating(String, Int) // movieId, rating
-    case getRatingHistory(page: Int, limit: Int)
-    case deleteHistoryEntry(String) // entryId
+    case getRatings // Get all ratings (for history)
+    case deleteRating(String) // movieId
 
     // TMDB
     case searchMovies(query: String)
@@ -50,10 +50,10 @@ enum APIEndpoint {
             return "/api/recommendations"
         case .submitRating:
             return "/api/ratings"
-        case .getRatingHistory:
-            return "/api/ratings/history"
-        case .deleteHistoryEntry(let id):
-            return "/api/ratings/\(id)"
+        case .getRatings:
+            return "/api/ratings"
+        case .deleteRating(let movieId):
+            return "/api/ratings/\(movieId)"
         case .searchMovies:
             return "/api/tmdb/search"
         case .getMovieDetails(let id):
@@ -71,7 +71,7 @@ enum APIEndpoint {
         switch self {
         case .analyzeImage, .completeOnboarding, .submitRating:
             return .post
-        case .deleteHistoryEntry:
+        case .deleteRating:
             return .delete
         default:
             return .get
@@ -81,11 +81,6 @@ enum APIEndpoint {
     var queryItems: [URLQueryItem]? {
         switch self {
         case .getRecommendations(let page, let limit):
-            return [
-                URLQueryItem(name: "page", value: "\(page)"),
-                URLQueryItem(name: "limit", value: "\(limit)")
-            ]
-        case .getRatingHistory(let page, let limit):
             return [
                 URLQueryItem(name: "page", value: "\(page)"),
                 URLQueryItem(name: "limit", value: "\(limit)")
