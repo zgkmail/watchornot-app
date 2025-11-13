@@ -22,6 +22,7 @@ enum APIEndpoint {
 
     // Ratings
     case submitRating(String, Int) // movieId, rating
+    case saveRating(Encodable) // Full movie data with rating
     case getRatings // Get all ratings (for history)
     case deleteRating(String) // movieId
 
@@ -48,7 +49,7 @@ enum APIEndpoint {
             return "/api/onboarding/status"
         case .getRecommendations:
             return "/api/recommendations"
-        case .submitRating:
+        case .submitRating, .saveRating:
             return "/api/ratings"
         case .getRatings:
             return "/api/ratings"
@@ -69,7 +70,7 @@ enum APIEndpoint {
 
     var method: HTTPMethod {
         switch self {
-        case .analyzeImage, .completeOnboarding, .submitRating:
+        case .analyzeImage, .completeOnboarding, .submitRating, .saveRating:
             return .post
         case .deleteRating:
             return .delete
@@ -101,6 +102,8 @@ enum APIEndpoint {
             return OnboardingCompleteRequest(votes: votes)
         case .submitRating(let movieId, let rating):
             return SubmitRatingRequest(movieId: movieId, rating: rating)
+        case .saveRating(let data):
+            return data
         default:
             return nil
         }

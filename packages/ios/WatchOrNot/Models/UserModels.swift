@@ -93,16 +93,27 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
     let rating: String?
     let timestamp: Date
     let poster: String?
+    let genre: String?
+    let imdbRating: Double?
+    let rottenTomatoes: Int?
+    let metacritic: Int?
+    let director: String?
+    let cast: String?
+    let trailerUrl: String?
     let badge: String?
     let badgeEmoji: String?
     let badgeDescription: String?
 
     enum CodingKeys: String, CodingKey {
-        case title, year, rating, poster, badge, badgeDescription, badgeEmoji, timestamp
+        case title, year, rating, poster, genre, director, cast, badge, badgeDescription, badgeEmoji, timestamp
         case movieId = "movie_id"
+        case imdbRating = "imdb_rating"
+        case rottenTomatoes = "rotten_tomatoes"
+        case metacritic
+        case trailerUrl = "trailer_url"
     }
 
-    init(id: String, movieId: String, title: String, year: Int, poster: String?, rating: String?, timestamp: Date, badge: String?, badgeEmoji: String?, badgeDescription: String?) {
+    init(id: String, movieId: String, title: String, year: Int, poster: String?, rating: String?, timestamp: Date, genre: String? = nil, imdbRating: Double? = nil, rottenTomatoes: Int? = nil, metacritic: Int? = nil, director: String? = nil, cast: String? = nil, trailerUrl: String? = nil, badge: String?, badgeEmoji: String?, badgeDescription: String?) {
         self.id = id
         self.movieId = movieId
         self.title = title
@@ -110,6 +121,13 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
         self.poster = poster
         self.rating = rating
         self.timestamp = timestamp
+        self.genre = genre
+        self.imdbRating = imdbRating
+        self.rottenTomatoes = rottenTomatoes
+        self.metacritic = metacritic
+        self.director = director
+        self.cast = cast
+        self.trailerUrl = trailerUrl
         self.badge = badge
         self.badgeEmoji = badgeEmoji
         self.badgeDescription = badgeDescription
@@ -146,6 +164,13 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
             self.timestamp = Date()
         }
 
+        self.genre = try container.decodeIfPresent(String.self, forKey: .genre)
+        self.imdbRating = try container.decodeIfPresent(Double.self, forKey: .imdbRating)
+        self.rottenTomatoes = try container.decodeIfPresent(Int.self, forKey: .rottenTomatoes)
+        self.metacritic = try container.decodeIfPresent(Int.self, forKey: .metacritic)
+        self.director = try container.decodeIfPresent(String.self, forKey: .director)
+        self.cast = try container.decodeIfPresent(String.self, forKey: .cast)
+        self.trailerUrl = try container.decodeIfPresent(String.self, forKey: .trailerUrl)
         self.badge = try container.decodeIfPresent(String.self, forKey: .badge)
         self.badgeEmoji = try container.decodeIfPresent(String.self, forKey: .badgeEmoji)
         self.badgeDescription = try container.decodeIfPresent(String.self, forKey: .badgeDescription)

@@ -70,4 +70,85 @@ class HistoryViewModel: ObservableObject {
     func refresh() async {
         await loadHistory()
     }
+
+    /// Update rating for a history entry
+    func updateRating(_ entry: HistoryEntry, newRating: String) async {
+        do {
+            struct RatingRequest: Codable {
+                let id: String
+                let title: String
+                let year: Int
+                let genre: String?
+                let imdbRating: Double?
+                let rottenTomatoes: Int?
+                let metacritic: Int?
+                let poster: String?
+                let director: String?
+                let cast: String?
+                let rating: String
+
+                enum CodingKeys: String, CodingKey {
+                    case id, title, year, genre, poster, director, cast, rating
+                    case imdbRating = "imdbRating"
+                    case rottenTomatoes = "rottenTomatoes"
+                    case metacritic
+                }
+            }
+
+            struct RatingResponse: Codable {
+                let success: Bool
+                let movieId: String
+                let badge: String?
+                let badgeEmoji: String?
+                let badgeDescription: String?
+            }
+
+            let request = RatingRequest(
+                id: entry.movieId,
+                title: entry.title,
+                year: entry.year,
+                genre: entry.genre,
+                imdbRating: entry.imdbRating,
+                rottenTomatoes: entry.rottenTomatoes,
+                metacritic: entry.metacritic,
+                poster: entry.poster,
+                director: entry.director,
+                cast: entry.cast,
+                rating: newRating
+            )
+
+            let response = try await apiClient.request(
+                .saveRating(request),
+                expecting: RatingResponse.self
+            )
+
+            // Update local state
+            if let index = history.firstIndex(where: { $0.id == entry.id }) {
+                var updatedEntry = entry
+                // Create a new HistoryEntry with updated values
+                let newEntry = HistoryEntry(
+                    id: updatedEntry.id,
+                    movieId: updatedEntry.movieId,
+                    title: updatedEntry.title,
+                    year: updatedEntry.year,
+                    poster: updatedEntry.poster,
+                    rating: newRating,
+                    timestamp: updatedEntry.timestamp,
+                    genre: updatedEntry.genre,
+                    imdbRating: updatedEntry.imdbRating,
+                    rottenTomatoes: updatedEntry.rottenTomatoes,
+                    metacritic: updatedEntry.metacritic,
+                    director: updatedEntry.director,
+                    cast: updatedEntry.cast,
+                    trailerUrl: updatedEntry.trailerUrl,
+                    badge: response.badge ?? updatedEntry.badge,
+                    badgeEmoji: response.badgeEmoji ?? updatedEntry.badgeEmoji,
+                    badgeDescription: response.badgeDescription ?? updatedEntry.badgeDescription
+                )
+                history[index] = newEntry
+            }
+        } catch {
+            self.error = "Failed to update rating: \(error.localizedDescription)"
+        }
+    }
 }
