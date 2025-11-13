@@ -141,7 +141,7 @@ struct HistoryEntryView: View {
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.border, lineWidth: 1)
+                    .stroke(Color.divider, lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())
