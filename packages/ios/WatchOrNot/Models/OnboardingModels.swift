@@ -72,9 +72,13 @@ struct VoteRequest: Codable {
     let genres: [String]
     let director: String
     let cast: String
+    let poster: String
+    let imdbRating: Double?
+    let rottenTomatoes: Int?
+    let metacritic: Int?
 
     enum CodingKeys: String, CodingKey {
-        case movieId, vote, title, year, genres, director, cast
+        case movieId, vote, title, year, genres, director, cast, poster, imdbRating, rottenTomatoes, metacritic
     }
 }
 
