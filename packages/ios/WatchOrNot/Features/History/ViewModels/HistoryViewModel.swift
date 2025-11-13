@@ -86,13 +86,7 @@ class HistoryViewModel: ObservableObject {
                 let director: String?
                 let cast: String?
                 let rating: String
-
-                enum CodingKeys: String, CodingKey {
-                    case id, title, year, genre, poster, director, cast, rating
-                    case imdbRating = "imdbRating"
-                    case rottenTomatoes = "rottenTomatoes"
-                    case metacritic
-                }
+                // CodingKeys not needed - backend expects camelCase which is the default Swift encoding
             }
 
             struct RatingResponse: Codable {
