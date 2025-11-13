@@ -67,21 +67,8 @@ class ProfileViewModel: ObservableObject {
                 expecting: RatingsResponse.self
             )
 
-            // Convert ratings to history entries
-            history = response.ratings.map { rating in
-                HistoryEntry(
-                    id: rating.movieId,
-                    movieId: rating.movieId,
-                    title: rating.title,
-                    year: rating.year,
-                    poster: rating.poster,
-                    rating: rating.rating,
-                    timestamp: rating.timestamp ?? Date(),
-                    badge: rating.badge,
-                    badgeEmoji: rating.badgeEmoji,
-                    badgeDescription: rating.badgeDescription
-                )
-            }
+            // The ratings array already contains properly decoded HistoryEntry objects
+            history = response.ratings
 
             // Backend returns all ratings, no pagination
             hasMoreHistory = false
@@ -115,6 +102,40 @@ class ProfileViewModel: ObservableObject {
             await loadStats()
         } catch {
             self.error = "Failed to delete entry: \(error.localizedDescription)"
+        }
+    }
+
+    /// Update rating for a history entry
+    func updateRating(_ entry: HistoryEntry, newRating: String) async {
+        do {
+            struct UpdateResponse: Codable {
+                let success: Bool
+            }
+
+            let updateRequest = UpdateRatingRequest(
+                id: entry.movieId,
+                title: entry.title,
+                genre: entry.genre,
+                year: entry.year,
+                imdbRating: entry.imdbRating,
+                rottenTomatoes: entry.rottenTomatoes,
+                metacritic: entry.metacritic,
+                poster: entry.poster,
+                director: nil,
+                cast: nil,
+                rating: newRating.isEmpty ? nil : newRating,
+                timestamp: Int(entry.timestamp.timeIntervalSince1970 * 1000)
+            )
+
+            _ = try await apiClient.request(
+                .updateRating(updateRequest),
+                expecting: UpdateResponse.self
+            )
+
+            // Reload history to reflect the change
+            await loadHistory()
+        } catch {
+            self.error = "Failed to update rating: \(error.localizedDescription)"
         }
     }
 

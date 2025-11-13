@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HistoryEntryView: View {
     let entry: HistoryEntry
+    let votedCount: Int // Total number of votes to determine if badge should be shown
     let onDelete: () -> Void
     let onRate: ((String) -> Void)?
     @State private var showDetailModal = false
@@ -180,6 +181,10 @@ struct HistoryEntryView: View {
             movieId: "1",
             title: "The Shawshank Redemption",
             year: 1994,
+            genre: "Drama, Crime",
+            imdbRating: 9.3,
+            rottenTomatoes: 91,
+            metacritic: 82,
             poster: nil,
             rating: "up",
             timestamp: Date(),

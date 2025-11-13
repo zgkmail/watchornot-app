@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HistoryView: View {
     @StateObject private var viewModel = HistoryViewModel()
+    @State private var selectedEntry: HistoryEntry?
 
     var body: some View {
         NavigationView {
@@ -65,6 +66,23 @@ struct HistoryView: View {
             if let error = viewModel.error {
                 Text(error)
             }
+        }
+        .sheet(item: $selectedEntry) { entry in
+            MovieDetailView(
+                entry: entry,
+                votedCount: viewModel.history.count,
+                onRatingChange: { newRating in
+                    Task {
+                        await viewModel.toggleRating(for: entry, newRating: newRating)
+                    }
+                },
+                onDelete: {
+                    Task {
+                        await viewModel.deleteEntry(entry)
+                        selectedEntry = nil
+                    }
+                }
+            )
         }
     }
 }

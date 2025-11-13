@@ -116,3 +116,19 @@ struct SubmitRatingRequest: Codable {
     let movieId: String
     let rating: Int
 }
+
+/// Update rating request - matches backend expected format
+struct UpdateRatingRequest: Codable {
+    let id: String
+    let title: String
+    let genre: String?
+    let year: Int
+    let imdbRating: Double?
+    let rottenTomatoes: Int?
+    let metacritic: Int?
+    let poster: String?
+    let director: String?
+    let cast: String?
+    let rating: String? // "up", "down", or null to toggle off
+    let timestamp: Int
+}
