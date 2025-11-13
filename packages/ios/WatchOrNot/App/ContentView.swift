@@ -15,9 +15,16 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if !appState.hasCompletedOnboarding {
+            // Show welcome screens if user hasn't seen them
+            if !appState.hasSeenWelcome {
+                WelcomeView()
+            }
+            // Show onboarding if triggered from welcome screen or not completed
+            else if appState.showingOnboarding || !appState.hasCompletedOnboarding {
                 OnboardingView()
-            } else {
+            }
+            // Show main app
+            else {
                 TabView(selection: $selectedTab) {
                     MovieSnapView()
                         .tabItem {

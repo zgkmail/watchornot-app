@@ -26,21 +26,44 @@ struct WatchOrNotApp: App {
 /// App-wide state management
 @MainActor
 class AppState: ObservableObject {
+    @Published var hasSeenWelcome: Bool = false
     @Published var hasCompletedOnboarding: Bool = false
+    @Published var showingOnboarding: Bool = false
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
     init() {
-        checkOnboardingStatus()
+        checkWelcomeAndOnboardingStatus()
     }
 
-    func checkOnboardingStatus() {
+    func checkWelcomeAndOnboardingStatus() {
+        // Check if user has seen welcome screens
+        hasSeenWelcome = UserDefaults.standard.bool(forKey: "hasSeenWelcome")
+
         // Check if user has completed onboarding
         hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     }
 
+    func markWelcomeSeen() {
+        hasSeenWelcome = true
+        UserDefaults.standard.set(true, forKey: "hasSeenWelcome")
+    }
+
+    func showOnboarding() {
+        showingOnboarding = true
+    }
+
+    func skipOnboarding() {
+        // Mark both welcome and onboarding as complete when skipped
+        hasSeenWelcome = true
+        hasCompletedOnboarding = true
+        UserDefaults.standard.set(true, forKey: "hasSeenWelcome")
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
+    }
+
     func completeOnboarding() {
         hasCompletedOnboarding = true
+        showingOnboarding = false
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
     }
 
