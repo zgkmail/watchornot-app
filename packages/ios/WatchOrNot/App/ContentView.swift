@@ -19,29 +19,23 @@ struct ContentView: View {
                 OnboardingView()
             } else {
                 TabView(selection: $selectedTab) {
-                    RecommendationsView()
-                        .tabItem {
-                            Label("Discover", systemImage: "star")
-                        }
-                        .tag(0)
-
                     MovieSnapView()
                         .tabItem {
                             Label("Snap", systemImage: "camera")
                         }
-                        .tag(1)
+                        .tag(0)
 
                     HistoryView()
                         .tabItem {
                             Label("History", systemImage: "clock")
                         }
-                        .tag(2)
+                        .tag(1)
 
                     SimplifiedProfileView()
                         .tabItem {
                             Label("Profile", systemImage: "person")
                         }
-                        .tag(3)
+                        .tag(2)
                 }
                 .accentColor(.accent)
             }
