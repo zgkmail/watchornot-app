@@ -85,7 +85,7 @@ class HistoryViewModel: ObservableObject {
                 let poster: String?
                 let director: String?
                 let cast: String?
-                let rating: String
+                let rating: String?  // Optional to support null for canceling
                 // CodingKeys not needed - backend expects camelCase which is the default Swift encoding
             }
 
@@ -96,6 +96,9 @@ class HistoryViewModel: ObservableObject {
                 let badgeEmoji: String?
                 let badgeDescription: String?
             }
+
+            // Convert empty string to nil for backend (web app sends null to cancel vote)
+            let ratingValue: String? = newRating.isEmpty ? nil : newRating
 
             let request = RatingRequest(
                 id: entry.movieId,
@@ -108,7 +111,7 @@ class HistoryViewModel: ObservableObject {
                 poster: entry.poster,
                 director: entry.director,
                 cast: entry.cast,
-                rating: newRating
+                rating: ratingValue
             )
 
             let response = try await apiClient.request(
@@ -126,7 +129,7 @@ class HistoryViewModel: ObservableObject {
                     title: updatedEntry.title,
                     year: updatedEntry.year,
                     poster: updatedEntry.poster,
-                    rating: newRating,
+                    rating: ratingValue,  // Use nil if canceled
                     timestamp: updatedEntry.timestamp,
                     genre: updatedEntry.genre,
                     imdbRating: updatedEntry.imdbRating,

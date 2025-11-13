@@ -184,7 +184,9 @@ struct HistoryDetailModal: View {
                         HStack(spacing: 12) {
                             // Thumbs up button
                             Button {
-                                onRate?("up")
+                                // Toggle: if already up, cancel vote (empty string), otherwise set to up
+                                let newRating = entry.rating == "up" ? "" : "up"
+                                onRate?(newRating)
                                 dismiss()
                             } label: {
                                 Image(systemName: "hand.thumbsup.fill")
@@ -200,7 +202,9 @@ struct HistoryDetailModal: View {
 
                             // Thumbs down button
                             Button {
-                                onRate?("down")
+                                // Toggle: if already down, cancel vote (empty string), otherwise set to down
+                                let newRating = entry.rating == "down" ? "" : "down"
+                                onRate?(newRating)
                                 dismiss()
                             } label: {
                                 Image(systemName: "hand.thumbsdown.fill")
