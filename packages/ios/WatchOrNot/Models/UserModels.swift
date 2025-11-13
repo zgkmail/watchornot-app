@@ -98,9 +98,8 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
     let badgeDescription: String?
 
     enum CodingKeys: String, CodingKey {
-        case title, year, rating, poster, badge, badgeDescription, badgeEmoji
+        case title, year, rating, poster, badge, badgeDescription, badgeEmoji, timestamp
         case movieId = "movie_id"
-        case timestamp = "rated_at"
     }
 
     init(id: String, movieId: String, title: String, year: Int, poster: String?, rating: String?, timestamp: Date, badge: String?, badgeEmoji: String?, badgeDescription: String?) {
@@ -122,14 +121,27 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
         self.id = movieId
         self.movieId = movieId
         self.title = try container.decode(String.self, forKey: .title)
-        self.year = try container.decode(Int.self, forKey: .year)
+
+        // Handle year - backend returns TEXT that might be a number string or empty
+        if let yearString = try? container.decode(String.self, forKey: .year),
+           let yearInt = Int(yearString) {
+            self.year = yearInt
+        } else if let yearInt = try? container.decode(Int.self, forKey: .year) {
+            self.year = yearInt
+        } else {
+            self.year = 0
+        }
+
         self.poster = try container.decodeIfPresent(String.self, forKey: .poster)
         self.rating = try container.decodeIfPresent(String.self, forKey: .rating)
 
-        // Handle timestamp - backend returns ISO8601 string
-        if let timestampString = try? container.decode(String.self, forKey: .timestamp) {
-            let formatter = ISO8601DateFormatter()
-            self.timestamp = formatter.date(from: timestampString) ?? Date()
+        // Handle timestamp - backend returns Unix timestamp (INTEGER in milliseconds or seconds)
+        if let timestampInt = try? container.decode(Int.self, forKey: .timestamp) {
+            // Unix timestamp - convert to Date
+            // SQLite stores timestamps in milliseconds
+            self.timestamp = Date(timeIntervalSince1970: TimeInterval(timestampInt) / 1000.0)
+        } else if let timestampDouble = try? container.decode(Double.self, forKey: .timestamp) {
+            self.timestamp = Date(timeIntervalSince1970: timestampDouble / 1000.0)
         } else {
             self.timestamp = Date()
         }
