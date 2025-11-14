@@ -128,7 +128,7 @@ class ProfileViewModel: ObservableObject {
             )
 
             _ = try await apiClient.request(
-                .updateRating(updateRequest),
+                .saveRating(updateRequest),
                 expecting: UpdateResponse.self
             )
 
