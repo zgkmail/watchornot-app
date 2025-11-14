@@ -26,7 +26,7 @@ struct HistoryView: View {
                             ForEach(viewModel.history) { entry in
                                 HistoryEntryView(
                                     entry: entry,
-                                    votedCount: viewModel.history.count,
+                                    votedCount: viewModel.history.filter { $0.rating != nil }.count,
                                     onDelete: {
                                         Task {
                                             await viewModel.deleteEntry(entry)
@@ -71,7 +71,7 @@ struct HistoryView: View {
         .sheet(item: $selectedEntry) { entry in
             MovieDetailView(
                 entry: entry,
-                votedCount: viewModel.history.count,
+                votedCount: viewModel.history.filter { $0.rating != nil }.count,
                 onRatingChange: { newRating in
                     Task {
                         await viewModel.updateRating(entry, newRating: newRating)

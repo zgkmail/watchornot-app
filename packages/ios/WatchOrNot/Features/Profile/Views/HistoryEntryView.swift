@@ -53,10 +53,11 @@ struct HistoryEntryView: View {
                             .foregroundColor(.textSecondary)
                     }
 
-                    // Badge (if available)
+                    // Badge (if available and user has voted on at least 5 titles)
                     if let badgeEmoji = entry.badgeEmoji,
                        let badge = entry.badge,
-                       let badgeDescription = entry.badgeDescription {
+                       let badgeDescription = entry.badgeDescription,
+                       votedCount >= 5 {
                         HStack(spacing: 4) {
                             Text(badgeEmoji)
                                 .font(.system(size: 12))
