@@ -81,10 +81,16 @@ struct HistoryEntryView: View {
                     HStack(spacing: 12) {
                         if let imdbRating = entry.imdbRating {
                             HStack(spacing: 4) {
-                                // IMDb logo using SF Symbol
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.yellow)
+                                // IMDb logo badge
+                                Text("IMDb")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.black)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(Color(red: 0.96, green: 0.77, blue: 0.09))
+                                    )
                                 Text(String(format: "%.1f/10", imdbRating))
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(.textPrimary)
