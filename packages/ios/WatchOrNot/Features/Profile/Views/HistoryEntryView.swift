@@ -22,10 +22,7 @@ struct HistoryEntryView: View {
     }
 
     var body: some View {
-        Button {
-            showDetailModal = true
-        } label: {
-            HStack(spacing: 12) {
+        HStack(spacing: 12) {
                 // Poster - matching web app size (96x144px)
                 MoviePosterView(
                     posterURL: entry.poster,
@@ -157,7 +154,10 @@ struct HistoryEntryView: View {
                     .stroke(Color.divider, lineWidth: 1)
             )
         }
-        .buttonStyle(PlainButtonStyle())
+        .contentShape(Rectangle())
+        .onTapGesture {
+            showDetailModal = true
+        }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 onDelete()
