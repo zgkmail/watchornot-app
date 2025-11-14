@@ -45,6 +45,36 @@ struct MovieDetailView: View {
                                         .foregroundColor(.textSecondary)
                                 }
 
+                                if let director = entry.director {
+                                    Text("Director: ")
+                                        .font(.caption)
+                                        .foregroundColor(.textSecondary)
+                                    + Text(director)
+                                        .font(.caption)
+                                        .foregroundColor(.textPrimary)
+                                }
+
+                                if let cast = entry.cast {
+                                    Text("Cast: ")
+                                        .font(.caption)
+                                        .foregroundColor(.textSecondary)
+                                    + Text(cast)
+                                        .font(.caption)
+                                        .foregroundColor(.textPrimary)
+                                }
+
+                                if let trailerUrl = entry.trailerUrl, let url = URL(string: trailerUrl) {
+                                    Link(destination: url) {
+                                        HStack(spacing: 4) {
+                                            Text("🎬")
+                                                .font(.caption)
+                                            Text("Watch Trailer")
+                                                .font(.caption)
+                                                .foregroundColor(.blue)
+                                        }
+                                    }
+                                }
+
                                 Spacer()
                             }
                         }
@@ -195,38 +225,30 @@ struct MovieDetailView: View {
                                     let newRating = entry.rating == "up" ? "" : "up"
                                     onRatingChange(newRating)
                                 } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "hand.thumbsup.fill")
-                                            .font(.title3)
-                                        Text("Like")
-                                            .fontWeight(.semibold)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .foregroundColor(entry.rating == "up" ? .white : .textSecondary)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(entry.rating == "up" ? Color.green : Color.cardBackground)
-                                    )
+                                    Image(systemName: "hand.thumbsup.fill")
+                                        .font(.title2)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .foregroundColor(entry.rating == "up" ? .white : .textSecondary)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(entry.rating == "up" ? Color.green : Color.cardBackground)
+                                        )
                                 }
 
                                 Button {
                                     let newRating = entry.rating == "down" ? "" : "down"
                                     onRatingChange(newRating)
                                 } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "hand.thumbsdown.fill")
-                                            .font(.title3)
-                                        Text("Dislike")
-                                            .fontWeight(.semibold)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .foregroundColor(entry.rating == "down" ? .white : .textSecondary)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(entry.rating == "down" ? Color.red : Color.cardBackground)
-                                    )
+                                    Image(systemName: "hand.thumbsdown.fill")
+                                        .font(.title2)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .foregroundColor(entry.rating == "down" ? .white : .textSecondary)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(entry.rating == "down" ? Color.red : Color.cardBackground)
+                                        )
                                 }
                             }
                         }
