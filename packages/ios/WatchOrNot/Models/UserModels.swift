@@ -90,13 +90,9 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
     let movieId: String
     let title: String
     let year: Int
-    let genre: String?
-    let imdbRating: Double?
-    let rottenTomatoes: Int?
-    let metacritic: Int?
+    let poster: String?
     let rating: String?
     let timestamp: Date
-    let poster: String?
     let genre: String?
     let imdbRating: Double?
     let rottenTomatoes: Int?
@@ -122,10 +118,6 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
         self.movieId = movieId
         self.title = title
         self.year = year
-        self.genre = genre
-        self.imdbRating = imdbRating
-        self.rottenTomatoes = rottenTomatoes
-        self.metacritic = metacritic
         self.poster = poster
         self.rating = rating
         self.timestamp = timestamp
@@ -158,10 +150,6 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
             self.year = 0
         }
 
-        self.genre = try container.decodeIfPresent(String.self, forKey: .genre)
-        self.imdbRating = try container.decodeIfPresent(Double.self, forKey: .imdbRating)
-        self.rottenTomatoes = try container.decodeIfPresent(Int.self, forKey: .rottenTomatoes)
-        self.metacritic = try container.decodeIfPresent(Int.self, forKey: .metacritic)
         self.poster = try container.decodeIfPresent(String.self, forKey: .poster)
         self.rating = try container.decodeIfPresent(String.self, forKey: .rating)
 

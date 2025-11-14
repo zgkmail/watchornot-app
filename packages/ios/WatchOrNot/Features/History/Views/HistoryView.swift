@@ -26,6 +26,7 @@ struct HistoryView: View {
                             ForEach(viewModel.history) { entry in
                                 HistoryEntryView(
                                     entry: entry,
+                                    votedCount: viewModel.history.count,
                                     onDelete: {
                                         Task {
                                             await viewModel.deleteEntry(entry)
@@ -73,7 +74,7 @@ struct HistoryView: View {
                 votedCount: viewModel.history.count,
                 onRatingChange: { newRating in
                     Task {
-                        await viewModel.toggleRating(for: entry, newRating: newRating)
+                        await viewModel.updateRating(entry, newRating: newRating)
                     }
                 },
                 onDelete: {

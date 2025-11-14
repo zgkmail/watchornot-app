@@ -14,8 +14,9 @@ struct HistoryEntryView: View {
     let onRate: ((String) -> Void)?
     @State private var showDetailModal = false
 
-    init(entry: HistoryEntry, onDelete: @escaping () -> Void, onRate: ((String) -> Void)? = nil) {
+    init(entry: HistoryEntry, votedCount: Int = 0, onDelete: @escaping () -> Void, onRate: ((String) -> Void)? = nil) {
         self.entry = entry
+        self.votedCount = votedCount
         self.onDelete = onDelete
         self.onRate = onRate
     }
@@ -158,7 +159,14 @@ struct HistoryEntryView: View {
             }
         }
         .sheet(isPresented: $showDetailModal) {
-            HistoryDetailModal(entry: entry, onDelete: onDelete, onRate: onRate)
+            MovieDetailView(
+                entry: entry,
+                votedCount: votedCount,
+                onRatingChange: { newRating in
+                    onRate?(newRating)
+                },
+                onDelete: onDelete
+            )
         }
     }
 
@@ -181,10 +189,6 @@ struct HistoryEntryView: View {
             movieId: "1",
             title: "The Shawshank Redemption",
             year: 1994,
-            genre: "Drama, Crime",
-            imdbRating: 9.3,
-            rottenTomatoes: 91,
-            metacritic: 82,
             poster: nil,
             rating: "up",
             timestamp: Date(),
@@ -199,6 +203,7 @@ struct HistoryEntryView: View {
             badgeEmoji: "🎯",
             badgeDescription: "This is right up your alley!"
         ),
+        votedCount: 10,
         onDelete: {},
         onRate: { _ in }
     )
