@@ -84,20 +84,9 @@ struct SimplifiedProfileView: View {
 
                                     SettingsRow(
                                         icon: "questionmark.circle",
-                                        title: "Help & Feedback",
+                                        title: "Help and Support",
                                         action: {
                                             // TODO: Show help
-                                        }
-                                    )
-
-                                    Divider()
-                                        .padding(.leading, 56)
-
-                                    SettingsRow(
-                                        icon: "lock.shield",
-                                        title: "Privacy Policy",
-                                        action: {
-                                            // TODO: Show privacy policy
                                         }
                                     )
                                 }
