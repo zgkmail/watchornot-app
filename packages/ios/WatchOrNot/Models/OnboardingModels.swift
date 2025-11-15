@@ -103,11 +103,6 @@ struct OnboardingStatusResponse: Codable {
     let upvotes: Int
     let downvotes: Int
     let skips: Int
-
-    enum CodingKeys: String, CodingKey {
-        case totalVotes, upvotes, downvotes, skips
-        case hasCompletedOnboarding = "has_completed_onboarding"
-    }
 }
 
 /// Onboarding complete request (batch submission)
