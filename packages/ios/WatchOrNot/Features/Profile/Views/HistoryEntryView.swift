@@ -153,7 +153,6 @@ struct HistoryEntryView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.divider, lineWidth: 1)
             )
-        }
         .contentShape(Rectangle())
         .onTapGesture {
             showDetailModal = true
