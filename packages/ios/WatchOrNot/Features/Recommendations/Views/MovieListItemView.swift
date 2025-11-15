@@ -58,9 +58,16 @@ struct MovieListItemView: View {
                 HStack(spacing: 12) {
                     if let rating = movie.imdbRating {
                         HStack(spacing: 4) {
-                            Image(systemName: "star.fill")
-                                .font(.caption)
-                                .foregroundColor(.yellow)
+                            // IMDb logo badge
+                            Text("IMDb")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundColor(.black)
+                                .padding(.horizontal, 3)
+                                .padding(.vertical, 1)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 2)
+                                        .fill(Color(red: 0.96, green: 0.77, blue: 0.09))
+                                )
                             Text(String(format: "%.1f", rating))
                                 .font(.caption)
                                 .fontWeight(.semibold)

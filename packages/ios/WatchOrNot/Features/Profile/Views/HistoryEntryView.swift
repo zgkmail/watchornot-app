@@ -22,10 +22,7 @@ struct HistoryEntryView: View {
     }
 
     var body: some View {
-        Button {
-            showDetailModal = true
-        } label: {
-            HStack(spacing: 12) {
+        HStack(spacing: 12) {
                 // Poster - matching web app size (96x144px)
                 MoviePosterView(
                     posterURL: entry.poster,
@@ -53,10 +50,11 @@ struct HistoryEntryView: View {
                             .foregroundColor(.textSecondary)
                     }
 
-                    // Badge (if available)
+                    // Badge (if available and user has voted on at least 5 titles)
                     if let badgeEmoji = entry.badgeEmoji,
                        let badge = entry.badge,
-                       let badgeDescription = entry.badgeDescription {
+                       let badgeDescription = entry.badgeDescription,
+                       votedCount >= 5 {
                         HStack(spacing: 4) {
                             Text(badgeEmoji)
                                 .font(.system(size: 12))
@@ -80,10 +78,16 @@ struct HistoryEntryView: View {
                     HStack(spacing: 12) {
                         if let imdbRating = entry.imdbRating {
                             HStack(spacing: 4) {
-                                // IMDb logo using SF Symbol
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.yellow)
+                                // IMDb logo badge
+                                Text("IMDb")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.black)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(Color(red: 0.96, green: 0.77, blue: 0.09))
+                                    )
                                 Text(String(format: "%.1f/10", imdbRating))
                                     .font(.system(size: 14, weight: .semibold))
                                     .foregroundColor(.textPrimary)
@@ -149,8 +153,10 @@ struct HistoryEntryView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.divider, lineWidth: 1)
             )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            showDetailModal = true
         }
-        .buttonStyle(PlainButtonStyle())
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 onDelete()

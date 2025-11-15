@@ -21,33 +21,39 @@ struct HistoryView: View {
                 } else if viewModel.history.isEmpty {
                     EmptyHistoryView()
                 } else {
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            ForEach(viewModel.history) { entry in
-                                HistoryEntryView(
-                                    entry: entry,
-                                    votedCount: viewModel.history.count,
-                                    onDelete: {
-                                        Task {
-                                            await viewModel.deleteEntry(entry)
-                                        }
-                                    },
-                                    onRate: { rating in
-                                        Task {
-                                            await viewModel.updateRating(entry, newRating: rating)
-                                        }
+                    List {
+                        ForEach(viewModel.history) { entry in
+                            HistoryEntryView(
+                                entry: entry,
+                                votedCount: viewModel.history.filter { $0.rating != nil }.count,
+                                onDelete: {
+                                    Task {
+                                        await viewModel.deleteEntry(entry)
                                     }
-                                )
-                                .padding(.horizontal)
-                            }
-
-                            if viewModel.isLoadingMore {
-                                ProgressView()
-                                    .padding()
-                            }
+                                },
+                                onRate: { rating in
+                                    Task {
+                                        await viewModel.updateRating(entry, newRating: rating)
+                                    }
+                                }
+                            )
+                            .listRowBackground(Color.background)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                         }
-                        .padding(.vertical)
+
+                        if viewModel.isLoadingMore {
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
+                            }
+                            .listRowBackground(Color.background)
+                            .listRowSeparator(.hidden)
+                        }
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                     .refreshable {
                         await viewModel.refresh()
                     }
@@ -71,7 +77,7 @@ struct HistoryView: View {
         .sheet(item: $selectedEntry) { entry in
             MovieDetailView(
                 entry: entry,
-                votedCount: viewModel.history.count,
+                votedCount: viewModel.history.filter { $0.rating != nil }.count,
                 onRatingChange: { newRating in
                     Task {
                         await viewModel.updateRating(entry, newRating: newRating)
