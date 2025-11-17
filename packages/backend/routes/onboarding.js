@@ -233,4 +233,44 @@ router.post('/complete', async (req, res) => {
   }
 });
 
+/**
+ * Get user's onboarding status and stats
+ * GET /api/onboarding/status
+ */
+router.get('/status', (req, res) => {
+  try {
+    // Check authentication
+    if (!req.session.userId) {
+      return res.status(401).json({
+        error: 'Not authenticated'
+      });
+    }
+
+    // Get all user ratings
+    const allRatings = getUserMovieRatings(req.session.userId);
+
+    // Calculate stats
+    const upvotes = allRatings.filter(r => r.rating === 'up').length;
+    const downvotes = allRatings.filter(r => r.rating === 'down').length;
+    const skips = 0; // Skips are not saved to the database
+    const totalVotes = allRatings.length;
+
+    // Determine if onboarding is complete (at least 5 rated movies)
+    const hasCompletedOnboarding = totalVotes >= 5;
+
+    res.json({
+      hasCompletedOnboarding,
+      totalVotes,
+      upvotes,
+      downvotes,
+      skips
+    });
+  } catch (error) {
+    console.error('Get onboarding status error:', error);
+    res.status(500).json({
+      error: 'Failed to get onboarding status'
+    });
+  }
+});
+
 module.exports = router;
