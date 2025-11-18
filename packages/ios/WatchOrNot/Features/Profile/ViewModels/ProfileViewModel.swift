@@ -87,10 +87,6 @@ class ProfileViewModel: ObservableObject {
     /// Delete history entry
     func deleteEntry(_ entry: HistoryEntry) async {
         do {
-            struct DeleteResponse: Codable {
-                let success: Bool
-            }
-
             _ = try await apiClient.request(
                 .deleteRating(entry.movieId),
                 expecting: DeleteResponse.self
@@ -108,10 +104,6 @@ class ProfileViewModel: ObservableObject {
     /// Update rating for a history entry
     func updateRating(_ entry: HistoryEntry, newRating: String) async {
         do {
-            struct UpdateResponse: Codable {
-                let success: Bool
-            }
-
             let updateRequest = UpdateRatingRequest(
                 id: entry.movieId,
                 title: entry.title,
@@ -129,7 +121,7 @@ class ProfileViewModel: ObservableObject {
 
             _ = try await apiClient.request(
                 .saveRating(updateRequest),
-                expecting: UpdateResponse.self
+                expecting: SaveRatingResponse.self
             )
 
             // Reload history to reflect the change
@@ -148,10 +140,6 @@ class ProfileViewModel: ObservableObject {
     /// Recreate taste profile (delete all ratings and restart onboarding)
     func recreateTasteProfile() async {
         do {
-            struct DeleteResponse: Codable {
-                let success: Bool
-            }
-
             // Delete all history entries
             for entry in history {
                 _ = try await apiClient.request(

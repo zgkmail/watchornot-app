@@ -177,7 +177,7 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
     }
 }
 
-/// History response (deprecated - use RatingsResponse)
+/// History response (deprecated - use RatingsResponse from APIModels)
 struct HistoryResponse: Codable {
     let history: [HistoryEntry]
     let totalCount: Int
@@ -190,10 +190,4 @@ struct HistoryResponse: Codable {
         case totalCount = "total_count"
         case hasMore = "has_more"
     }
-}
-
-/// Ratings response from GET /api/ratings
-struct RatingsResponse: Codable {
-    let ratings: [HistoryEntry]
-    let count: Int
 }

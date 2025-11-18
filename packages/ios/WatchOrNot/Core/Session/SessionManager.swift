@@ -62,7 +62,10 @@ class SessionManager: ObservableObject {
     // MARK: - Keychain Helpers
 
     private func saveToKeychain(key: String, value: String) {
-        let data = value.data(using: .utf8)!
+        guard let data = value.data(using: .utf8) else {
+            print("Error: Failed to convert value to data for Keychain storage")
+            return
+        }
 
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
