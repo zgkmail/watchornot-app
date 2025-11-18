@@ -13,17 +13,28 @@ class MovieSnapViewModel: ObservableObject {
     @Published var capturedImage: UIImage?
     @Published var analysisResult: ClaudeImageAnalysisResponse?
     @Published var movieDetails: MovieDetails?
+    @Published var currentRating: String?
+    @Published var badge: String?
+    @Published var badgeEmoji: String?
+    @Published var badgeDescription: String?
+    @Published var votedCount: Int = 0
     @Published var isAnalyzing: Bool = false
     @Published var isLoadingDetails: Bool = false
     @Published var error: String?
     @Published var showCamera: Bool = false
     @Published var showPhotoPicker: Bool = false
     @Published var searchQuery: String = ""
+    @Published var showManualSearch: Bool = false
 
     private let apiClient: APIClient
 
     init(apiClient: APIClient = .shared) {
         self.apiClient = apiClient
+
+        // Fetch initial voted count
+        Task {
+            await fetchVotedCount()
+        }
     }
 
     /// Open photo library picker
@@ -274,14 +285,123 @@ class MovieSnapViewModel: ObservableObject {
         }
     }
 
+    /// Fetch voted count from backend
+    func fetchVotedCount() async {
+        do {
+            let stats = try await apiClient.request(
+                .getUserStats,
+                expecting: UserStats.self
+            )
+            votedCount = stats.totalVotes
+        } catch {
+            print("⚠️ Could not fetch voted count:", error.localizedDescription)
+        }
+    }
+
+    /// Submit rating for the current movie
+    func submitRating(_ rating: String) async {
+        guard let movie = movieDetails else { return }
+
+        // Update UI immediately
+        currentRating = rating
+
+        struct SaveMovieRequest: Codable {
+            let id: String
+            let title: String
+            let year: Int
+            let genre: String
+            let director: String?
+            let cast: String?
+            let poster: String?
+            let imdbRating: Double?
+            let rottenTomatoes: Int?
+            let metacritic: Int?
+            let trailerUrl: String?
+            let rating: String
+        }
+
+        let request = SaveMovieRequest(
+            id: movie.id,
+            title: movie.title,
+            year: movie.year,
+            genre: movie.genreString ?? "Drama",
+            director: movie.director,
+            cast: movie.cast,
+            poster: movie.poster,
+            imdbRating: movie.imdbRating,
+            rottenTomatoes: movie.rottenTomatoes,
+            metacritic: movie.metacritic,
+            trailerUrl: movie.trailerUrl,
+            rating: rating
+        )
+
+        do {
+            struct SaveRatingResponse: Codable {
+                let success: Bool
+            }
+
+            _ = try await apiClient.request(
+                .saveRating(request),
+                expecting: SaveRatingResponse.self
+            )
+            print("✅ Rating saved: \(rating)")
+
+            // Fetch updated voted count and badge
+            await fetchVotedCount()
+            await fetchBadgeForCurrentMovie()
+        } catch {
+            print("⚠️ Could not save rating:", error.localizedDescription)
+            self.error = "Failed to save rating. Please try again."
+        }
+    }
+
+    /// Fetch badge for the current movie
+    private func fetchBadgeForCurrentMovie() async {
+        guard let movie = movieDetails, votedCount >= 5 else {
+            badge = nil
+            badgeEmoji = nil
+            badgeDescription = nil
+            return
+        }
+
+        do {
+            let response = try await apiClient.request(
+                .getBadge(movieId: movie.id),
+                expecting: BadgeResponse.self
+            )
+
+            badge = response.badge
+            badgeEmoji = response.badgeEmoji
+            badgeDescription = response.badgeDescription
+        } catch {
+            print("⚠️ Could not fetch badge:", error.localizedDescription)
+        }
+    }
+
+    /// Handle wrong title - switch to manual search
+    func handleWrongTitle() {
+        showManualSearch = true
+        searchQuery = movieDetails?.title ?? ""
+    }
+
+    /// Skip rating - reset and go back
+    func skipRating() {
+        reset()
+    }
+
     /// Reset state
     func reset() {
         capturedImage = nil
         analysisResult = nil
         movieDetails = nil
+        currentRating = nil
+        badge = nil
+        badgeEmoji = nil
+        badgeDescription = nil
         error = nil
         isAnalyzing = false
         isLoadingDetails = false
+        showManualSearch = false
     }
 
     /// Open camera
@@ -410,4 +530,12 @@ struct OMDbDetailsResponse: Codable {
         case rottenTomatoes = "rotten_tomatoes"
         case metacritic
     }
+}
+
+// Badge Response
+struct BadgeResponse: Codable {
+    let badge: String?
+    let badgeEmoji: String?
+    let badgeDescription: String?
+    let tier: String?
 }

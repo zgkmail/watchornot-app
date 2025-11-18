@@ -25,6 +25,10 @@ enum APIEndpoint {
     case saveRating(Encodable) // Full movie data with rating
     case getRatings // Get all ratings (for history)
     case deleteRating(String) // movieId
+    case getBadge(movieId: String) // Get recommendation badge for movie
+
+    // User Stats
+    case getUserStats
 
     // TMDB
     case searchMovies(query: String)
@@ -55,6 +59,10 @@ enum APIEndpoint {
             return "/api/ratings"
         case .deleteRating(let movieId):
             return "/api/ratings/\(movieId)"
+        case .getBadge(let movieId):
+            return "/api/badge/\(movieId)"
+        case .getUserStats:
+            return "/api/stats"
         case .searchMovies:
             return "/api/tmdb/search"
         case .getMovieDetails(let mediaType, let id):

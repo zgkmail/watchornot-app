@@ -21,6 +21,22 @@ struct MovieSnapView: View {
                         MovieDetailsResultView(
                             movieDetails: movieDetails,
                             analysisData: viewModel.analysisResult,
+                            votedCount: viewModel.votedCount,
+                            currentRating: viewModel.currentRating,
+                            badge: viewModel.badge,
+                            badgeEmoji: viewModel.badgeEmoji,
+                            badgeDescription: viewModel.badgeDescription,
+                            onRating: { rating in
+                                Task {
+                                    await viewModel.submitRating(rating)
+                                }
+                            },
+                            onSkip: {
+                                viewModel.skipRating()
+                            },
+                            onWrongTitle: {
+                                viewModel.handleWrongTitle()
+                            },
                             onReset: { viewModel.reset() }
                         )
                     } else if viewModel.isAnalyzing || viewModel.isLoadingDetails {
