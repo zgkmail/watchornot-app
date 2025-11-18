@@ -238,6 +238,10 @@ class MovieSnapViewModel: ObservableObject {
             // Save to backend automatically (without rating)
             await saveMovieToBackend()
 
+            // Fetch voted count and badge
+            await fetchVotedCount()
+            await fetchBadgeForCurrentMovie()
+
             isLoadingDetails = false
         } catch {
             self.error = "Failed to load movie details: \(error.localizedDescription)"
