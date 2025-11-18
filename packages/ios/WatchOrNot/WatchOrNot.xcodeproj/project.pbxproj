@@ -8,9 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		3FB84EB42EC5545B000C1E6D /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E912EC5545B000C1E6D /* ProfileViewModel.swift */; };
+		FB5D811EE2B143DD8D1A570D /* SimplifiedProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E952EC5545B000C1E6D /* SimplifiedProfileView.swift */; };
 		3FB84EB52EC5545B000C1E6D /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E742EC5545B000C1E6D /* APIClient.swift */; };
+		179AC1B34113409C84F4652C /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB0721B90A34436D81928B06 /* APIModels.swift */; };
 		3FB84EB62EC5545B000C1E6D /* UserModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84EA52EC5545B000C1E6D /* UserModels.swift */; };
-		3FB84EB72EC5545B000C1E6D /* SimplifiedProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E952EC5545B000C1E6D /* SimplifiedProfileView.swift */; };
 		3FB84EB82EC5545B000C1E6D /* ClaudeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84EA12EC5545B000C1E6D /* ClaudeModels.swift */; };
 		3FB84EB92EC5545B000C1E6D /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E762EC5545B000C1E6D /* NetworkError.swift */; };
 		3FB84EBA2EC5545B000C1E6D /* PreferencesHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E9C2EC5545B000C1E6D /* PreferencesHeaderView.swift */; };
@@ -29,7 +30,6 @@
 		3FB84EC72EC5545B000C1E6D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E8D2EC5545B000C1E6D /* OnboardingView.swift */; };
 		3FB84EC82EC5545B000C1E6D /* VoteButtonsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E8E2EC5545B000C1E6D /* VoteButtonsView.swift */; };
 		3FB84EC92EC5545B000C1E6D /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84EAB2EC5545B000C1E6D /* LoadingView.swift */; };
-		3FB84ECA2EC5545B000C1E6D /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E942EC5545B000C1E6D /* ProfileView.swift */; };
 		3FB84ECB2EC5545B000C1E6D /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E6F2EC5545B000C1E6D /* ContentView.swift */; };
 		3FB84ECC2EC5545B000C1E6D /* WatchOrNotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E702EC5545B000C1E6D /* WatchOrNotApp.swift */; };
 		3FB84ECD2EC5545B000C1E6D /* HistoryEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E932EC5545B000C1E6D /* HistoryEntryView.swift */; };
@@ -82,6 +82,7 @@
 		3FB84E722EC5545B000C1E6D /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
 		3FB84E742EC5545B000C1E6D /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		3FB84E752EC5545B000C1E6D /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
+		EB0721B90A34436D81928B06 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
 		3FB84E762EC5545B000C1E6D /* NetworkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkError.swift; sourceTree = "<group>"; };
 		3FB84E782EC5545B000C1E6D /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
 		3FB84E7A2EC5545B000C1E6D /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -100,7 +101,6 @@
 		3FB84E8E2EC5545B000C1E6D /* VoteButtonsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoteButtonsView.swift; sourceTree = "<group>"; };
 		3FB84E912EC5545B000C1E6D /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		3FB84E932EC5545B000C1E6D /* HistoryEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryEntryView.swift; sourceTree = "<group>"; };
-		3FB84E942EC5545B000C1E6D /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		3FB84E952EC5545B000C1E6D /* SimplifiedProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimplifiedProfileView.swift; sourceTree = "<group>"; };
 		3FB84E962EC5545B000C1E6D /* UserStatsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStatsCard.swift; sourceTree = "<group>"; };
 		3FB84E992EC5545B000C1E6D /* RecommendationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationsViewModel.swift; sourceTree = "<group>"; };
@@ -213,6 +213,7 @@
 			children = (
 				3FB84E742EC5545B000C1E6D /* APIClient.swift */,
 				3FB84E752EC5545B000C1E6D /* APIEndpoint.swift */,
+				EB0721B90A34436D81928B06 /* APIModels.swift */,
 				3FB84E762EC5545B000C1E6D /* NetworkError.swift */,
 			);
 			path = Networking;
@@ -332,7 +333,6 @@
 			isa = PBXGroup;
 			children = (
 				3FB84E932EC5545B000C1E6D /* HistoryEntryView.swift */,
-				3FB84E942EC5545B000C1E6D /* ProfileView.swift */,
 				3FB84E952EC5545B000C1E6D /* SimplifiedProfileView.swift */,
 				3FB84E962EC5545B000C1E6D /* UserStatsCard.swift */,
 			);
@@ -599,9 +599,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				3FB84EB42EC5545B000C1E6D /* ProfileViewModel.swift in Sources */,
+				FB5D811EE2B143DD8D1A570D /* SimplifiedProfileView.swift in Sources */,
 				3FB84EB52EC5545B000C1E6D /* APIClient.swift in Sources */,
+				179AC1B34113409C84F4652C /* APIModels.swift in Sources */,
 				3FB84EB62EC5545B000C1E6D /* UserModels.swift in Sources */,
-				3FB84EB72EC5545B000C1E6D /* SimplifiedProfileView.swift in Sources */,
 				3FB84EB82EC5545B000C1E6D /* ClaudeModels.swift in Sources */,
 				3FB84EB92EC5545B000C1E6D /* NetworkError.swift in Sources */,
 				3FB84EBA2EC5545B000C1E6D /* PreferencesHeaderView.swift in Sources */,
@@ -620,7 +621,6 @@
 				3FB84EC72EC5545B000C1E6D /* OnboardingView.swift in Sources */,
 				3FB84EC82EC5545B000C1E6D /* VoteButtonsView.swift in Sources */,
 				3FB84EC92EC5545B000C1E6D /* LoadingView.swift in Sources */,
-				3FB84ECA2EC5545B000C1E6D /* ProfileView.swift in Sources */,
 				3FB84ECB2EC5545B000C1E6D /* ContentView.swift in Sources */,
 				3FB84ECC2EC5545B000C1E6D /* WatchOrNotApp.swift in Sources */,
 				3FB84ECD2EC5545B000C1E6D /* HistoryEntryView.swift in Sources */,

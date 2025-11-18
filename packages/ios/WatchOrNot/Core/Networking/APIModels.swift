@@ -98,17 +98,6 @@ struct BadgeResponse: Codable {
     let tier: String?
 }
 
-// MARK: - Onboarding Models
-
-/// Onboarding status response
-struct OnboardingStatusResponse: Codable {
-    let hasCompletedOnboarding: Bool
-    let totalVotes: Int
-    let upvotes: Int
-    let downvotes: Int
-    let skips: Int
-}
-
 // MARK: - TMDB Models
 
 /// TMDB Search Response
