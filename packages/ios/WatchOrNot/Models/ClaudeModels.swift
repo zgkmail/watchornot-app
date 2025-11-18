@@ -10,30 +10,25 @@ import Foundation
 /// Request for Claude image analysis
 struct ClaudeImageAnalysisRequest: Codable {
     let image: String  // base64 encoded
-    let mimeType: String
 
-    enum CodingKeys: String, CodingKey {
-        case image = "imageBase64"
-        case mimeType
-    }
+    // Backend expects "image" field with base64 data
+    // Backend auto-detects image type, so no mimeType needed
 }
 
 /// Response from Claude image analysis
 struct ClaudeImageAnalysisResponse: Codable {
-    let success: Bool
-    let data: AnalysisData?
+    let title: String?
+    let year: Int?
+    let mediaType: String?  // "movie" or "tv"
+    let confidence: Double?
+    let model: String?
+    let processingTime: Int?
+    let message: String?
     let error: String?
-    let rateLimitRemaining: Int?
-
-    struct AnalysisData: Codable {
-        let title: String
-        let year: Int?
-        let confidence: String?
-        let reasoning: String?
-    }
 
     enum CodingKeys: String, CodingKey {
-        case success, data, error
-        case rateLimitRemaining = "rate_limit_remaining"
+        case title, year, confidence, model, message, error
+        case mediaType = "media_type"
+        case processingTime
     }
 }

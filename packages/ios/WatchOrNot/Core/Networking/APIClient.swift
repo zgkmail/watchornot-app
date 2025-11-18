@@ -67,18 +67,18 @@ class APIClient: ObservableObject {
     func uploadImage(
         _ endpoint: APIEndpoint,
         imageData: Data,
-        mimeType: String
+        mimeType: String  // Parameter kept for signature compatibility, but not sent to backend
     ) async throws -> ClaudeImageAnalysisResponse {
         var request = try buildRequest(for: endpoint)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
+        // Backend expects just "image" field with base64 data
+        // Backend auto-detects image type
         let payload = ClaudeImageAnalysisRequest(
-            image: imageData.base64EncodedString(),
-            mimeType: mimeType
+            image: imageData.base64EncodedString()
         )
 
         let encoder = JSONEncoder()
-        // Don't convert to snake_case - backend expects camelCase
         request.httpBody = try encoder.encode(payload)
 
         let (data, response) = try await session.data(for: request)
@@ -87,12 +87,21 @@ class APIClient: ObservableObject {
             throw NetworkError.invalidResponse
         }
 
+        // Log response for debugging
+        if let responseString = String(data: data, encoding: .utf8) {
+            print("📥 Claude API Response: \(responseString)")
+        }
+
         guard (200...299).contains(httpResponse.statusCode) else {
+            // Try to decode error message
+            if let errorResponse = try? JSONDecoder().decode(ClaudeImageAnalysisResponse.self, from: data),
+               let error = errorResponse.error {
+                throw NetworkError.serverError(error)
+            }
             throw NetworkError.httpError(statusCode: httpResponse.statusCode)
         }
 
         let decoder = JSONDecoder()
-        // Backend returns camelCase, not snake_case
         return try decoder.decode(ClaudeImageAnalysisResponse.self, from: data)
     }
 

@@ -20,7 +20,7 @@ struct MovieSnapView: View {
                         // Show movie details
                         MovieDetailsResultView(
                             movieDetails: movieDetails,
-                            analysisData: viewModel.analysisResult?.data,
+                            analysisData: viewModel.analysisResult,
                             onReset: { viewModel.reset() }
                         )
                     } else if viewModel.isAnalyzing || viewModel.isLoadingDetails {

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MovieDetailsResultView: View {
     let movieDetails: MovieDetails
-    let analysisData: ClaudeImageAnalysisResponse.AnalysisData?
+    let analysisData: ClaudeImageAnalysisResponse?
     let onReset: () -> Void
 
     var body: some View {
@@ -98,16 +98,9 @@ struct MovieDetailsResultView: View {
                                     .foregroundColor(.textPrimary)
                             }
 
-                            Text("Confidence: \(confidence)")
+                            Text("Confidence: \(Int(confidence * 100))%")
                                 .font(.bodySmall)
                                 .foregroundColor(.textSecondary)
-
-                            if let reasoning = data.reasoning {
-                                Text(reasoning)
-                                    .font(.bodySmall)
-                                    .foregroundColor(.textTertiary)
-                                    .italic()
-                            }
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -179,11 +172,15 @@ struct MovieDetailsResultView: View {
             trailerUrl: "https://www.youtube.com/watch?v=6hB3S9bIaco",
             genreString: "Drama"
         ),
-        analysisData: ClaudeImageAnalysisResponse.AnalysisData(
+        analysisData: ClaudeImageAnalysisResponse(
             title: "The Shawshank Redemption",
             year: 1994,
-            confidence: "High",
-            reasoning: "Clear title and distinctive poster design"
+            mediaType: "movie",
+            confidence: 0.9,
+            model: "claude-3-haiku-20240307",
+            processingTime: 1500,
+            message: nil,
+            error: nil
         ),
         onReset: {}
     )

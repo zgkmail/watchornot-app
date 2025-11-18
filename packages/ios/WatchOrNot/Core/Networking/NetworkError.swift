@@ -16,7 +16,7 @@ enum NetworkError: LocalizedError {
     case encodingError(Error)
     case noData
     case unauthorized
-    case serverError
+    case serverError(String)
     case networkUnavailable
 
     var errorDescription: String? {
@@ -35,8 +35,8 @@ enum NetworkError: LocalizedError {
             return "No data received"
         case .unauthorized:
             return "Unauthorized request"
-        case .serverError:
-            return "Server error occurred"
+        case .serverError(let message):
+            return "Server error: \(message)"
         case .networkUnavailable:
             return "Network unavailable. Please check your connection."
         }

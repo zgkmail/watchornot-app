@@ -73,11 +73,20 @@ class MovieSnapViewModel: ObservableObject {
 
             analysisResult = response
 
-            if response.success, let data = response.data {
-                // Load movie details
-                await loadMovieDetails(title: data.title, year: data.year)
+            // Check if we got a title (success case)
+            if let title = response.title {
+                // Load movie details with media type
+                await loadMovieDetails(
+                    title: title,
+                    year: response.year,
+                    mediaType: response.mediaType
+                )
+            } else if let error = response.error {
+                self.error = error
+            } else if let message = response.message {
+                self.error = message
             } else {
-                error = response.error ?? "Failed to recognize movie poster"
+                self.error = "Failed to recognize movie or TV show from image"
             }
 
             isAnalyzing = false
@@ -88,7 +97,7 @@ class MovieSnapViewModel: ObservableObject {
     }
 
     /// Load full movie details from TMDB/OMDb
-    private func loadMovieDetails(title: String, year: Int?) async {
+    private func loadMovieDetails(title: String, year: Int?, mediaType: String? = nil) async {
         isLoadingDetails = true
 
         do {
@@ -98,16 +107,24 @@ class MovieSnapViewModel: ObservableObject {
                 expecting: TMDBSearchResponse.self
             )
 
-            // Filter to only movies and TV shows
-            let validResults = searchResults.results.filter { result in
+            // Filter to only movies and TV shows, prefer detected media type
+            var validResults = searchResults.results.filter { result in
                 result.mediaType == "movie" || result.mediaType == "tv"
             }
 
-            // Find best match
+            // If Claude detected a media type, prefer those results
+            if let detectedType = mediaType {
+                let matchingType = validResults.filter { $0.mediaType == detectedType }
+                if !matchingType.isEmpty {
+                    validResults = matchingType
+                }
+            }
+
+            // Find best match (by year if available)
             guard let tmdbMovie = validResults.first(where: { result in
                 year == nil || result.year == year
             }) ?? validResults.first else {
-                error = "Movie not found in database"
+                error = "Movie or TV show not found in database"
                 isLoadingDetails = false
                 return
             }
