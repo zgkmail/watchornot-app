@@ -70,6 +70,15 @@ class ProfileViewModel: ObservableObject {
             // The ratings array already contains properly decoded HistoryEntry objects
             history = response.ratings
 
+            // Debug: Log any entries with year = 0
+            let entriesWithZeroYear = response.ratings.filter { $0.year == 0 }
+            if !entriesWithZeroYear.isEmpty {
+                print("⚠️ Found \(entriesWithZeroYear.count) history entries with year = 0:")
+                for entry in entriesWithZeroYear {
+                    print("   - \(entry.title) (ID: \(entry.movieId))")
+                }
+            }
+
             // Backend returns all ratings, no pagination
             hasMoreHistory = false
             isLoadingHistory = false
@@ -104,11 +113,20 @@ class ProfileViewModel: ObservableObject {
     /// Update rating for a history entry
     func updateRating(_ entry: HistoryEntry, newRating: String) async {
         do {
+            // IMPORTANT: Prevent sending year: 0 to backend, which would overwrite good data
+            // If year is 0, use current year as fallback (though this shouldn't happen)
+            let yearValue = entry.year > 0 ? entry.year : Calendar.current.component(.year, from: Date())
+
+            if entry.year == 0 {
+                print("⚠️ WARNING: HistoryEntry has year = 0 for '\(entry.title)' (ID: \(entry.movieId))")
+                print("   Using fallback year: \(yearValue)")
+            }
+
             let updateRequest = UpdateRatingRequest(
                 id: entry.movieId,
                 title: entry.title,
                 genre: entry.genre,
-                year: entry.year,
+                year: yearValue,
                 imdbRating: entry.imdbRating,
                 rottenTomatoes: entry.rottenTomatoes,
                 metacritic: entry.metacritic,

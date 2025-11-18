@@ -36,11 +36,11 @@ struct MovieDetailView: View {
                                     .foregroundColor(.textPrimary)
 
                                 if let genre = entry.genre {
-                                    Text("\(String(entry.year)) • \(genre)")
+                                    Text("\(entry.year > 0 ? String(entry.year) : "N/A") • \(genre)")
                                         .font(.subheadline)
                                         .foregroundColor(.textSecondary)
                                 } else {
-                                    Text(String(entry.year))
+                                    Text(entry.year > 0 ? String(entry.year) : "N/A")
                                         .font(.subheadline)
                                         .foregroundColor(.textSecondary)
                                 }

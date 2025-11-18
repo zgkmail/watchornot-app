@@ -253,10 +253,18 @@ class MovieSnapViewModel: ObservableObject {
     private func saveMovieToBackend() async {
         guard let movie = movieDetails else { return }
 
+        // IMPORTANT: Prevent sending year: 0 to backend
+        let yearValue = movie.year > 0 ? movie.year : Calendar.current.component(.year, from: Date())
+
+        if movie.year == 0 {
+            print("⚠️ WARNING: MovieDetails has year = 0 for '\(movie.title)' (ID: \(movie.id))")
+            print("   Using fallback year: \(yearValue)")
+        }
+
         let request = SaveMovieRequest(
             id: movie.id,
             title: movie.title,
-            year: movie.year,
+            year: yearValue,
             genre: movie.genreString ?? "Drama",
             director: movie.director,
             cast: movie.cast,
@@ -306,10 +314,18 @@ class MovieSnapViewModel: ObservableObject {
         // Update UI immediately
         currentRating = rating
 
+        // IMPORTANT: Prevent sending year: 0 to backend
+        let yearValue = movie.year > 0 ? movie.year : Calendar.current.component(.year, from: Date())
+
+        if movie.year == 0 {
+            print("⚠️ WARNING: MovieDetails has year = 0 for '\(movie.title)' (ID: \(movie.id))")
+            print("   Using fallback year: \(yearValue)")
+        }
+
         let request = SaveMovieRequest(
             id: movie.id,
             title: movie.title,
-            year: movie.year,
+            year: yearValue,
             genre: movie.genreString ?? "Drama",
             director: movie.director,
             cast: movie.cast,

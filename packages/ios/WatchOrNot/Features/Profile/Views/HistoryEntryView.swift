@@ -41,11 +41,11 @@ struct HistoryEntryView: View {
 
                     // Year and Genre
                     if let genre = entry.genre {
-                        Text("\(String(entry.year)) • \(genre)")
+                        Text("\(entry.year > 0 ? String(entry.year) : "N/A") • \(genre)")
                             .font(.system(size: 14))
                             .foregroundColor(.textSecondary)
                     } else {
-                        Text(String(entry.year))
+                        Text(entry.year > 0 ? String(entry.year) : "N/A")
                             .font(.system(size: 14))
                             .foregroundColor(.textSecondary)
                     }
