@@ -500,7 +500,8 @@ struct TMDBSearchResult: Codable {
 // TMDB Details Response
 struct TMDBDetailsResponse: Codable {
     let id: Int
-    let title: String
+    let title: String?      // Movies have "title"
+    let name: String?       // TV shows have "name"
     let overview: String
     let voteAverage: Double
     let runtime: Int?
@@ -510,9 +511,14 @@ struct TMDBDetailsResponse: Codable {
     let videos: TMDBVideos?
 
     enum CodingKeys: String, CodingKey {
-        case id, title, overview, runtime, genres, credits, videos
+        case id, title, name, overview, runtime, genres, credits, videos
         case voteAverage = "vote_average"
         case externalIds = "external_ids"
+    }
+
+    // Helper to get display title (works for both movies and TV shows)
+    var displayTitle: String {
+        title ?? name ?? "Unknown"
     }
 }
 
