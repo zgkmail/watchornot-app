@@ -38,28 +38,44 @@ class APIClient: ObservableObject {
     ) async throws -> T {
         let request = try buildRequest(for: endpoint)
 
-        let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkError.invalidResponse
-        }
-
-        // Store session ID if present
-        if let sessionID = httpResponse.value(forHTTPHeaderField: "X-Session-ID") {
-            SessionManager.shared.saveSessionID(sessionID)
-        }
-
-        guard (200...299).contains(httpResponse.statusCode) else {
-            throw NetworkError.httpError(statusCode: httpResponse.statusCode)
-        }
-
         do {
-            let decoder = JSONDecoder()
-            // Backend returns camelCase, not snake_case
-            decoder.dateDecodingStrategy = .iso8601
-            return try decoder.decode(T.self, from: data)
-        } catch {
-            throw NetworkError.decodingError(error)
+            let (data, response) = try await session.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw NetworkError.invalidResponse
+            }
+
+            // Store session ID if present
+            if let sessionID = httpResponse.value(forHTTPHeaderField: "X-Session-ID") {
+                SessionManager.shared.saveSessionID(sessionID)
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                throw NetworkError.httpError(statusCode: httpResponse.statusCode)
+            }
+
+            do {
+                let decoder = JSONDecoder()
+                // Backend returns camelCase, not snake_case
+                decoder.dateDecodingStrategy = .iso8601
+                return try decoder.decode(T.self, from: data)
+            } catch {
+                throw NetworkError.decodingError(error)
+            }
+        } catch let urlError as URLError {
+            // Check for local network permission issues
+            if urlError.code == .notConnectedToInternet ||
+               urlError.code == .networkConnectionLost ||
+               urlError.code == .cannotFindHost ||
+               urlError.code == .cannotConnectToHost {
+                #if targetEnvironment(simulator)
+                throw NetworkError.networkUnavailable
+                #else
+                // On physical device, likely a local network permission issue
+                throw NetworkError.localNetworkPermissionRequired
+                #endif
+            }
+            throw urlError
         }
     }
 

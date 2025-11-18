@@ -32,8 +32,15 @@ class AppState: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
 
+    private let apiClient = APIClient.shared
+
     init() {
         checkWelcomeAndOnboardingStatus()
+
+        // Trigger network permission prompt early (non-blocking)
+        Task {
+            await performHealthCheck()
+        }
     }
 
     func checkWelcomeAndOnboardingStatus() {
@@ -42,6 +49,23 @@ class AppState: ObservableObject {
 
         // Check if user has completed onboarding
         hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+    }
+
+    /// Perform health check to trigger local network permission prompt early
+    private func performHealthCheck() async {
+        #if !targetEnvironment(simulator)
+        // Only on physical devices (local network permission needed)
+        do {
+            struct HealthResponse: Codable {
+                let status: String
+            }
+            _ = try await apiClient.request(.healthCheck, expecting: HealthResponse.self)
+            print("✅ Health check succeeded - local network permission granted")
+        } catch {
+            // Silently fail - permission will be requested again when needed
+            print("⚠️ Health check failed (expected on first launch): \(error.localizedDescription)")
+        }
+        #endif
     }
 
     func markWelcomeSeen() {

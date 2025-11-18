@@ -75,7 +75,7 @@ struct OnboardingView: View {
         .task {
             await viewModel.loadMovies()
         }
-        .alert("Error", isPresented: .constant(viewModel.error != nil)) {
+        .alert("Connection Issue", isPresented: .constant(viewModel.error != nil)) {
             Button("Try Again") {
                 viewModel.error = nil
                 Task {
@@ -87,7 +87,12 @@ struct OnboardingView: View {
             }
         } message: {
             if let error = viewModel.error {
-                Text(error)
+                // Show helpful message for local network permission
+                if error.contains("Local network access required") {
+                    Text("To connect to your local server, WatchOrNot needs permission to access your local network.\n\nPlease tap \"Allow\" when prompted, then tap \"Try Again\".")
+                } else {
+                    Text(error)
+                }
             }
         }
     }

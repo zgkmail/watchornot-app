@@ -18,6 +18,7 @@ enum NetworkError: LocalizedError {
     case unauthorized
     case serverError(String)
     case networkUnavailable
+    case localNetworkPermissionRequired
 
     var errorDescription: String? {
         switch self {
@@ -39,6 +40,8 @@ enum NetworkError: LocalizedError {
             return "Server error: \(message)"
         case .networkUnavailable:
             return "Network unavailable. Please check your connection."
+        case .localNetworkPermissionRequired:
+            return "Local network access required"
         }
     }
 
@@ -46,6 +49,8 @@ enum NetworkError: LocalizedError {
         switch self {
         case .networkUnavailable:
             return "Check your internet connection and try again."
+        case .localNetworkPermissionRequired:
+            return "Please allow local network access when prompted, then tap 'Try Again'."
         case .unauthorized:
             return "Your session may have expired. Please restart the app."
         case .httpError(let statusCode) where statusCode >= 500:
