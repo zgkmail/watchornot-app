@@ -472,10 +472,10 @@ struct TMDBSearchResult: Codable {
     let name: String?   // TV shows have "name"
     let releaseDate: String?  // Movies have "release_date"
     let firstAirDate: String?  // TV shows have "first_air_date"
-    let overview: String
+    let overview: String?  // Some content may not have overview
     let posterPath: String?
-    let voteAverage: Double
-    let popularity: Double
+    let voteAverage: Double?  // Some content may not have ratings
+    let popularity: Double?  // Some content may not have popularity
 
     enum CodingKeys: String, CodingKey {
         case id, overview, popularity
