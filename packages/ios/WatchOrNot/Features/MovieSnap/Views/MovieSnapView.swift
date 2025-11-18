@@ -45,6 +45,7 @@ struct MovieSnapView: View {
                     } else {
                         // Initial state - show options
                         SnapPromptView(
+                            initialSearchQuery: viewModel.searchQuery,
                             onTakePhoto: { viewModel.openCamera() },
                             onUploadImage: { viewModel.openPhotoPicker() },
                             onSearch: { query in
@@ -88,6 +89,7 @@ struct MovieSnapView: View {
 }
 
 struct SnapPromptView: View {
+    let initialSearchQuery: String
     let onTakePhoto: () -> Void
     let onUploadImage: () -> Void
     let onSearch: (String) -> Void
@@ -234,6 +236,13 @@ struct SnapPromptView: View {
             }
         }
         .scrollDismissesKeyboard(.interactively)
+        .onAppear {
+            // Pre-populate search query if provided (e.g., from "Wrong title?" button)
+            if !initialSearchQuery.isEmpty {
+                searchQuery = initialSearchQuery
+                isSearchFocused = true
+            }
+        }
     }
 }
 

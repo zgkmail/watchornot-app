@@ -71,7 +71,7 @@ struct MovieDetailsResultView: View {
                                 .padding(.bottom, 4)
 
                                 // Year • Genre
-                                Text("\(movieDetails.year) • \(movieDetails.genreString ?? movieDetails.genres.joined(separator: ", "))")
+                                Text("\(String(movieDetails.year)) • \(movieDetails.genreString ?? movieDetails.genres.joined(separator: ", "))")
                                     .font(.system(size: 14))
                                     .foregroundColor(Color(.systemGray))
 

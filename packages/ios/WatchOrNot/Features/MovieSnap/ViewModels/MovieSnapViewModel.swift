@@ -428,8 +428,23 @@ class MovieSnapViewModel: ObservableObject {
 
     /// Handle wrong title - switch to manual search
     func handleWrongTitle() {
-        showManualSearch = true
+        // Save the current title for search
         searchQuery = movieDetails?.title ?? ""
+
+        // Reset to show search view
+        capturedImage = nil
+        analysisResult = nil
+        movieDetails = nil
+        currentRating = nil
+        badge = nil
+        badgeEmoji = nil
+        badgeDescription = nil
+        error = nil
+        isAnalyzing = false
+        isLoadingDetails = false
+
+        // Show manual search
+        showManualSearch = true
     }
 
     /// Skip rating - reset and go back
