@@ -156,12 +156,12 @@ class MovieSnapViewModel: ObservableObject {
             )
 
             // Get OMDb ratings if we have IMDb ID
-            var omdbData: OMDbDetailsResponse? = nil
+            var omdbData: OMDbRatingsResponse? = nil
             if let imdbId = tmdbDetails.externalIds?.imdbId {
                 do {
                     omdbData = try await apiClient.request(
-                        .getOMDbDetails(imdbId: imdbId),
-                        expecting: OMDbDetailsResponse.self
+                        .getOMDbRatings(imdbId: imdbId),
+                        expecting: OMDbRatingsResponse.self
                     )
                 } catch {
                     print("⚠️ Could not fetch OMDb ratings:", error.localizedDescription)
@@ -288,11 +288,13 @@ class MovieSnapViewModel: ObservableObject {
     /// Fetch voted count from backend
     func fetchVotedCount() async {
         do {
-            let stats = try await apiClient.request(
-                .getUserStats,
-                expecting: UserStats.self
+            // Get all ratings and count them
+            let ratings = try await apiClient.request(
+                .getRatings,
+                expecting: [HistoryEntry].self
             )
-            votedCount = stats.totalVotes
+            votedCount = ratings.filter { $0.rating != nil }.count
+            print("✅ Voted count: \(votedCount)")
         } catch {
             print("⚠️ Could not fetch voted count:", error.localizedDescription)
         }
@@ -349,6 +351,10 @@ class MovieSnapViewModel: ObservableObject {
             // Fetch updated voted count and badge
             await fetchVotedCount()
             await fetchBadgeForCurrentMovie()
+
+            // Reset to default view after voting (small delay to show the voted state)
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            reset()
         } catch {
             print("⚠️ Could not save rating:", error.localizedDescription)
             self.error = "Failed to save rating. Please try again."
@@ -365,14 +371,38 @@ class MovieSnapViewModel: ObservableObject {
         }
 
         do {
+            // Use calculate-badge endpoint with POST
+            struct CalculateBadgeRequest: Codable {
+                let id: String
+                let title: String
+                let genre: String?
+                let imdbRating: Double?
+                let rottenTomatoes: Int?
+                let metacritic: Int?
+                let director: String?
+                let cast: String?
+            }
+
+            let request = CalculateBadgeRequest(
+                id: movie.id,
+                title: movie.title,
+                genre: movie.genreString,
+                imdbRating: movie.imdbRating,
+                rottenTomatoes: movie.rottenTomatoes,
+                metacritic: movie.metacritic,
+                director: movie.director,
+                cast: movie.cast
+            )
+
             let response = try await apiClient.request(
-                .getBadge(movieId: movie.id),
+                .calculateBadge(request),
                 expecting: BadgeResponse.self
             )
 
             badge = response.badge
             badgeEmoji = response.badgeEmoji
             badgeDescription = response.badgeDescription
+            print("✅ Badge fetched: \(badge ?? "none")")
         } catch {
             print("⚠️ Could not fetch badge:", error.localizedDescription)
         }
@@ -514,8 +544,8 @@ struct TMDBVideo: Codable {
     let type: String
 }
 
-// OMDb Response
-struct OMDbDetailsResponse: Codable {
+// OMDb Ratings Response (from /api/omdb/ratings/:imdbId)
+struct OMDbRatingsResponse: Codable {
     let found: Bool?
     let imdbRating: Double?
     let rottenTomatoes: Int?

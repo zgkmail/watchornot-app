@@ -25,17 +25,14 @@ enum APIEndpoint {
     case saveRating(Encodable) // Full movie data with rating
     case getRatings // Get all ratings (for history)
     case deleteRating(String) // movieId
-    case getBadge(movieId: String) // Get recommendation badge for movie
-
-    // User Stats
-    case getUserStats
+    case calculateBadge(Encodable) // Calculate recommendation badge for movie
 
     // TMDB
     case searchMovies(query: String)
     case getMovieDetails(mediaType: String, id: String)
 
     // OMDb
-    case getOMDbDetails(imdbId: String)
+    case getOMDbRatings(imdbId: String)
 
     // Health
     case healthCheck
@@ -59,16 +56,14 @@ enum APIEndpoint {
             return "/api/ratings"
         case .deleteRating(let movieId):
             return "/api/ratings/\(movieId)"
-        case .getBadge(let movieId):
-            return "/api/badge/\(movieId)"
-        case .getUserStats:
-            return "/api/stats"
+        case .calculateBadge:
+            return "/api/ratings/calculate-badge"
         case .searchMovies:
             return "/api/tmdb/search"
         case .getMovieDetails(let mediaType, let id):
             return "/api/tmdb/\(mediaType)/\(id)"
-        case .getOMDbDetails:
-            return "/api/omdb/details"
+        case .getOMDbRatings(let imdbId):
+            return "/api/omdb/ratings/\(imdbId)"
         case .healthCheck:
             return "/health"
         case .getSession:
@@ -78,7 +73,7 @@ enum APIEndpoint {
 
     var method: HTTPMethod {
         switch self {
-        case .analyzeImage, .completeOnboarding, .submitRating, .saveRating:
+        case .analyzeImage, .completeOnboarding, .submitRating, .saveRating, .calculateBadge:
             return .post
         case .deleteRating:
             return .delete
@@ -96,8 +91,6 @@ enum APIEndpoint {
             ]
         case .searchMovies(let query):
             return [URLQueryItem(name: "query", value: query)]
-        case .getOMDbDetails(let imdbId):
-            return [URLQueryItem(name: "imdbId", value: imdbId)]
         default:
             return nil
         }
@@ -110,7 +103,7 @@ enum APIEndpoint {
             return OnboardingCompleteRequest(votes: votes)
         case .submitRating(let movieId, let rating):
             return SubmitRatingRequest(movieId: movieId, rating: rating)
-        case .saveRating(let data):
+        case .saveRating(let data), .calculateBadge(let data):
             return data
         default:
             return nil
