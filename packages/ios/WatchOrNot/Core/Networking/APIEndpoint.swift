@@ -40,7 +40,7 @@ enum APIEndpoint {
     var path: String {
         switch self {
         case .analyzeImage:
-            return "/api/claude/analyze"
+            return "/api/claude/identify"
         case .getOnboardingMovies:
             return "/api/onboarding/movies"
         case .completeOnboarding:
