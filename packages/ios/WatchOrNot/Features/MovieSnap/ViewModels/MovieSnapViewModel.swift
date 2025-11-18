@@ -163,6 +163,10 @@ class MovieSnapViewModel: ObservableObject {
                         .getOMDbRatings(imdbId: imdbId),
                         expecting: OMDbRatingsResponse.self
                     )
+                    print("✅ OMDb ratings fetched:")
+                    print("   IMDb: \(omdbData?.imdbRating ?? 0)")
+                    print("   RT: \(omdbData?.rottenTomatoes ?? 0)")
+                    print("   Metacritic: \(omdbData?.metacritic ?? 0)")
                 } catch {
                     print("⚠️ Could not fetch OMDb ratings:", error.localizedDescription)
                 }
@@ -207,7 +211,7 @@ class MovieSnapViewModel: ObservableObject {
                 metacritic: omdbData?.metacritic,
                 runtime: tmdbDetails.runtime.map { "\($0) min" },
                 imdbId: tmdbDetails.externalIds?.imdbId,
-                rated: omdbData?.rated,
+                rated: nil,
                 released: nil,
                 writer: nil,
                 awards: nil,
@@ -288,12 +292,17 @@ class MovieSnapViewModel: ObservableObject {
     /// Fetch voted count from backend
     func fetchVotedCount() async {
         do {
-            // Get all ratings and count them
-            let ratings = try await apiClient.request(
+            // Get all ratings - backend returns { ratings: [...], count: number }
+            struct RatingsResponse: Codable {
+                let ratings: [HistoryEntry]
+                let count: Int
+            }
+
+            let response = try await apiClient.request(
                 .getRatings,
-                expecting: [HistoryEntry].self
+                expecting: RatingsResponse.self
             )
-            votedCount = ratings.filter { $0.rating != nil }.count
+            votedCount = response.ratings.filter { $0.rating != nil }.count
             print("✅ Voted count: \(votedCount)")
         } catch {
             print("⚠️ Could not fetch voted count:", error.localizedDescription)
@@ -547,18 +556,35 @@ struct TMDBVideo: Codable {
 // OMDb Ratings Response (from /api/omdb/ratings/:imdbId)
 struct OMDbRatingsResponse: Codable {
     let found: Bool?
-    let imdbRating: Double?
-    let rottenTomatoes: Int?
-    let metacritic: Int?
+    let title: String?
+    let year: String?
     let director: String?
     let actors: String?
-    let rated: String?
+    let ratings: OMDbRatings?
+    let responseTime: Int?
 
-    enum CodingKeys: String, CodingKey {
-        case found, director, actors, rated
-        case imdbRating = "imdb_rating"
-        case rottenTomatoes = "rotten_tomatoes"
-        case metacritic
+    struct OMDbRatings: Codable {
+        let imdb: OMDbImdb?
+        let rottenTomatoes: Int?
+        let metacritic: Int?
+
+        struct OMDbImdb: Codable {
+            let rating: Double?
+            let votes: String?
+        }
+    }
+
+    // Helper properties for backward compatibility
+    var imdbRating: Double? {
+        ratings?.imdb?.rating
+    }
+
+    var rottenTomatoes: Int? {
+        ratings?.rottenTomatoes
+    }
+
+    var metacritic: Int? {
+        ratings?.metacritic
     }
 }
 
