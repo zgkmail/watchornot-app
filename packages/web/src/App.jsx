@@ -537,23 +537,13 @@ import WelcomeScreen from './components/WelcomeScreen';
                     }));
                 }
 
-                // Save to backend
+                // Save to backend using PATCH endpoint (only updates rating field)
                 try {
-                    const response = await fetchWithSession(`${BACKEND_URL}/api/ratings`, {
-                        method: 'POST',
+                    const response = await fetchWithSession(`${BACKEND_URL}/api/ratings/${movieId}`, {
+                        method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            id: movie.id,
-                            title: movie.title,
-                            genre: movie.genre,
-                            year: movie.year,
-                            imdbRating: movie.imdbRating,
-                            rottenTomatoes: movie.rottenTomatoes,
-                            metacritic: movie.metacritic,
-                            poster: movie.poster,
-                            cast: movie.cast,
-                            rating: newRating,
-                            timestamp: movie.timestamp
+                            rating: newRating
                         })
                     });
 

@@ -505,6 +505,59 @@ router.post('/calculate-badge', async (req, res) => {
 });
 
 /**
+ * Update only the rating for an existing movie (without touching metadata)
+ * PATCH /api/ratings/:movieId
+ * Body: { rating: "up" | "down" | null }
+ */
+router.patch('/:movieId', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { movieId } = req.params;
+    const { rating } = req.body;
+
+    // Validate rating value
+    if (rating !== null && rating !== 'up' && rating !== 'down') {
+      return res.status(400).json({ error: 'Rating must be "up", "down", or null' });
+    }
+
+    // Check if movie exists for this user
+    const existingMovie = getMovieRating(req.session.userId, movieId);
+    if (!existingMovie) {
+      return res.status(404).json({ error: 'Movie not found. Use POST /api/ratings to add a new movie.' });
+    }
+
+    // Update only the rating - preserve all other metadata
+    const movieData = {
+      ...existingMovie,
+      rating: rating,
+      timestamp: Date.now()
+    };
+
+    saveMovieRating(req.session.userId, movieData);
+
+    // Calculate recommendation badge for this movie (exclude itself from calculation)
+    const badgeData = calculateRecommendationBadge(movieData, req.session.userId, movieId);
+
+    res.json({
+      success: true,
+      movieId: movieId,
+      rating: rating,
+      badge: badgeData ? badgeData.badge : null,
+      badgeEmoji: badgeData ? badgeData.emoji : null,
+      badgeDescription: badgeData ? badgeData.description : null,
+      tier: badgeData ? badgeData.tier : null,
+      totalVotes: badgeData ? badgeData.totalVotes : 0
+    });
+  } catch (error) {
+    console.error('Update rating error:', error);
+    res.status(500).json({ error: 'Failed to update rating' });
+  }
+});
+
+/**
  * Delete a movie rating
  * DELETE /api/ratings/:movieId
  */

@@ -113,34 +113,15 @@ class ProfileViewModel: ObservableObject {
     /// Update rating for a history entry
     func updateRating(_ entry: HistoryEntry, newRating: String) async {
         do {
-            // IMPORTANT: Prevent sending year: 0 to backend, which would overwrite good data
-            // If year is 0, use current year as fallback (though this shouldn't happen)
-            let yearValue = entry.year > 0 ? entry.year : Calendar.current.component(.year, from: Date())
-
-            if entry.year == 0 {
-                print("⚠️ WARNING: HistoryEntry has year = 0 for '\(entry.title)' (ID: \(entry.movieId))")
-                print("   Using fallback year: \(yearValue)")
-            }
-
-            let updateRequest = UpdateRatingRequest(
-                id: entry.movieId,
-                title: entry.title,
-                genre: entry.genre,
-                year: yearValue,
-                imdbRating: entry.imdbRating,
-                rottenTomatoes: entry.rottenTomatoes,
-                metacritic: entry.metacritic,
-                poster: entry.poster,
-                director: nil,
-                cast: nil,
-                rating: newRating.isEmpty ? nil : newRating,
-                timestamp: Int(entry.timestamp.timeIntervalSince1970 * 1000)
-            )
-
+            // Use new PATCH endpoint that only updates the rating field
+            // This prevents sending all metadata (year, genre, etc.) back to backend
             _ = try await apiClient.request(
-                .saveRating(updateRequest),
+                .updateRating(movieId: entry.movieId, rating: newRating.isEmpty ? nil : newRating),
                 expecting: SaveRatingResponse.self
             )
+
+            print("✅ Rating updated via PATCH /api/ratings/\(entry.movieId)")
+            print("   New rating: \(newRating.isEmpty ? "null" : newRating)")
 
             // Reload history to reflect the change
             await loadHistory()
