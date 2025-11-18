@@ -181,8 +181,13 @@ class MovieSnapViewModel: ObservableObject {
             }
 
             // Extract genres (first 3)
-            let genres = tmdbDetails.genres.prefix(3).map { $0.name }
-            let genreString = genres.joined(separator: ", ")
+            let genres: [String]
+            if let tmdbGenres = tmdbDetails.genres {
+                genres = tmdbGenres.prefix(3).map { $0.name }
+            } else {
+                genres = []
+            }
+            let genreString = genres.isEmpty ? "Unknown" : genres.joined(separator: ", ")
 
             // Extract director from credits
             let director = tmdbDetails.credits?.crew.first(where: { $0.job == "Director" })?.name ?? omdbData?.director
@@ -205,8 +210,8 @@ class MovieSnapViewModel: ObservableObject {
                 director: director,
                 cast: cast,
                 poster: tmdbMovie.posterPath.map { "https://image.tmdb.org/t/p/w500\($0)" },
-                plot: tmdbMovie.overview,
-                imdbRating: omdbData?.imdbRating ?? tmdbDetails.voteAverage,
+                plot: tmdbDetails.overview ?? tmdbMovie.overview,
+                imdbRating: omdbData?.imdbRating ?? tmdbDetails.voteAverage ?? 0.0,
                 rottenTomatoes: omdbData?.rottenTomatoes,
                 metacritic: omdbData?.metacritic,
                 runtime: tmdbDetails.runtime.map { "\($0) min" },
@@ -502,10 +507,10 @@ struct TMDBDetailsResponse: Codable {
     let id: Int
     let title: String?      // Movies have "title"
     let name: String?       // TV shows have "name"
-    let overview: String
-    let voteAverage: Double
+    let overview: String?   // Some content may not have overview
+    let voteAverage: Double?  // Some content may not have ratings yet
     let runtime: Int?
-    let genres: [TMDBGenre]
+    let genres: [TMDBGenre]?  // Some content may not have genres
     let externalIds: TMDBExternalIds?
     let credits: TMDBCredits?
     let videos: TMDBVideos?

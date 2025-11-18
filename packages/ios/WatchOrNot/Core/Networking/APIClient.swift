@@ -60,6 +60,11 @@ class APIClient: ObservableObject {
                 decoder.dateDecodingStrategy = .iso8601
                 return try decoder.decode(T.self, from: data)
             } catch {
+                // Log the response for debugging decoding errors
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("❌ Decoding Error for \(T.self)")
+                    print("📥 Response JSON: \(responseString)")
+                }
                 throw NetworkError.decodingError(error)
             }
         } catch let urlError as URLError {
