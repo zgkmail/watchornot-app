@@ -231,6 +231,7 @@ class MovieSnapViewModel: ObservableObject {
 
             print("✅ Movie details loaded successfully")
             print("   Title: \(tmdbMovie.displayTitle)")
+            print("   Year from TMDB: \(tmdbMovie.year)")
             print("   Poster: \(movieDetails?.poster ?? "none")")
             print("   IMDb Rating: \(movieDetails?.imdbRating.map { String($0) } ?? "none")")
             print("   RT Score: \(movieDetails?.rottenTomatoes.map { String($0) } ?? "none")")
@@ -255,6 +256,11 @@ class MovieSnapViewModel: ObservableObject {
 
         // IMPORTANT: Prevent sending year: 0 to backend
         let yearValue = movie.year > 0 ? movie.year : Calendar.current.component(.year, from: Date())
+
+        print("🔍 DEBUG: saveMovieToBackend()")
+        print("   Title: \(movie.title)")
+        print("   movie.year: \(movie.year)")
+        print("   yearValue to send: \(yearValue)")
 
         if movie.year == 0 {
             print("⚠️ WARNING: MovieDetails has year = 0 for '\(movie.title)' (ID: \(movie.id))")
