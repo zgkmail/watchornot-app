@@ -113,6 +113,10 @@ struct SnapPromptView: View {
                         .font(.system(size: 60))
                         .foregroundColor(.accent)
                 }
+                .onTapGesture {
+                    // Dismiss keyboard when tapping outside search field
+                    isSearchFocused = false
+                }
 
                 // Title
                 VStack(spacing: 12) {
@@ -125,6 +129,10 @@ struct SnapPromptView: View {
                         .foregroundColor(.textSecondary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
+                }
+                .onTapGesture {
+                    // Dismiss keyboard when tapping outside search field
+                    isSearchFocused = false
                 }
 
                 // Action Buttons
