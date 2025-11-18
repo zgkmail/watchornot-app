@@ -12,8 +12,14 @@ enum Config {
     static let apiBaseURL: String = {
         #if DEBUG
         // For local development
-        // Use 127.0.0.1 instead of localhost for iOS Simulator
+        #if targetEnvironment(simulator)
+        // iOS Simulator - use localhost
         return "http://127.0.0.1:3001"
+        #else
+        // Physical device - use Mac's local IP address
+        // Make sure your iPhone and Mac are on the same WiFi network
+        return "http://10.0.0.101:3001"
+        #endif
         #else
         // Production backend
         return "https://watchornot-backend.fly.dev"
