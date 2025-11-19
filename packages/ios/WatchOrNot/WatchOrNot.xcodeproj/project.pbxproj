@@ -54,6 +54,7 @@
 		7400C01D58764BDFA9FF2B28 /* RottenTomatoesScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6952EA34DB004846B48FBD49 /* RottenTomatoesScoreView.swift */; };
 		BFB13B44E8364EC28435A00C /* String+PosterURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8A9EBC9569463DA53B2097 /* String+PosterURL.swift */; };
 		BE3C3DF072F040EEBC792247 /* MovieDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2F4EAA6B0C48F0B64BBBED /* MovieDetailView.swift */; };
+		D948F695A7D34A848C8D58BB6B9D647F /* HelpAndSupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22055EF719A147E89BFBF2BFC7F6DD8B /* HelpAndSupportView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +103,7 @@
 		3FB84E912EC5545B000C1E6D /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		3FB84E932EC5545B000C1E6D /* HistoryEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryEntryView.swift; sourceTree = "<group>"; };
 		3FB84E952EC5545B000C1E6D /* SimplifiedProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimplifiedProfileView.swift; sourceTree = "<group>"; };
+		22055EF719A147E89BFBF2BFC7F6DD8B /* HelpAndSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpAndSupportView.swift; sourceTree = "<group>"; };
 		3FB84E962EC5545B000C1E6D /* UserStatsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserStatsCard.swift; sourceTree = "<group>"; };
 		3FB84E992EC5545B000C1E6D /* RecommendationsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationsViewModel.swift; sourceTree = "<group>"; };
 		3FB84E9B2EC5545B000C1E6D /* MovieListItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieListItemView.swift; sourceTree = "<group>"; };
@@ -333,6 +335,7 @@
 			isa = PBXGroup;
 			children = (
 				3FB84E932EC5545B000C1E6D /* HistoryEntryView.swift */,
+				22055EF719A147E89BFBF2BFC7F6DD8B /* HelpAndSupportView.swift */,
 				3FB84E952EC5545B000C1E6D /* SimplifiedProfileView.swift */,
 				3FB84E962EC5545B000C1E6D /* UserStatsCard.swift */,
 			);
@@ -644,6 +647,7 @@
 				7400C01D58764BDFA9FF2B28 /* RottenTomatoesScoreView.swift in Sources */,
 				BFB13B44E8364EC28435A00C /* String+PosterURL.swift in Sources */,
 				BE3C3DF072F040EEBC792247 /* MovieDetailView.swift in Sources */,
+				D948F695A7D34A848C8D58BB6B9D647F /* HelpAndSupportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
