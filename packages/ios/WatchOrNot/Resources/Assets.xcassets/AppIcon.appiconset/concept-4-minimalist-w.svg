@@ -1,0 +1,39 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient background -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="aperture">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.1" />
+      <stop offset="70%" style="stop-color:#ffffff;stop-opacity:0" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.2" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="url(#bgGrad)"/>
+
+  <!-- W lettermark (bold geometric) -->
+  <path d="M 180 280 L 280 280 L 392 720 L 512 380 L 632 720 L 744 280 L 844 280 L 682 820 L 512 480 L 342 820 Z"
+        fill="#ffffff" opacity="0.95"/>
+
+  <!-- Camera aperture circle overlay -->
+  <circle cx="512" cy="550" r="240" fill="url(#aperture)"/>
+  <circle cx="512" cy="550" r="220" fill="none" stroke="#ffffff" stroke-width="6" opacity="0.25"/>
+  <circle cx="512" cy="550" r="190" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.15"/>
+
+  <!-- Aperture blades (camera shutter effect) -->
+  <g opacity="0.15" transform="translate(512, 550)">
+    <path d="M 0 -160 L 20 -80 L -20 -80 Z" fill="#ffffff"/>
+    <path d="M 138 -92 L 118 -20 L 80 -55 Z" fill="#ffffff"/>
+    <path d="M 138 92 L 80 55 L 118 20 Z" fill="#ffffff"/>
+    <path d="M 0 160 L -20 80 L 20 80 Z" fill="#ffffff"/>
+    <path d="M -138 92 L -80 55 L -118 20 Z" fill="#ffffff"/>
+    <path d="M -138 -92 L -118 -20 L -80 -55 Z" fill="#ffffff"/>
+  </g>
+
+  <!-- Center dot (camera focus point) -->
+  <circle cx="512" cy="550" r="12" fill="#ffffff" opacity="0.4"/>
+</svg>

@@ -1,0 +1,65 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient background -->
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="url(#bg1)"/>
+
+  <!-- Film strip corners (top-left) -->
+  <rect x="60" y="60" width="140" height="50" rx="8" fill="#e94560" opacity="0.9"/>
+  <rect x="70" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="95" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="120" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="145" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="170" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+
+  <!-- Film strip corners (top-right) -->
+  <rect x="824" y="60" width="140" height="50" rx="8" fill="#e94560" opacity="0.9"/>
+  <rect x="834" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="859" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="884" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="909" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="934" y="65" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+
+  <!-- Film strip corners (bottom-left) -->
+  <rect x="60" y="914" width="140" height="50" rx="8" fill="#e94560" opacity="0.9"/>
+  <rect x="70" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="95" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="120" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="145" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="170" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+
+  <!-- Film strip corners (bottom-right) -->
+  <rect x="824" y="914" width="140" height="50" rx="8" fill="#e94560" opacity="0.9"/>
+  <rect x="834" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="859" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="884" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="909" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+  <rect x="934" y="919" width="15" height="40" fill="#1a1a2e" opacity="0.3"/>
+
+  <!-- Camera viewfinder outer ring -->
+  <circle cx="512" cy="512" r="220" fill="none" stroke="#ffd700" stroke-width="28" opacity="0.9"/>
+
+  <!-- Camera lens middle ring -->
+  <circle cx="512" cy="512" r="160" fill="none" stroke="#ffd700" stroke-width="20" opacity="0.7"/>
+
+  <!-- Camera lens inner circle -->
+  <circle cx="512" cy="512" r="100" fill="none" stroke="#ffd700" stroke-width="12" opacity="0.5"/>
+
+  <!-- Camera body (top) -->
+  <rect x="437" y="260" width="150" height="60" rx="12" fill="#ffd700"/>
+
+  <!-- Camera flash -->
+  <circle cx="600" cy="290" r="18" fill="#ffffff" opacity="0.8"/>
+
+  <!-- Focus points (corners of viewfinder) -->
+  <path d="M 340 340 L 380 340 L 380 350 L 350 350 L 350 380 L 340 380 Z" fill="#00d4ff" opacity="0.7"/>
+  <path d="M 644 340 L 684 340 L 684 380 L 674 380 L 674 350 L 644 350 Z" fill="#00d4ff" opacity="0.7"/>
+  <path d="M 340 644 L 340 684 L 380 684 L 380 674 L 350 674 L 350 644 Z" fill="#00d4ff" opacity="0.7"/>
+  <path d="M 674 644 L 674 674 L 644 674 L 644 684 L 684 684 L 684 644 Z" fill="#00d4ff" opacity="0.7"/>
+</svg>
