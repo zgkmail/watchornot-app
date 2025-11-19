@@ -12,51 +12,56 @@ struct RecommendationsView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.background.ignoresSafeArea()
+            VStack(spacing: 0) {
+                ZStack {
+                    Color.background.ignoresSafeArea()
 
-                if viewModel.isLoading && viewModel.movies.isEmpty {
-                    LoadingView()
-                } else if viewModel.movies.isEmpty {
-                    EmptyStateView()
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 16) {
-                            // Header with preferences
-                            if let preferences = viewModel.preferences {
-                                PreferencesHeaderView(preferences: preferences)
-                                    .padding(.horizontal)
-                                    .padding(.top, 8)
-                            }
+                    if viewModel.isLoading && viewModel.movies.isEmpty {
+                        LoadingView()
+                    } else if viewModel.movies.isEmpty {
+                        EmptyStateView()
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                // Header with preferences
+                                if let preferences = viewModel.preferences {
+                                    PreferencesHeaderView(preferences: preferences)
+                                        .padding(.horizontal)
+                                        .padding(.top, 8)
+                                }
 
-                            // Movie list
-                            ForEach(viewModel.movies) { movie in
-                                MovieListItemView(movie: movie)
-                                    .padding(.horizontal)
-                                    .onAppear {
-                                        if viewModel.shouldLoadMore(currentItem: movie) {
-                                            Task {
-                                                await viewModel.loadMore()
+                                // Movie list
+                                ForEach(viewModel.movies) { movie in
+                                    MovieListItemView(movie: movie)
+                                        .padding(.horizontal)
+                                        .onAppear {
+                                            if viewModel.shouldLoadMore(currentItem: movie) {
+                                                Task {
+                                                    await viewModel.loadMore()
+                                                }
                                             }
                                         }
-                                    }
-                            }
+                                }
 
-                            // Loading more indicator
-                            if viewModel.isLoadingMore {
-                                ProgressView()
-                                    .padding()
+                                // Loading more indicator
+                                if viewModel.isLoadingMore {
+                                    ProgressView()
+                                        .padding()
+                                }
                             }
+                            .padding(.vertical)
                         }
-                        .padding(.vertical)
-                    }
-                    .refreshable {
-                        await viewModel.refresh()
+                        .refreshable {
+                            await viewModel.refresh()
+                        }
                     }
                 }
+                .navigationTitle("Discover")
+                .navigationBarTitleDisplayMode(.large)
+
+                // Banner Ad at bottom
+                BannerAdView()
             }
-            .navigationTitle("Discover")
-            .navigationBarTitleDisplayMode(.large)
         }
         .task {
             await viewModel.loadRecommendations()

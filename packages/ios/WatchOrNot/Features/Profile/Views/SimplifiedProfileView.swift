@@ -12,19 +12,25 @@ struct SimplifiedProfileView: View {
     @EnvironmentObject var sessionManager: SessionManager
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var appearanceManager: AppearanceManager
+    @StateObject private var adManager = AdManager.shared
+    @StateObject private var purchaseManager = PurchaseManager.shared
     @State private var showRecreateConfirmation = false
     @State private var showHelpAndSupport = false
     @State private var showAppearanceSettings = false
+    @State private var showPurchaseSuccess = false
+    @State private var showRestoreSuccess = false
+    @State private var purchaseError: String?
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.background.ignoresSafeArea()
+            VStack(spacing: 0) {
+                ZStack {
+                    Color.background.ignoresSafeArea()
 
-                if viewModel.isLoading && viewModel.userStats == nil {
-                    LoadingView()
-                } else {
-                    ScrollView {
+                    if viewModel.isLoading && viewModel.userStats == nil {
+                        LoadingView()
+                    } else {
+                        ScrollView {
                         VStack(spacing: 24) {
                             // User stats card (tier badge)
                             if let stats = viewModel.userStats {
@@ -66,6 +72,82 @@ struct SimplifiedProfileView: View {
                                 .background(Color.divider)
                                 .padding(.horizontal)
 
+                            // Remove Ads section
+                            if adManager.shouldShowAds() {
+                                VStack(spacing: 12) {
+                                    Button {
+                                        Task {
+                                            let result = await purchaseManager.purchaseRemoveAds()
+                                            handlePurchaseResult(result)
+                                        }
+                                    } label: {
+                                        HStack(spacing: 12) {
+                                            Image(systemName: "sparkles")
+                                                .font(.titleMedium)
+                                                .foregroundColor(.yellow)
+
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text("Remove Ads")
+                                                    .font(.titleMedium)
+                                                    .foregroundColor(.textPrimary)
+
+                                                if let product = purchaseManager.products.first {
+                                                    Text("One-time purchase • \(product.displayPrice)")
+                                                        .font(.caption)
+                                                        .foregroundColor(.textSecondary)
+                                                } else {
+                                                    Text("One-time purchase • $4.99")
+                                                        .font(.caption)
+                                                        .foregroundColor(.textSecondary)
+                                                }
+                                            }
+
+                                            Spacer()
+
+                                            if purchaseManager.isPurchasing {
+                                                ProgressView()
+                                            }
+                                        }
+                                        .padding()
+                                        .cardStyle()
+                                    }
+                                    .disabled(purchaseManager.isPurchasing)
+                                }
+                                .padding(.horizontal)
+
+                                Divider()
+                                    .background(Color.divider)
+                                    .padding(.horizontal)
+                            } else {
+                                // Ad-free status
+                                VStack(spacing: 12) {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.titleMedium)
+                                            .foregroundColor(.green)
+
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("Ad-Free Experience")
+                                                .font(.titleMedium)
+                                                .foregroundColor(.textPrimary)
+
+                                            Text("Enjoy WatchOrNot without ads")
+                                                .font(.caption)
+                                                .foregroundColor(.textSecondary)
+                                        }
+
+                                        Spacer()
+                                    }
+                                    .padding()
+                                    .cardStyle()
+                                }
+                                .padding(.horizontal)
+
+                                Divider()
+                                    .background(Color.divider)
+                                    .padding(.horizontal)
+                            }
+
                             // Settings section
                             VStack(alignment: .leading, spacing: 16) {
                                 Text("Settings & Account")
@@ -97,6 +179,24 @@ struct SimplifiedProfileView: View {
                                         .padding(.leading, 56)
 
                                     SettingsRow(
+                                        icon: "arrow.clockwise",
+                                        title: "Restore Purchases",
+                                        action: {
+                                            Task {
+                                                let restored = await purchaseManager.restorePurchases()
+                                                if restored {
+                                                    showRestoreSuccess = true
+                                                } else {
+                                                    purchaseError = "No purchases found to restore"
+                                                }
+                                            }
+                                        }
+                                    )
+
+                                    Divider()
+                                        .padding(.leading, 56)
+
+                                    SettingsRow(
                                         icon: "questionmark.circle",
                                         title: "Help and Support",
                                         action: {
@@ -117,6 +217,10 @@ struct SimplifiedProfileView: View {
             }
             .navigationTitle("Your Taste Profile")
             .navigationBarTitleDisplayMode(.large)
+
+            // Banner Ad at bottom
+            BannerAdView()
+            }
         }
         .task {
             await viewModel.loadStats()
@@ -132,12 +236,25 @@ struct SimplifiedProfileView: View {
         } message: {
             Text("Are you sure you want to recreate your taste profile? This will delete all your ratings and restart the onboarding survey.")
         }
-        .alert("Error", isPresented: .constant(viewModel.error != nil)) {
+        .alert("Purchase Successful", isPresented: $showPurchaseSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Ads have been removed. Enjoy WatchOrNot ad-free!")
+        }
+        .alert("Restore Successful", isPresented: $showRestoreSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your purchase has been restored successfully!")
+        }
+        .alert("Error", isPresented: .constant(viewModel.error != nil || purchaseError != nil)) {
             Button("OK") {
                 viewModel.error = nil
+                purchaseError = nil
             }
         } message: {
             if let error = viewModel.error {
+                Text(error)
+            } else if let error = purchaseError {
                 Text(error)
             }
         }
@@ -149,6 +266,20 @@ struct SimplifiedProfileView: View {
         .sheet(isPresented: $showAppearanceSettings) {
             AppearanceSheetContent()
                 .environmentObject(appearanceManager)
+        }
+    }
+
+    private func handlePurchaseResult(_ result: PurchaseResult) {
+        switch result {
+        case .success:
+            showPurchaseSuccess = true
+        case .cancelled:
+            // User cancelled - do nothing
+            break
+        case .pending:
+            purchaseError = "Purchase is pending approval"
+        case .failed(let error):
+            purchaseError = error.localizedDescription
         }
     }
 }
