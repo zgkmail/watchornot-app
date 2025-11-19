@@ -410,7 +410,7 @@ function saveMovieRating(userId, movieData) {
       movieData.id,
       movieData.title,
       movieData.genre,
-      movieData.year,
+      movieData.year ? String(movieData.year) : null,  // Convert to string to prevent "2015.0"
       movieData.imdbRating,
       movieData.rottenTomatoes,
       movieData.metacritic,
