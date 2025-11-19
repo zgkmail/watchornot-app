@@ -12,13 +12,15 @@ import SwiftUI
 struct WatchOrNotApp: App {
     @StateObject private var sessionManager = SessionManager.shared
     @StateObject private var appState = AppState()
+    @StateObject private var appearanceManager = AppearanceManager()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(sessionManager)
                 .environmentObject(appState)
-                .preferredColorScheme(.dark)
+                .environmentObject(appearanceManager)
+                .preferredColorScheme(appearanceManager.colorScheme)
         }
     }
 }

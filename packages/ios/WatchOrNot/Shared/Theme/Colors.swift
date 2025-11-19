@@ -33,10 +33,10 @@ extension Color {
     static let badgeAward = Color(red: 1.0, green: 0.84, blue: 0.0) // Gold
 
     // UI element colors
-    static let cardBackground = Color(white: 0.15)
-    static let divider = Color(white: 0.3)
+    static let cardBackground = Color("CardBackground")
+    static let divider = Color("Divider")
 
     // Gradient colors
-    static let gradientStart = Color(red: 0.1, green: 0.1, blue: 0.15)
-    static let gradientEnd = Color(red: 0.05, green: 0.05, blue: 0.1)
+    static let gradientStart = Color("GradientStart")
+    static let gradientEnd = Color("GradientEnd")
 }
