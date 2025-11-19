@@ -128,15 +128,11 @@ struct SimplifiedProfileView: View {
                 Text(error)
             }
         }
-        .background(
-            NavigationLink(
-                destination: HelpAndSupportView(),
-                isActive: $showHelpAndSupport
-            ) {
-                EmptyView()
+        .sheet(isPresented: $showHelpAndSupport) {
+            NavigationView {
+                HelpAndSupportView()
             }
-            .hidden()
-        )
+        }
     }
 }
 
