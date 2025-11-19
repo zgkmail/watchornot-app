@@ -423,6 +423,12 @@ function saveMovieRating(userId, movieData) {
       now
     );
 
+    // DEBUG: Verify what was saved to database
+    const savedMovie = db.prepare('SELECT year FROM movie_ratings WHERE user_id = ? AND movie_id = ?').get(userId, movieData.id);
+    console.log('🔍 DEBUG: After saving to database:');
+    console.log('   Input year:', movieData.year, '(type:', typeof movieData.year, ')');
+    console.log('   Saved year:', savedMovie.year, '(type:', typeof savedMovie.year, ')');
+
     // Save individual genre mappings
     if (movieData.genre) {
       saveMovieGenreMappings(userId, movieData.id, movieData.genre);

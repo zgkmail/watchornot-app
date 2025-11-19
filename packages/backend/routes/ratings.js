@@ -373,6 +373,14 @@ router.get('/', async (req, res) => {
 
     const ratings = getUserMovieRatings(req.session.userId);
 
+    // DEBUG: Log raw database response for first movie
+    if (ratings.length > 0) {
+      console.log('🔍 DEBUG: Raw database response (first movie):');
+      console.log('   title:', ratings[0].title);
+      console.log('   year:', ratings[0].year, '(type:', typeof ratings[0].year, ')');
+      console.log('   movie_id:', ratings[0].movie_id);
+    }
+
     // Calculate recommendation badges for each movie (exclude itself from calculation)
     const ratingsWithBadges = ratings.map(movie => {
       const badgeData = calculateRecommendationBadge(movie, req.session.userId, movie.movie_id);
@@ -384,6 +392,13 @@ router.get('/', async (req, res) => {
         tier: badgeData ? badgeData.tier : null
       };
     });
+
+    // DEBUG: Log what we're sending to client
+    if (ratingsWithBadges.length > 0) {
+      console.log('🔍 DEBUG: API response (first movie):');
+      console.log('   title:', ratingsWithBadges[0].title);
+      console.log('   year:', ratingsWithBadges[0].year, '(type:', typeof ratingsWithBadges[0].year, ')');
+    }
 
     res.json({
       ratings: ratingsWithBadges,
