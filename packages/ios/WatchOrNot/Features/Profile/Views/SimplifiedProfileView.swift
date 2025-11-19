@@ -12,6 +12,7 @@ struct SimplifiedProfileView: View {
     @EnvironmentObject var sessionManager: SessionManager
     @EnvironmentObject var appState: AppState
     @State private var showRecreateConfirmation = false
+    @State private var showHelpAndSupport = false
 
     var body: some View {
         NavigationView {
@@ -29,8 +30,8 @@ struct SimplifiedProfileView: View {
                                     .padding(.horizontal)
                             }
 
-                            // Badge explanation
-                            BadgeExplanationView()
+                            // Tier explanation
+                            TierExplanationView()
                                 .padding(.horizontal)
 
                             Divider()
@@ -86,7 +87,7 @@ struct SimplifiedProfileView: View {
                                         icon: "questionmark.circle",
                                         title: "Help and Support",
                                         action: {
-                                            // TODO: Show help
+                                            showHelpAndSupport = true
                                         }
                                     )
                                 }
@@ -127,6 +128,15 @@ struct SimplifiedProfileView: View {
                 Text(error)
             }
         }
+        .background(
+            NavigationLink(
+                destination: HelpAndSupportView(),
+                isActive: $showHelpAndSupport
+            ) {
+                EmptyView()
+            }
+            .hidden()
+        )
     }
 }
 
@@ -204,24 +214,24 @@ struct TierBadgeView: View {
     }
 }
 
-struct BadgeExplanationView: View {
+struct TierExplanationView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("How Recommendation Badge Works")
+            Text("How Profile Tier Works")
                 .font(.titleSmall)
                 .fontWeight(.semibold)
                 .foregroundColor(.textPrimary)
 
-            Text("Based on IMDb score + your genre, director, and cast preferences")
+            Text("Vote on movies to level up your profile and unlock tiers")
                 .font(.caption)
                 .foregroundColor(.textSecondary)
 
             VStack(alignment: .leading, spacing: 8) {
-                BadgeRow(emoji: "🎯", text: "Perfect Match - This is right up your alley!")
-                BadgeRow(emoji: "⭐", text: "Great Pick - You'll probably enjoy this")
-                BadgeRow(emoji: "👍", text: "Worth a Try - Give it a shot")
-                BadgeRow(emoji: "🤷", text: "Mixed Feelings - Could go either way")
-                BadgeRow(emoji: "❌", text: "Not Your Style - Probably skip this")
+                TierRow(emoji: "🌱", name: "Newcomer", votesRequired: "0-4 votes")
+                TierRow(emoji: "🎬", name: "Explorer", votesRequired: "5-14 votes")
+                TierRow(emoji: "🎥", name: "Enthusiast", votesRequired: "15-29 votes")
+                TierRow(emoji: "⭐", name: "Expert", votesRequired: "30-49 votes")
+                TierRow(emoji: "👑", name: "Master", votesRequired: "50+ votes")
             }
         }
         .padding()
@@ -229,16 +239,24 @@ struct BadgeExplanationView: View {
     }
 }
 
-struct BadgeRow: View {
+struct TierRow: View {
     let emoji: String
-    let text: String
+    let name: String
+    let votesRequired: String
 
     var body: some View {
         HStack(spacing: 8) {
             Text(emoji)
                 .font(.bodyMedium)
 
-            Text(text)
+            Text(name)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.textPrimary)
+
+            Spacer()
+
+            Text(votesRequired)
                 .font(.caption)
                 .foregroundColor(.textSecondary)
         }
