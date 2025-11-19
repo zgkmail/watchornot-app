@@ -373,6 +373,14 @@ router.get('/', async (req, res) => {
 
     const ratings = getUserMovieRatings(req.session.userId);
 
+    // DEBUG: Log raw database response for first movie
+    if (ratings.length > 0) {
+      console.log('🔍 DEBUG: Raw database response (first movie):');
+      console.log('   title:', ratings[0].title);
+      console.log('   year:', ratings[0].year, '(type:', typeof ratings[0].year, ')');
+      console.log('   movie_id:', ratings[0].movie_id);
+    }
+
     // Calculate recommendation badges for each movie (exclude itself from calculation)
     const ratingsWithBadges = ratings.map(movie => {
       const badgeData = calculateRecommendationBadge(movie, req.session.userId, movie.movie_id);
@@ -384,6 +392,13 @@ router.get('/', async (req, res) => {
         tier: badgeData ? badgeData.tier : null
       };
     });
+
+    // DEBUG: Log what we're sending to client
+    if (ratingsWithBadges.length > 0) {
+      console.log('🔍 DEBUG: API response (first movie):');
+      console.log('   title:', ratingsWithBadges[0].title);
+      console.log('   year:', ratingsWithBadges[0].year, '(type:', typeof ratingsWithBadges[0].year, ')');
+    }
 
     res.json({
       ratings: ratingsWithBadges,
@@ -501,6 +516,59 @@ router.post('/calculate-badge', async (req, res) => {
   } catch (error) {
     console.error('Calculate badge error:', error);
     res.status(500).json({ error: 'Failed to calculate badge' });
+  }
+});
+
+/**
+ * Update only the rating for an existing movie (without touching metadata)
+ * PATCH /api/ratings/:movieId
+ * Body: { rating: "up" | "down" | null }
+ */
+router.patch('/:movieId', async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { movieId } = req.params;
+    const { rating } = req.body;
+
+    // Validate rating value
+    if (rating !== null && rating !== 'up' && rating !== 'down') {
+      return res.status(400).json({ error: 'Rating must be "up", "down", or null' });
+    }
+
+    // Check if movie exists for this user
+    const existingMovie = getMovieRating(req.session.userId, movieId);
+    if (!existingMovie) {
+      return res.status(404).json({ error: 'Movie not found. Use POST /api/ratings to add a new movie.' });
+    }
+
+    // Update only the rating - preserve all other metadata
+    const movieData = {
+      ...existingMovie,
+      rating: rating,
+      timestamp: Date.now()
+    };
+
+    saveMovieRating(req.session.userId, movieData);
+
+    // Calculate recommendation badge for this movie (exclude itself from calculation)
+    const badgeData = calculateRecommendationBadge(movieData, req.session.userId, movieId);
+
+    res.json({
+      success: true,
+      movieId: movieId,
+      rating: rating,
+      badge: badgeData ? badgeData.badge : null,
+      badgeEmoji: badgeData ? badgeData.emoji : null,
+      badgeDescription: badgeData ? badgeData.description : null,
+      tier: badgeData ? badgeData.tier : null,
+      totalVotes: badgeData ? badgeData.totalVotes : 0
+    });
+  } catch (error) {
+    console.error('Update rating error:', error);
+    res.status(500).json({ error: 'Failed to update rating' });
   }
 });
 

@@ -51,10 +51,6 @@ class HistoryViewModel: ObservableObject {
     /// Delete history entry
     func deleteEntry(_ entry: HistoryEntry) async {
         do {
-            struct DeleteResponse: Codable {
-                let success: Bool
-            }
-
             _ = try await apiClient.request(
                 .deleteRating(entry.movieId),
                 expecting: DeleteResponse.self
@@ -74,29 +70,6 @@ class HistoryViewModel: ObservableObject {
     /// Update rating for a history entry
     func updateRating(_ entry: HistoryEntry, newRating: String) async {
         do {
-            struct RatingRequest: Codable {
-                let id: String
-                let title: String
-                let year: Int
-                let genre: String?
-                let imdbRating: Double?
-                let rottenTomatoes: Int?
-                let metacritic: Int?
-                let poster: String?
-                let director: String?
-                let cast: String?
-                let rating: String?  // Optional to support null for canceling
-                // CodingKeys not needed - backend expects camelCase which is the default Swift encoding
-            }
-
-            struct RatingResponse: Codable {
-                let success: Bool
-                let movieId: String
-                let badge: String?
-                let badgeEmoji: String?
-                let badgeDescription: String?
-            }
-
             // Convert empty string to nil for backend (web app sends null to cancel vote)
             let ratingValue: String? = newRating.isEmpty ? nil : newRating
 

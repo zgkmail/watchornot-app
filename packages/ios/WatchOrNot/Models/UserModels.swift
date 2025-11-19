@@ -140,10 +140,20 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
         self.movieId = movieId
         self.title = try container.decode(String.self, forKey: .title)
 
-        // Handle year - backend returns TEXT that might be a number string or empty
-        if let yearString = try? container.decode(String.self, forKey: .year),
-           let yearInt = Int(yearString) {
-            self.year = yearInt
+        // Handle year - backend returns TEXT that might be a number string, decimal string ("2015.0"), or empty
+        if let yearString = try? container.decode(String.self, forKey: .year) {
+            // Try parsing as Int first (for "2015")
+            if let yearInt = Int(yearString) {
+                self.year = yearInt
+            }
+            // If that fails, try parsing as Double then convert to Int (for "2015.0")
+            else if let yearDouble = Double(yearString) {
+                self.year = Int(yearDouble)
+            }
+            // If both fail, default to 0
+            else {
+                self.year = 0
+            }
         } else if let yearInt = try? container.decode(Int.self, forKey: .year) {
             self.year = yearInt
         } else {
@@ -177,7 +187,7 @@ struct HistoryEntry: Codable, Identifiable, Hashable {
     }
 }
 
-/// History response (deprecated - use RatingsResponse)
+/// History response (deprecated - use RatingsResponse from APIModels)
 struct HistoryResponse: Codable {
     let history: [HistoryEntry]
     let totalCount: Int
@@ -190,10 +200,4 @@ struct HistoryResponse: Codable {
         case totalCount = "total_count"
         case hasMore = "has_more"
     }
-}
-
-/// Ratings response from GET /api/ratings
-struct RatingsResponse: Codable {
-    let ratings: [HistoryEntry]
-    let count: Int
 }

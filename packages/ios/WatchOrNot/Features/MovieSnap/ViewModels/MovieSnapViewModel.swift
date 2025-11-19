@@ -231,6 +231,7 @@ class MovieSnapViewModel: ObservableObject {
 
             print("✅ Movie details loaded successfully")
             print("   Title: \(tmdbMovie.displayTitle)")
+            print("   Year from TMDB: \(tmdbMovie.year)")
             print("   Poster: \(movieDetails?.poster ?? "none")")
             print("   IMDb Rating: \(movieDetails?.imdbRating.map { String($0) } ?? "none")")
             print("   RT Score: \(movieDetails?.rottenTomatoes.map { String($0) } ?? "none")")
@@ -253,25 +254,23 @@ class MovieSnapViewModel: ObservableObject {
     private func saveMovieToBackend() async {
         guard let movie = movieDetails else { return }
 
-        struct SaveMovieRequest: Codable {
-            let id: String
-            let title: String
-            let year: Int
-            let genre: String
-            let director: String?
-            let cast: String?
-            let poster: String?
-            let imdbRating: Double?
-            let rottenTomatoes: Int?
-            let metacritic: Int?
-            let trailerUrl: String?
-            let rating: String?
+        // IMPORTANT: Prevent sending year: 0 to backend
+        let yearValue = movie.year > 0 ? movie.year : Calendar.current.component(.year, from: Date())
+
+        print("🔍 DEBUG: saveMovieToBackend()")
+        print("   Title: \(movie.title)")
+        print("   movie.year: \(movie.year)")
+        print("   yearValue to send: \(yearValue)")
+
+        if movie.year == 0 {
+            print("⚠️ WARNING: MovieDetails has year = 0 for '\(movie.title)' (ID: \(movie.id))")
+            print("   Using fallback year: \(yearValue)")
         }
 
         let request = SaveMovieRequest(
             id: movie.id,
             title: movie.title,
-            year: movie.year,
+            year: yearValue,
             genre: movie.genreString ?? "Drama",
             director: movie.director,
             cast: movie.cast,
@@ -284,10 +283,6 @@ class MovieSnapViewModel: ObservableObject {
         )
 
         do {
-            struct SaveRatingResponse: Codable {
-                let success: Bool
-            }
-
             _ = try await apiClient.request(
                 .saveRating(request),
                 expecting: SaveRatingResponse.self
@@ -325,25 +320,18 @@ class MovieSnapViewModel: ObservableObject {
         // Update UI immediately
         currentRating = rating
 
-        struct SaveMovieRequest: Codable {
-            let id: String
-            let title: String
-            let year: Int
-            let genre: String
-            let director: String?
-            let cast: String?
-            let poster: String?
-            let imdbRating: Double?
-            let rottenTomatoes: Int?
-            let metacritic: Int?
-            let trailerUrl: String?
-            let rating: String
+        // IMPORTANT: Prevent sending year: 0 to backend
+        let yearValue = movie.year > 0 ? movie.year : Calendar.current.component(.year, from: Date())
+
+        if movie.year == 0 {
+            print("⚠️ WARNING: MovieDetails has year = 0 for '\(movie.title)' (ID: \(movie.id))")
+            print("   Using fallback year: \(yearValue)")
         }
 
         let request = SaveMovieRequest(
             id: movie.id,
             title: movie.title,
-            year: movie.year,
+            year: yearValue,
             genre: movie.genreString ?? "Drama",
             director: movie.director,
             cast: movie.cast,
@@ -356,10 +344,6 @@ class MovieSnapViewModel: ObservableObject {
         )
 
         do {
-            struct SaveRatingResponse: Codable {
-                let success: Bool
-            }
-
             _ = try await apiClient.request(
                 .saveRating(request),
                 expecting: SaveRatingResponse.self
@@ -389,18 +373,6 @@ class MovieSnapViewModel: ObservableObject {
         }
 
         do {
-            // Use calculate-badge endpoint with POST
-            struct CalculateBadgeRequest: Codable {
-                let id: String
-                let title: String
-                let genre: String?
-                let imdbRating: Double?
-                let rottenTomatoes: Int?
-                let metacritic: Int?
-                let director: String?
-                let cast: String?
-            }
-
             let request = CalculateBadgeRequest(
                 id: movie.id,
                 title: movie.title,
@@ -471,157 +443,4 @@ class MovieSnapViewModel: ObservableObject {
     func openCamera() {
         showCamera = true
     }
-}
-
-// TMDB Search Response
-struct TMDBSearchResponse: Codable {
-    let results: [TMDBSearchResult]
-    let totalResults: Int
-
-    enum CodingKeys: String, CodingKey {
-        case results
-        case totalResults = "total_results"
-    }
-}
-
-struct TMDBSearchResult: Codable {
-    let id: Int
-    let mediaType: String
-    let title: String?  // Movies have "title"
-    let name: String?   // TV shows have "name"
-    let releaseDate: String?  // Movies have "release_date"
-    let firstAirDate: String?  // TV shows have "first_air_date"
-    let overview: String?  // Some content may not have overview
-    let posterPath: String?
-    let voteAverage: Double?  // Some content may not have ratings
-    let popularity: Double?  // Some content may not have popularity
-
-    enum CodingKeys: String, CodingKey {
-        case id, overview, popularity
-        case mediaType = "media_type"
-        case title, name
-        case releaseDate = "release_date"
-        case firstAirDate = "first_air_date"
-        case posterPath = "poster_path"
-        case voteAverage = "vote_average"
-    }
-
-    // Helper properties
-    var displayTitle: String {
-        title ?? name ?? "Unknown"
-    }
-
-    var year: Int {
-        let dateString = releaseDate ?? firstAirDate ?? ""
-        if let yearString = dateString.split(separator: "-").first,
-           let yearInt = Int(yearString) {
-            return yearInt
-        }
-        return 0
-    }
-}
-
-// TMDB Details Response
-struct TMDBDetailsResponse: Codable {
-    let id: Int
-    let title: String?      // Movies have "title"
-    let name: String?       // TV shows have "name"
-    let overview: String?   // Some content may not have overview
-    let voteAverage: Double?  // Some content may not have ratings yet
-    let runtime: Int?
-    let genres: [TMDBGenre]?  // Some content may not have genres
-    let externalIds: TMDBExternalIds?
-    let credits: TMDBCredits?
-    let videos: TMDBVideos?
-
-    enum CodingKeys: String, CodingKey {
-        case id, title, name, overview, runtime, genres, credits, videos
-        case voteAverage = "vote_average"
-        case externalIds = "external_ids"
-    }
-
-    // Helper to get display title (works for both movies and TV shows)
-    var displayTitle: String {
-        title ?? name ?? "Unknown"
-    }
-}
-
-struct TMDBGenre: Codable {
-    let id: Int
-    let name: String
-}
-
-struct TMDBExternalIds: Codable {
-    let imdbId: String?
-
-    enum CodingKeys: String, CodingKey {
-        case imdbId = "imdb_id"
-    }
-}
-
-struct TMDBCredits: Codable {
-    let cast: [TMDBCastMember]
-    let crew: [TMDBCrewMember]
-}
-
-struct TMDBCastMember: Codable {
-    let name: String
-}
-
-struct TMDBCrewMember: Codable {
-    let name: String
-    let job: String
-}
-
-struct TMDBVideos: Codable {
-    let results: [TMDBVideo]
-}
-
-struct TMDBVideo: Codable {
-    let key: String
-    let site: String
-    let type: String
-}
-
-// OMDb Ratings Response (from /api/omdb/ratings/:imdbId)
-struct OMDbRatingsResponse: Codable {
-    let found: Bool?
-    let title: String?
-    let year: String?
-    let director: String?
-    let actors: String?
-    let ratings: OMDbRatings?
-    let responseTime: Int?
-
-    struct OMDbRatings: Codable {
-        let imdb: OMDbImdb?
-        let rottenTomatoes: Int?
-        let metacritic: Int?
-
-        struct OMDbImdb: Codable {
-            let rating: Double?
-            let votes: String?
-        }
-    }
-
-    // Helper properties for backward compatibility
-    var imdbRating: Double? {
-        ratings?.imdb?.rating
-    }
-
-    var rottenTomatoes: Int? {
-        ratings?.rottenTomatoes
-    }
-
-    var metacritic: Int? {
-        ratings?.metacritic
-    }
-}
-
-// Badge Response
-struct BadgeResponse: Codable {
-    let badge: String?
-    let badgeEmoji: String?
-    let badgeDescription: String?
-    let tier: String?
 }

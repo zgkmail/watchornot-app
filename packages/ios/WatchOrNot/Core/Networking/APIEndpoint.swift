@@ -23,6 +23,7 @@ enum APIEndpoint {
     // Ratings
     case submitRating(String, Int) // movieId, rating
     case saveRating(Encodable) // Full movie data with rating
+    case updateRating(movieId: String, rating: String?) // Update only rating (PATCH)
     case getRatings // Get all ratings (for history)
     case deleteRating(String) // movieId
     case calculateBadge(Encodable) // Calculate recommendation badge for movie
@@ -52,6 +53,8 @@ enum APIEndpoint {
             return "/api/recommendations"
         case .submitRating, .saveRating:
             return "/api/ratings"
+        case .updateRating(let movieId, _):
+            return "/api/ratings/\(movieId)"
         case .getRatings:
             return "/api/ratings"
         case .deleteRating(let movieId):
@@ -75,6 +78,8 @@ enum APIEndpoint {
         switch self {
         case .analyzeImage, .completeOnboarding, .submitRating, .saveRating, .calculateBadge:
             return .post
+        case .updateRating:
+            return .patch
         case .deleteRating:
             return .delete
         default:
@@ -103,6 +108,8 @@ enum APIEndpoint {
             return OnboardingCompleteRequest(votes: votes)
         case .submitRating(let movieId, let rating):
             return SubmitRatingRequest(movieId: movieId, rating: rating)
+        case .updateRating(_, let rating):
+            return UpdateRatingOnlyRequest(rating: rating)
         case .saveRating(let data), .calculateBadge(let data):
             return data
         default:
@@ -118,7 +125,13 @@ struct SubmitRatingRequest: Codable {
     let rating: Int
 }
 
-/// Update rating request - matches backend expected format
+/// Update rating only request - for PATCH /api/ratings/:movieId
+struct UpdateRatingOnlyRequest: Codable {
+    let rating: String? // "up", "down", or null to toggle off
+}
+
+/// Update rating request - DEPRECATED: Use UpdateRatingOnlyRequest with PATCH endpoint instead
+/// This struct is kept for backward compatibility but should not be used for rating updates
 struct UpdateRatingRequest: Codable {
     let id: String
     let title: String

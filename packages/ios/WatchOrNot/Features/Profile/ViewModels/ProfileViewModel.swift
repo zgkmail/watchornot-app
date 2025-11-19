@@ -70,6 +70,15 @@ class ProfileViewModel: ObservableObject {
             // The ratings array already contains properly decoded HistoryEntry objects
             history = response.ratings
 
+            // Debug: Log any entries with year = 0
+            let entriesWithZeroYear = response.ratings.filter { $0.year == 0 }
+            if !entriesWithZeroYear.isEmpty {
+                print("⚠️ Found \(entriesWithZeroYear.count) history entries with year = 0:")
+                for entry in entriesWithZeroYear {
+                    print("   - \(entry.title) (ID: \(entry.movieId))")
+                }
+            }
+
             // Backend returns all ratings, no pagination
             hasMoreHistory = false
             isLoadingHistory = false
@@ -87,10 +96,6 @@ class ProfileViewModel: ObservableObject {
     /// Delete history entry
     func deleteEntry(_ entry: HistoryEntry) async {
         do {
-            struct DeleteResponse: Codable {
-                let success: Bool
-            }
-
             _ = try await apiClient.request(
                 .deleteRating(entry.movieId),
                 expecting: DeleteResponse.self
@@ -108,29 +113,15 @@ class ProfileViewModel: ObservableObject {
     /// Update rating for a history entry
     func updateRating(_ entry: HistoryEntry, newRating: String) async {
         do {
-            struct UpdateResponse: Codable {
-                let success: Bool
-            }
-
-            let updateRequest = UpdateRatingRequest(
-                id: entry.movieId,
-                title: entry.title,
-                genre: entry.genre,
-                year: entry.year,
-                imdbRating: entry.imdbRating,
-                rottenTomatoes: entry.rottenTomatoes,
-                metacritic: entry.metacritic,
-                poster: entry.poster,
-                director: nil,
-                cast: nil,
-                rating: newRating.isEmpty ? nil : newRating,
-                timestamp: Int(entry.timestamp.timeIntervalSince1970 * 1000)
-            )
-
+            // Use new PATCH endpoint that only updates the rating field
+            // This prevents sending all metadata (year, genre, etc.) back to backend
             _ = try await apiClient.request(
-                .saveRating(updateRequest),
-                expecting: UpdateResponse.self
+                .updateRating(movieId: entry.movieId, rating: newRating.isEmpty ? nil : newRating),
+                expecting: SaveRatingResponse.self
             )
+
+            print("✅ Rating updated via PATCH /api/ratings/\(entry.movieId)")
+            print("   New rating: \(newRating.isEmpty ? "null" : newRating)")
 
             // Reload history to reflect the change
             await loadHistory()
@@ -148,10 +139,6 @@ class ProfileViewModel: ObservableObject {
     /// Recreate taste profile (delete all ratings and restart onboarding)
     func recreateTasteProfile() async {
         do {
-            struct DeleteResponse: Codable {
-                let success: Bool
-            }
-
             // Delete all history entries
             for entry in history {
                 _ = try await apiClient.request(
