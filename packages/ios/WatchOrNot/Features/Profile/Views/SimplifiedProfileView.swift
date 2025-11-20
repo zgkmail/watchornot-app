@@ -11,8 +11,10 @@ struct SimplifiedProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject var sessionManager: SessionManager
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var appearanceManager: AppearanceManager
     @State private var showRecreateConfirmation = false
     @State private var showHelpAndSupport = false
+    @State private var showAppearanceSettings = false
 
     var body: some View {
         NavigationView {
@@ -84,6 +86,17 @@ struct SimplifiedProfileView: View {
                                         .padding(.leading, 56)
 
                                     SettingsRow(
+                                        icon: "circle.lefthalf.filled",
+                                        title: "Appearance",
+                                        action: {
+                                            showAppearanceSettings = true
+                                        }
+                                    )
+
+                                    Divider()
+                                        .padding(.leading, 56)
+
+                                    SettingsRow(
                                         icon: "questionmark.circle",
                                         title: "Help and Support",
                                         action: {
@@ -132,6 +145,10 @@ struct SimplifiedProfileView: View {
             NavigationView {
                 HelpAndSupportView()
             }
+        }
+        .sheet(isPresented: $showAppearanceSettings) {
+            AppearanceSheetContent()
+                .environmentObject(appearanceManager)
         }
     }
 }
@@ -287,8 +304,107 @@ struct SettingsRow: View {
     }
 }
 
+struct AppearanceSettingsView: View {
+    @EnvironmentObject var appearanceManager: AppearanceManager
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        ZStack {
+            Color.background.ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 16) {
+                    Text("Choose how WatchOrNot looks on your device")
+                        .font(.bodyMedium)
+                        .foregroundColor(.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.top)
+
+                    VStack(spacing: 0) {
+                        ForEach(AppearanceManager.AppearanceMode.allCases) { mode in
+                            AppearanceModeRow(
+                                mode: mode,
+                                isSelected: appearanceManager.userPreference == mode
+                            ) {
+                                appearanceManager.userPreference = mode
+                            }
+
+                            if mode != AppearanceManager.AppearanceMode.allCases.last {
+                                Divider()
+                                    .padding(.leading, 56)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.vertical)
+            }
+        }
+        .navigationTitle("Appearance")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
+    }
+}
+
+struct AppearanceModeRow: View {
+    let mode: AppearanceManager.AppearanceMode
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: mode.icon)
+                    .font(.titleMedium)
+                    .foregroundColor(.accent)
+                    .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(mode.rawValue)
+                        .font(.bodyLarge)
+                        .foregroundColor(.textPrimary)
+
+                    Text(mode.description)
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
+                }
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.bodyMedium)
+                        .foregroundColor(.accent)
+                }
+            }
+            .padding(.vertical, 12)
+        }
+    }
+}
+
+struct AppearanceSheetContent: View {
+    @EnvironmentObject var appearanceManager: AppearanceManager
+
+    var body: some View {
+        NavigationView {
+            AppearanceSettingsView()
+                .environmentObject(appearanceManager)
+        }
+        .presentationBackground(Color.background)
+        .presentationCornerRadius(20)
+        .applyAppearance(appearanceManager.colorScheme)
+    }
+}
+
 #Preview {
     SimplifiedProfileView()
         .environmentObject(SessionManager.shared)
         .environmentObject(AppState())
+        .environmentObject(AppearanceManager())
 }

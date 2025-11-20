@@ -12,14 +12,30 @@ import SwiftUI
 struct WatchOrNotApp: App {
     @StateObject private var sessionManager = SessionManager.shared
     @StateObject private var appState = AppState()
+    @StateObject private var appearanceManager = AppearanceManager()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(sessionManager)
                 .environmentObject(appState)
-                .preferredColorScheme(.dark)
+                .environmentObject(appearanceManager)
+                .applyAppearance(appearanceManager.colorScheme)
         }
+    }
+}
+
+struct AppearanceModifier: ViewModifier {
+    let colorScheme: ColorScheme?
+
+    func body(content: Content) -> some View {
+        content.preferredColorScheme(colorScheme)
+    }
+}
+
+extension View {
+    func applyAppearance(_ colorScheme: ColorScheme?) -> some View {
+        self.modifier(AppearanceModifier(colorScheme: colorScheme))
     }
 }
 

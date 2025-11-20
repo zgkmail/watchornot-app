@@ -67,8 +67,6 @@
 	<string>WatchOrNot needs access to your camera to snap movie posters and identify them using AI.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>WatchOrNot needs access to your photo library to select movie posters for identification.</string>
-	<key>UIUserInterfaceStyle</key>
-	<string>Dark</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>
