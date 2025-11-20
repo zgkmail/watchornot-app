@@ -147,10 +147,8 @@ struct SimplifiedProfileView: View {
             }
         }
         .sheet(isPresented: $showAppearanceSettings) {
-            NavigationView {
-                AppearanceSettingsView()
-                    .environmentObject(appearanceManager)
-            }
+            AppearanceSheetContent()
+                .environmentObject(appearanceManager)
         }
     }
 }
@@ -387,6 +385,20 @@ struct AppearanceModeRow: View {
             }
             .padding(.vertical, 12)
         }
+    }
+}
+
+struct AppearanceSheetContent: View {
+    @EnvironmentObject var appearanceManager: AppearanceManager
+
+    var body: some View {
+        NavigationView {
+            AppearanceSettingsView()
+                .environmentObject(appearanceManager)
+        }
+        .presentationBackground(Color.background)
+        .presentationCornerRadius(20)
+        .applyAppearance(appearanceManager.colorScheme)
     }
 }
 

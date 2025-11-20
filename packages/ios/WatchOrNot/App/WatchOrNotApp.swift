@@ -20,8 +20,22 @@ struct WatchOrNotApp: App {
                 .environmentObject(sessionManager)
                 .environmentObject(appState)
                 .environmentObject(appearanceManager)
-                .preferredColorScheme(appearanceManager.colorScheme)
+                .applyAppearance(appearanceManager.colorScheme)
         }
+    }
+}
+
+struct AppearanceModifier: ViewModifier {
+    let colorScheme: ColorScheme?
+
+    func body(content: Content) -> some View {
+        content.preferredColorScheme(colorScheme)
+    }
+}
+
+extension View {
+    func applyAppearance(_ colorScheme: ColorScheme?) -> some View {
+        self.modifier(AppearanceModifier(colorScheme: colorScheme))
     }
 }
 

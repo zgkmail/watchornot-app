@@ -58,7 +58,7 @@ class AppearanceManager: ObservableObject {
     var colorScheme: ColorScheme? {
         switch userPreference {
         case .system:
-            return nil  // Use system preference
+            return nil  // Use system default
         case .light:
             return .light
         case .dark:
