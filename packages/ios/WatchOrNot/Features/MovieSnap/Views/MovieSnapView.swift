@@ -47,7 +47,6 @@ struct MovieSnapView: View {
                         SnapPromptView(
                             initialSearchQuery: viewModel.searchQuery,
                             onTakePhoto: { viewModel.openCamera() },
-                            onUploadImage: { viewModel.openPhotoPicker() },
                             onSearch: { query in
                                 Task {
                                     await viewModel.searchMovie(query: query)
@@ -91,7 +90,6 @@ struct MovieSnapView: View {
 struct SnapPromptView: View {
     let initialSearchQuery: String
     let onTakePhoto: () -> Void
-    let onUploadImage: () -> Void
     let onSearch: (String) -> Void
 
     @State private var searchQuery: String = ""
@@ -120,11 +118,11 @@ struct SnapPromptView: View {
 
                 // Title
                 VStack(spacing: 12) {
-                    Text("Discover Movies")
+                    Text("Watch or Not?")
                         .font(.headlineLarge)
                         .foregroundColor(.textPrimary)
 
-                    Text("Snap, upload, or search\nto find your next watch")
+                    Text("Snap any title on Netflix, Prime, or other streaming apps for an instant recommendation")
                         .font(.bodyMedium)
                         .foregroundColor(.textSecondary)
                         .multilineTextAlignment(.center)
@@ -134,6 +132,14 @@ struct SnapPromptView: View {
                     // Dismiss keyboard when tapping outside search field
                     isSearchFocused = false
                 }
+
+                // How It Works Section
+                HowItWorksView()
+                    .padding(.horizontal, -16) // Compensate for extra padding
+                    .onTapGesture {
+                        // Dismiss keyboard when tapping
+                        isSearchFocused = false
+                    }
 
                 // Action Buttons
                 VStack(spacing: 16) {
@@ -161,29 +167,6 @@ struct SnapPromptView: View {
                         )
                         .cornerRadius(16)
                         .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 4)
-                    }
-
-                    // Upload Image Button
-                    Button {
-                        onUploadImage()
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "photo")
-                                .font(.titleMedium)
-
-                            Text("Upload Image")
-                                .font(.titleMedium)
-                                .fontWeight(.semibold)
-                        }
-                        .foregroundColor(.accent)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(Color.surface)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.accent, lineWidth: 2)
-                        )
-                        .cornerRadius(16)
                     }
 
                     // Manual Search Field
@@ -269,6 +252,112 @@ struct AnalyzingView: View {
                 Text("Using Claude Vision AI...")
                     .font(.bodyMedium)
                     .foregroundColor(.textSecondary)
+            }
+        }
+    }
+}
+
+struct HowItWorksView: View {
+    var body: some View {
+        VStack(spacing: 0) {
+            // Title
+            HStack {
+                Text("How It Works")
+                    .font(.titleMedium)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.textPrimary)
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 20)
+
+            // Steps
+            VStack(spacing: 16) {
+                // Step 1: Snap
+                HowItWorksStep(
+                    icon: "tv.fill",
+                    iconColor: .blue,
+                    title: "Snap",
+                    description: "Point at any title screen on Netflix, Prime, etc.",
+                    showArrow: true
+                )
+
+                // Step 2: Analyze
+                HowItWorksStep(
+                    icon: "sparkles",
+                    iconColor: .purple,
+                    title: "Analyze",
+                    description: "AI identifies it and checks your taste profile",
+                    showArrow: true
+                )
+
+                // Step 3: Decide
+                HowItWorksStep(
+                    icon: "checkmark.circle.fill",
+                    iconColor: .green,
+                    title: "Decide",
+                    description: "Get \"Watch It\" or \"Skip It\" instantly",
+                    showArrow: false
+                )
+            }
+            .padding(.horizontal, 24)
+        }
+        .padding(.vertical, 24)
+        .background(Color.surface)
+        .cornerRadius(16)
+    }
+}
+
+struct HowItWorksStep: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let description: String
+    let showArrow: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                // Icon Circle
+                ZStack {
+                    Circle()
+                        .fill(iconColor.opacity(0.15))
+                        .frame(width: 48, height: 48)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 22))
+                        .foregroundColor(iconColor)
+                }
+
+                // Text Content
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.titleSmall)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.textPrimary)
+
+                    Text(description)
+                        .font(.bodySmall)
+                        .foregroundColor(.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+            }
+
+            // Arrow between steps
+            if showArrow {
+                HStack {
+                    Spacer()
+                        .frame(width: 24) // Center under icon
+
+                    Image(systemName: "arrow.down")
+                        .font(.system(size: 16))
+                        .foregroundColor(.textSecondary.opacity(0.5))
+                        .frame(height: 20)
+
+                    Spacer()
+                }
             }
         }
     }
