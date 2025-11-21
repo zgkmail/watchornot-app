@@ -13,6 +13,19 @@ struct WatchOrNotApp: App {
     @StateObject private var sessionManager = SessionManager.shared
     @StateObject private var appState = AppState()
     @StateObject private var appearanceManager = AppearanceManager()
+    @StateObject private var adManager = AdManager.shared
+    @StateObject private var purchaseManager = PurchaseManager.shared
+
+    init() {
+        // Initialize AdMob on app launch (if user hasn't purchased ad removal)
+        Task { @MainActor in
+            AdManager.shared.initializeAdMob()
+            await PurchaseManager.shared.loadProducts()
+
+            // Pre-load first interstitial ad
+            InterstitialAdManager.shared.loadAd()
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -20,6 +33,8 @@ struct WatchOrNotApp: App {
                 .environmentObject(sessionManager)
                 .environmentObject(appState)
                 .environmentObject(appearanceManager)
+                .environmentObject(adManager)
+                .environmentObject(purchaseManager)
                 .applyAppearance(appearanceManager.colorScheme)
         }
     }

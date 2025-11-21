@@ -13,54 +13,59 @@ struct HistoryView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.background.ignoresSafeArea()
+            VStack(spacing: 0) {
+                ZStack {
+                    Color.background.ignoresSafeArea()
 
-                if viewModel.isLoading && viewModel.history.isEmpty {
-                    LoadingView()
-                } else if viewModel.history.isEmpty {
-                    EmptyHistoryView()
-                } else {
-                    List {
-                        ForEach(viewModel.history) { entry in
-                            HistoryEntryView(
-                                entry: entry,
-                                votedCount: viewModel.history.filter { $0.rating != nil }.count,
-                                onDelete: {
-                                    Task {
-                                        await viewModel.deleteEntry(entry)
+                    if viewModel.isLoading && viewModel.history.isEmpty {
+                        LoadingView()
+                    } else if viewModel.history.isEmpty {
+                        EmptyHistoryView()
+                    } else {
+                        List {
+                            ForEach(viewModel.history) { entry in
+                                HistoryEntryView(
+                                    entry: entry,
+                                    votedCount: viewModel.history.filter { $0.rating != nil }.count,
+                                    onDelete: {
+                                        Task {
+                                            await viewModel.deleteEntry(entry)
+                                        }
+                                    },
+                                    onRate: { rating in
+                                        Task {
+                                            await viewModel.updateRating(entry, newRating: rating)
+                                        }
                                     }
-                                },
-                                onRate: { rating in
-                                    Task {
-                                        await viewModel.updateRating(entry, newRating: rating)
-                                    }
-                                }
-                            )
-                            .listRowBackground(Color.background)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        }
-
-                        if viewModel.isLoadingMore {
-                            HStack {
-                                Spacer()
-                                ProgressView()
-                                Spacer()
+                                )
+                                .listRowBackground(Color.background)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                             }
-                            .listRowBackground(Color.background)
-                            .listRowSeparator(.hidden)
+
+                            if viewModel.isLoadingMore {
+                                HStack {
+                                    Spacer()
+                                    ProgressView()
+                                    Spacer()
+                                }
+                                .listRowBackground(Color.background)
+                                .listRowSeparator(.hidden)
+                            }
                         }
-                    }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
-                    .refreshable {
-                        await viewModel.refresh()
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .refreshable {
+                            await viewModel.refresh()
+                        }
                     }
                 }
+                .navigationTitle("Your Snap History")
+                .navigationBarTitleDisplayMode(.large)
+
+                // Banner Ad at bottom
+                BannerAdView()
             }
-            .navigationTitle("Your Snap History")
-            .navigationBarTitleDisplayMode(.large)
         }
         .task {
             await viewModel.loadHistory()

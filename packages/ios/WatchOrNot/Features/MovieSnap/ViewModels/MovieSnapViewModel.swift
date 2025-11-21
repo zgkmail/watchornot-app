@@ -27,6 +27,9 @@ class MovieSnapViewModel: ObservableObject {
     @Published var showManualSearch: Bool = false
 
     private let apiClient: APIClient
+    private let interstitialAdManager = InterstitialAdManager.shared
+    private let snapCountKey = "snapCountSinceLastAd"
+    private let snapsPerAd = 5 // Show ad every 5 snaps
 
     init(apiClient: APIClient = .shared) {
         self.apiClient = apiClient
@@ -243,6 +246,9 @@ class MovieSnapViewModel: ObservableObject {
             await fetchVotedCount()
             await fetchBadgeForCurrentMovie()
 
+            // Increment snap counter and possibly show interstitial ad
+            incrementSnapCountAndShowAdIfNeeded()
+
             isLoadingDetails = false
         } catch {
             self.error = "Failed to load movie details: \(error.localizedDescription)"
@@ -442,5 +448,24 @@ class MovieSnapViewModel: ObservableObject {
     /// Open camera
     func openCamera() {
         showCamera = true
+    }
+
+    /// Increment snap count and show interstitial ad if needed
+    private func incrementSnapCountAndShowAdIfNeeded() {
+        // Get current snap count
+        var snapCount = UserDefaults.standard.integer(forKey: snapCountKey)
+        snapCount += 1
+
+        print("📊 Snap count: \(snapCount)/\(snapsPerAd)")
+
+        // Check if we should show an ad
+        if snapCount >= snapsPerAd {
+            print("📺 Showing interstitial ad after \(snapCount) snaps")
+            interstitialAdManager.showAdIfAvailable()
+            snapCount = 0 // Reset counter
+        }
+
+        // Save updated count
+        UserDefaults.standard.set(snapCount, forKey: snapCountKey)
     }
 }
