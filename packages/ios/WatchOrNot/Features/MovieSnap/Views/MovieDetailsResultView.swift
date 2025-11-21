@@ -20,17 +20,30 @@ struct MovieDetailsResultView: View {
     let onWrongTitle: () -> Void
     let onReset: () -> Void
 
+    @Environment(\.colorScheme) var colorScheme
+
     var body: some View {
         ZStack {
-            // Gradient background (matches web app)
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 0.12, green: 0.12, blue: 0.16), // gray-800
-                    Color(red: 0.07, green: 0.07, blue: 0.10), // gray-900
-                    Color.black
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
+            // Gradient background
+            (colorScheme == .dark ?
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 0.12, green: 0.12, blue: 0.16),
+                        Color(red: 0.07, green: 0.07, blue: 0.10),
+                        Color.black
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                ) :
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 0.95, green: 0.95, blue: 0.97),
+                        Color(red: 0.9, green: 0.9, blue: 0.93),
+                        Color(red: 0.85, green: 0.85, blue: 0.88)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
             )
             .ignoresSafeArea()
 
@@ -58,14 +71,14 @@ struct MovieDetailsResultView: View {
                                 // Title
                                 Text(movieDetails.title)
                                     .font(.system(size: 24, weight: .bold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.textPrimary)
                                     .lineLimit(3)
 
                                 // "Wrong title? Search instead" button
                                 Button(action: onWrongTitle) {
                                     Text("Wrong title? Search instead")
                                         .font(.system(size: 12))
-                                        .foregroundColor(Color(.systemGray))
+                                        .foregroundColor(.textSecondary)
                                         .underline()
                                 }
                                 .padding(.bottom, 4)
@@ -73,17 +86,17 @@ struct MovieDetailsResultView: View {
                                 // Year • Genre
                                 Text("\(String(movieDetails.year)) • \(movieDetails.genreString ?? movieDetails.genres.joined(separator: ", "))")
                                     .font(.system(size: 14))
-                                    .foregroundColor(Color(.systemGray))
+                                    .foregroundColor(.textSecondary)
 
                                 // Director
                                 if let director = movieDetails.director {
                                     HStack(alignment: .top, spacing: 4) {
                                         Text("Director:")
                                             .font(.system(size: 12))
-                                            .foregroundColor(Color(.systemGray))
+                                            .foregroundColor(.textSecondary)
                                         Text(director)
                                             .font(.system(size: 12))
-                                            .foregroundColor(Color(.systemGray2))
+                                            .foregroundColor(.textSecondary)
                                     }
                                 }
 
@@ -92,10 +105,10 @@ struct MovieDetailsResultView: View {
                                     HStack(alignment: .top, spacing: 4) {
                                         Text("Starring:")
                                             .font(.system(size: 12))
-                                            .foregroundColor(Color(.systemGray))
+                                            .foregroundColor(.textSecondary)
                                         Text(cast)
                                             .font(.system(size: 12))
-                                            .foregroundColor(Color(.systemGray2))
+                                            .foregroundColor(.textSecondary)
                                             .lineLimit(2)
                                     }
                                 }
@@ -127,11 +140,11 @@ struct MovieDetailsResultView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(getBadgeDisplayName(badge))
                                         .font(.system(size: 20, weight: .bold))
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.textPrimary)
 
                                     Text(badgeDescription)
                                         .font(.system(size: 14))
-                                        .foregroundColor(Color(red: 0.82, green: 0.71, blue: 0.99)) // purple-200
+                                        .foregroundColor(.purple.opacity(0.9))
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -139,8 +152,8 @@ struct MovieDetailsResultView: View {
                             .background(
                                 LinearGradient(
                                     gradient: Gradient(colors: [
-                                        Color(red: 0.38, green: 0.16, blue: 0.56).opacity(0.3), // purple-900/30
-                                        Color(red: 0.15, green: 0.30, blue: 0.58).opacity(0.3)  // blue-900/30
+                                        Color.purple.opacity(0.15),
+                                        Color.blue.opacity(0.15)
                                     ]),
                                     startPoint: .leading,
                                     endPoint: .trailing
@@ -149,7 +162,7 @@ struct MovieDetailsResultView: View {
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(red: 0.65, green: 0.33, blue: 1.0).opacity(0.3), lineWidth: 1) // purple-500/30
+                                    .stroke(Color.purple.opacity(0.3), lineWidth: 1)
                             )
                             .padding(.horizontal, 20)
                             .padding(.bottom, 16)
@@ -163,23 +176,21 @@ struct MovieDetailsResultView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Unlock Recommendations")
                                         .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(Color(.systemGray2))
+                                        .foregroundColor(.textPrimary)
 
                                     let remaining = 5 - votedCount
                                     Text("Vote on \(remaining) more \(remaining == 1 ? "title" : "titles") to see personalized recommendations")
                                         .font(.system(size: 12))
-                                        .foregroundColor(Color(.systemGray))
+                                        .foregroundColor(.textSecondary)
                                 }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(12)
-                            .background(
-                                Color(red: 0.12, green: 0.12, blue: 0.16).opacity(0.5) // gray-800/50
-                            )
+                            .background(Color.surface.opacity(0.8))
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(.systemGray).opacity(0.3), lineWidth: 1)
+                                    .stroke(Color.divider, lineWidth: 1)
                             )
                             .padding(.horizontal, 20)
                             .padding(.bottom, 16)
@@ -192,12 +203,21 @@ struct MovieDetailsResultView: View {
                                 VStack(spacing: 4) {
                                     Text("\(String(format: "%.1f", imdbRating))/10")
                                         .font(.system(size: 24, weight: .bold))
-                                        .foregroundColor(Color(red: 0.98, green: 0.82, blue: 0.25)) // yellow-400
+                                        .foregroundColor(.yellow)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.5)
                                     Text("IMDb")
                                         .font(.system(size: 12))
-                                        .foregroundColor(Color(.systemGray))
+                                        .foregroundColor(.textSecondary)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.7)
                                 }
                                 .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15))
+                                )
                             }
 
                             // Rotten Tomatoes
@@ -205,12 +225,21 @@ struct MovieDetailsResultView: View {
                                 VStack(spacing: 4) {
                                     Text("\(rottenTomatoes)%")
                                         .font(.system(size: 24, weight: .bold))
-                                        .foregroundColor(Color(red: 0.94, green: 0.31, blue: 0.31)) // red-500
+                                        .foregroundColor(.red)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.5)
                                     Text("Rotten 🍅")
                                         .font(.system(size: 12))
-                                        .foregroundColor(Color(.systemGray))
+                                        .foregroundColor(.textSecondary)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.7)
                                 }
                                 .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15))
+                                )
                             }
 
                             // Metacritic
@@ -218,12 +247,21 @@ struct MovieDetailsResultView: View {
                                 VStack(spacing: 4) {
                                     Text("\(metacritic)/100")
                                         .font(.system(size: 24, weight: .bold))
-                                        .foregroundColor(Color(red: 0.13, green: 0.72, blue: 0.50)) // green-500
+                                        .foregroundColor(.green)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.5)
                                     Text("Metacritic")
                                         .font(.system(size: 12))
-                                        .foregroundColor(Color(.systemGray))
+                                        .foregroundColor(.textSecondary)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.7)
                                 }
                                 .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15))
+                                )
                             }
                         }
                         .padding(.horizontal, 20)
@@ -231,7 +269,7 @@ struct MovieDetailsResultView: View {
                         .overlay(
                             Rectangle()
                                 .frame(height: 1)
-                                .foregroundColor(Color(.systemGray).opacity(0.3)),
+                                .foregroundColor(Color.divider),
                             alignment: .bottom
                         )
 
@@ -239,16 +277,17 @@ struct MovieDetailsResultView: View {
                         VStack(spacing: 8) {
                             Text("What's your take on this title?")
                                 .font(.system(size: 14))
-                                .foregroundColor(.white)
+                                .foregroundColor(.textPrimary)
 
                             Text("Vote to build your taste profile!")
                                 .font(.system(size: 14))
-                                .foregroundColor(.white)
+                                .foregroundColor(.textPrimary)
 
                             Button(action: onSkip) {
                                 Text("Skip For Now | Vote Later in History")
                                     .font(.system(size: 14))
-                                    .foregroundColor(Color(.systemGray))
+                                    .foregroundColor(.blue)
+                                    .underline()
                             }
                             .padding(.top, 4)
                         }
@@ -269,7 +308,7 @@ struct MovieDetailsResultView: View {
                                     .background(
                                         currentRating == "up" ?
                                             Color(red: 0.13, green: 0.72, blue: 0.50) : // green-500
-                                            Color(red: 0.29, green: 0.29, blue: 0.32)   // gray-600
+                                            (colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15))
                                     )
                                     .cornerRadius(12)
                             }
@@ -286,7 +325,7 @@ struct MovieDetailsResultView: View {
                                     .background(
                                         currentRating == "down" ?
                                             Color(red: 0.94, green: 0.31, blue: 0.31) : // red-500
-                                            Color(red: 0.29, green: 0.29, blue: 0.32)   // gray-600
+                                            (colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15))
                                     )
                                     .cornerRadius(12)
                             }
@@ -295,11 +334,9 @@ struct MovieDetailsResultView: View {
                         .padding(.bottom, 20)
                     }
                 }
-                .background(
-                    Color(red: 0.12, green: 0.12, blue: 0.16) // gray-800
-                )
+                .background(Color.surface)
                 .cornerRadius(24, corners: [.topLeft, .topRight])
-                .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: -5)
+                .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: -5)
                 .frame(maxHeight: UIScreen.main.bounds.height * 0.75)
             }
         }

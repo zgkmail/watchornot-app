@@ -13,6 +13,7 @@ struct MovieDetailView: View {
     let onRatingChange: (String) -> Void
     let onDelete: () -> Void
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         NavigationView {
@@ -87,7 +88,7 @@ struct MovieDetailView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Recommendation")
                                     .font(.caption)
-                                    .foregroundColor(Color(red: 216/255, green: 180/255, blue: 254/255))
+                                    .foregroundColor(.purple.opacity(0.9))
 
                                 VStack(alignment: .leading, spacing: 8) {
                                     HStack(spacing: 8) {
@@ -96,21 +97,21 @@ struct MovieDetailView: View {
 
                                         Text(PersonalizedBadgeView(badge: badge, emoji: badgeEmoji).displayName)
                                             .font(.headline)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.textPrimary)
                                     }
 
                                     Text(badgeDescription)
                                         .font(.subheadline)
-                                        .foregroundColor(Color(red: 233/255, green: 213/255, blue: 255/255))
+                                        .foregroundColor(.purple.opacity(0.9))
                                 }
                                 .padding()
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(red: 88/255, green: 28/255, blue: 135/255).opacity(0.3))
+                                        .fill(Color.purple.opacity(0.15))
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color(red: 168/255, green: 85/255, blue: 247/255).opacity(0.3), lineWidth: 1)
+                                                .stroke(Color.purple.opacity(0.3), lineWidth: 1)
                                         )
                                 )
                             }
@@ -163,13 +164,13 @@ struct MovieDetailView: View {
                                             Text(String(format: "%.1f/10", imdbRating))
                                                 .font(.title)
                                                 .fontWeight(.bold)
-                                                .foregroundColor(Color(red: 245/255, green: 197/255, blue: 24/255))
+                                                .foregroundColor(.yellow)
                                         }
                                         .frame(maxWidth: .infinity)
                                         .padding()
                                         .background(
                                             RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.cardBackground)
+                                                .fill(colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15))
                                         )
                                     }
 
@@ -182,13 +183,13 @@ struct MovieDetailView: View {
                                             Text("\(rottenTomatoes)%")
                                                 .font(.title)
                                                 .fontWeight(.bold)
-                                                .foregroundColor(Color.red)
+                                                .foregroundColor(.red)
                                         }
                                         .frame(maxWidth: .infinity)
                                         .padding()
                                         .background(
                                             RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.cardBackground)
+                                                .fill(colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15))
                                         )
                                     }
 
@@ -201,13 +202,13 @@ struct MovieDetailView: View {
                                             Text("\(metacritic)/100")
                                                 .font(.title)
                                                 .fontWeight(.bold)
-                                                .foregroundColor(Color.green)
+                                                .foregroundColor(.green)
                                         }
                                         .frame(maxWidth: .infinity)
                                         .padding()
                                         .background(
                                             RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.cardBackground)
+                                                .fill(colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15))
                                         )
                                     }
                                 }
@@ -232,7 +233,7 @@ struct MovieDetailView: View {
                                         .foregroundColor(entry.rating == "up" ? .white : .textSecondary)
                                         .background(
                                             RoundedRectangle(cornerRadius: 12)
-                                                .fill(entry.rating == "up" ? Color.green : Color.cardBackground)
+                                                .fill(entry.rating == "up" ? Color.green : (colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15)))
                                         )
                                 }
 
@@ -247,7 +248,7 @@ struct MovieDetailView: View {
                                         .foregroundColor(entry.rating == "down" ? .white : .textSecondary)
                                         .background(
                                             RoundedRectangle(cornerRadius: 12)
-                                                .fill(entry.rating == "down" ? Color.red : Color.cardBackground)
+                                                .fill(entry.rating == "down" ? Color.red : (colorScheme == .dark ? Color.cardBackground : Color.gray.opacity(0.15)))
                                         )
                                 }
                             }

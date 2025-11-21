@@ -8,9 +8,20 @@
 import Foundation
 
 enum Config {
+    // MARK: - Backend Configuration
+    /// Toggle this to test with production backend on fly.io
+    /// - true: Use https://watchornot-backend.fly.dev (for testing deployed backend)
+    /// - false: Use local backend (default for development)
+    private static let USE_PRODUCTION_BACKEND = true
+
     /// API base URL
     static let apiBaseURL: String = {
         #if DEBUG
+        // Check if we want to use production backend for testing
+        if USE_PRODUCTION_BACKEND {
+            return "https://watchornot-backend.fly.dev"
+        }
+
         // For local development
         #if targetEnvironment(simulator)
         // iOS Simulator - use localhost
@@ -21,7 +32,7 @@ enum Config {
         return "http://10.0.0.101:3001"
         #endif
         #else
-        // Production backend
+        // Production backend (RELEASE builds always use production)
         return "https://watchornot-backend.fly.dev"
         #endif
     }()

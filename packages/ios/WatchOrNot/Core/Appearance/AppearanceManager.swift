@@ -45,12 +45,12 @@ class AppearanceManager: ObservableObject {
     }
 
     init() {
-        // Load saved preference or default to system
+        // Load saved preference or default to dark
         if let saved = UserDefaults.standard.string(forKey: "appearanceMode"),
            let mode = AppearanceMode(rawValue: saved) {
             self.userPreference = mode
         } else {
-            self.userPreference = .system
+            self.userPreference = .dark
         }
     }
 
