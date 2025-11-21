@@ -96,137 +96,155 @@ struct SnapPromptView: View {
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 32) {
-                Spacer()
-                    .frame(height: 20)
+        VStack(spacing: 0) {
+            Spacer()
+                .frame(height: 16)
 
-                // Icon
+            // Icon - Camera + TV combo
+            ZStack {
+                Circle()
+                    .fill(Color.accent.opacity(0.2))
+                    .frame(width: 80, height: 80)
+
                 ZStack {
-                    Circle()
-                        .fill(Color.accent.opacity(0.2))
-                        .frame(width: 120, height: 120)
+                    // TV in background
+                    Image(systemName: "tv.fill")
+                        .font(.system(size: 32))
+                        .foregroundColor(.accent.opacity(0.6))
+                        .offset(x: -4, y: 4)
 
+                    // Camera in foreground
                     Image(systemName: "camera.fill")
-                        .font(.system(size: 60))
+                        .font(.system(size: 32))
                         .foregroundColor(.accent)
+                        .offset(x: 4, y: -4)
                 }
+            }
+            .onTapGesture {
+                // Dismiss keyboard when tapping outside search field
+                isSearchFocused = false
+            }
+
+            Spacer()
+                .frame(height: 12)
+
+            // Title
+            VStack(spacing: 6) {
+                Text("Watch or Not?")
+                    .font(.headlineLarge)
+                    .foregroundColor(.textPrimary)
+
+                Text("Snap titles on Netflix, Prime, etc.\nfor instant recommendations")
+                    .font(.bodySmall)
+                    .foregroundColor(.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+                    .padding(.horizontal, 24)
+            }
+            .onTapGesture {
+                // Dismiss keyboard when tapping outside search field
+                isSearchFocused = false
+            }
+
+            Spacer()
+                .frame(height: 16)
+
+            // How It Works Section
+            HowItWorksView()
+                .padding(.horizontal, 8)
                 .onTapGesture {
-                    // Dismiss keyboard when tapping outside search field
+                    // Dismiss keyboard when tapping
                     isSearchFocused = false
                 }
 
-                // Title
-                VStack(spacing: 12) {
-                    Text("Watch or Not?")
-                        .font(.headlineLarge)
-                        .foregroundColor(.textPrimary)
+            Spacer()
+                .frame(height: 16)
 
-                    Text("Snap any title on Netflix, Prime, or other streaming apps for an instant recommendation")
-                        .font(.bodyMedium)
-                        .foregroundColor(.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                }
-                .onTapGesture {
-                    // Dismiss keyboard when tapping outside search field
-                    isSearchFocused = false
-                }
+            // Action Buttons
+            VStack(spacing: 12) {
+                // Take Photo Button
+                Button {
+                    onTakePhoto()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "camera")
+                            .font(.titleMedium)
 
-                // How It Works Section
-                HowItWorksView()
-                    .padding(.horizontal, -16) // Compensate for extra padding
-                    .onTapGesture {
-                        // Dismiss keyboard when tapping
-                        isSearchFocused = false
+                        Text("Take Photo")
+                            .font(.titleMedium)
+                            .fontWeight(.semibold)
                     }
-
-                // Action Buttons
-                VStack(spacing: 16) {
-                    // Take Photo Button
-                    Button {
-                        onTakePhoto()
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "camera")
-                                .font(.titleMedium)
-
-                            Text("Take Photo")
-                                .font(.titleMedium)
-                                .fontWeight(.semibold)
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(
-                            LinearGradient(
-                                colors: [Color.blue, Color.purple],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.blue, Color.purple],
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                        .cornerRadius(16)
-                        .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 4)
-                    }
+                    )
+                    .cornerRadius(16)
+                    .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 4)
+                }
 
-                    // Manual Search Field
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(.textSecondary)
+                // Manual Search Field
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.textSecondary)
 
-                            TextField("Enter movie or TV show name...", text: $searchQuery)
-                                .font(.bodyMedium)
-                                .foregroundColor(.textPrimary)
-                                .focused($isSearchFocused)
-                                .submitLabel(.search)
-                                .onSubmit {
-                                    if !searchQuery.isEmpty {
-                                        onSearch(searchQuery)
-                                    }
-                                }
-
-                            if !searchQuery.isEmpty {
-                                Button {
-                                    searchQuery = ""
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.textSecondary)
+                        TextField("Search movie or show...", text: $searchQuery)
+                            .font(.bodyMedium)
+                            .foregroundColor(.textPrimary)
+                            .focused($isSearchFocused)
+                            .submitLabel(.search)
+                            .onSubmit {
+                                if !searchQuery.isEmpty {
+                                    onSearch(searchQuery)
                                 }
                             }
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
-                        .background(Color.surface)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(isSearchFocused ? Color.accent : Color.gray.opacity(0.3), lineWidth: isSearchFocused ? 2 : 1)
-                        )
-                        .cornerRadius(16)
 
                         if !searchQuery.isEmpty {
                             Button {
-                                onSearch(searchQuery)
+                                searchQuery = ""
                             } label: {
-                                HStack {
-                                    Spacer()
-                                    Text("Search")
-                                        .font(.bodyMedium)
-                                        .fontWeight(.semibold)
-                                    Image(systemName: "arrow.right")
-                                }
-                                .foregroundColor(.accent)
-                                .padding(.horizontal, 4)
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.textSecondary)
                             }
                         }
                     }
-                }
-                .padding(.horizontal, 32)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(Color.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(isSearchFocused ? Color.accent : Color.gray.opacity(0.3), lineWidth: isSearchFocused ? 2 : 1)
+                    )
+                    .cornerRadius(16)
 
-                Spacer()
+                    if !searchQuery.isEmpty {
+                        Button {
+                            onSearch(searchQuery)
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text("Search")
+                                    .font(.bodyMedium)
+                                    .fontWeight(.semibold)
+                                Image(systemName: "arrow.right")
+                            }
+                            .foregroundColor(.accent)
+                            .padding(.horizontal, 4)
+                        }
+                    }
+                }
             }
+            .padding(.horizontal, 24)
+
+            Spacer()
+                .frame(height: 16)
         }
-        .scrollDismissesKeyboard(.interactively)
         .onAppear {
             // Pre-populate search query if provided (e.g., from "Wrong title?" button)
             if !initialSearchQuery.isEmpty {
@@ -263,22 +281,22 @@ struct HowItWorksView: View {
             // Title
             HStack {
                 Text("How It Works")
-                    .font(.titleMedium)
+                    .font(.bodyMedium)
                     .fontWeight(.semibold)
                     .foregroundColor(.textPrimary)
                 Spacer()
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 20)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 12)
 
             // Steps
-            VStack(spacing: 16) {
+            VStack(spacing: 10) {
                 // Step 1: Snap
                 HowItWorksStep(
                     icon: "tv.fill",
                     iconColor: .blue,
                     title: "Snap",
-                    description: "Point at any title screen on Netflix, Prime, etc.",
+                    description: "Point at Netflix, Prime titles",
                     showArrow: true
                 )
 
@@ -287,7 +305,7 @@ struct HowItWorksView: View {
                     icon: "sparkles",
                     iconColor: .purple,
                     title: "Analyze",
-                    description: "AI identifies it and checks your taste profile",
+                    description: "AI checks your taste profile",
                     showArrow: true
                 )
 
@@ -296,15 +314,15 @@ struct HowItWorksView: View {
                     icon: "checkmark.circle.fill",
                     iconColor: .green,
                     title: "Decide",
-                    description: "Get \"Watch It\" or \"Skip It\" instantly",
+                    description: "Get instant recommendation",
                     showArrow: false
                 )
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 20)
         }
-        .padding(.vertical, 24)
+        .padding(.vertical, 16)
         .background(Color.surface)
-        .cornerRadius(16)
+        .cornerRadius(14)
     }
 }
 
@@ -317,27 +335,27 @@ struct HowItWorksStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 // Icon Circle
                 ZStack {
                     Circle()
                         .fill(iconColor.opacity(0.15))
-                        .frame(width: 48, height: 48)
+                        .frame(width: 38, height: 38)
 
                     Image(systemName: icon)
-                        .font(.system(size: 22))
+                        .font(.system(size: 18))
                         .foregroundColor(iconColor)
                 }
 
                 // Text Content
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.titleSmall)
+                        .font(.bodyMedium)
                         .fontWeight(.semibold)
                         .foregroundColor(.textPrimary)
 
                     Text(description)
-                        .font(.bodySmall)
+                        .font(.caption)
                         .foregroundColor(.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -349,12 +367,12 @@ struct HowItWorksStep: View {
             if showArrow {
                 HStack {
                     Spacer()
-                        .frame(width: 24) // Center under icon
+                        .frame(width: 19) // Center under icon
 
                     Image(systemName: "arrow.down")
-                        .font(.system(size: 16))
+                        .font(.system(size: 12))
                         .foregroundColor(.textSecondary.opacity(0.5))
-                        .frame(height: 20)
+                        .frame(height: 12)
 
                     Spacer()
                 }
