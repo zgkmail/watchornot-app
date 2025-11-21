@@ -52,7 +52,7 @@ class AdManager: NSObject, ObservableObject {
     func initializeAdMob() {
         guard !isAdMobInitialized && !hasRemovedAds else { return }
 
-        GADMobileAds.sharedInstance().start { [weak self] status in
+        MobileAds.shared.start { [weak self] status in
             DispatchQueue.main.async {
                 self?.isAdMobInitialized = true
                 print("✅ AdMob initialized: \(status.description)")

@@ -26,8 +26,8 @@ struct BannerAdView: View {
 private struct BannerAdViewRepresentable: UIViewRepresentable {
     @StateObject private var adManager = AdManager.shared
 
-    func makeUIView(context: Context) -> GADBannerView {
-        let bannerView = GADBannerView(adSize: GADAdSizeBanner)
+    func makeUIView(context: Context) -> BannerView {
+        let bannerView = BannerView(adSize: AdSizeBanner)
         bannerView.adUnitID = AdManager.bannerAdUnitID
         bannerView.delegate = context.coordinator
 
@@ -35,13 +35,13 @@ private struct BannerAdViewRepresentable: UIViewRepresentable {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let rootViewController = windowScene.windows.first?.rootViewController {
             bannerView.rootViewController = rootViewController
-            bannerView.load(GADRequest())
+            bannerView.load(Request())
         }
 
         return bannerView
     }
 
-    func updateUIView(_ uiView: GADBannerView, context: Context) {
+    func updateUIView(_ uiView: BannerView, context: Context) {
         // Banner view doesn't need updates
     }
 
@@ -51,28 +51,28 @@ private struct BannerAdViewRepresentable: UIViewRepresentable {
 
     // MARK: - Coordinator
 
-    class Coordinator: NSObject, GADBannerViewDelegate {
-        func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+    class Coordinator: NSObject, BannerViewDelegate {
+        func bannerViewDidReceiveAd(_ bannerView: BannerView) {
             print("✅ Banner ad loaded successfully")
         }
 
-        func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+        func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
             print("❌ Banner ad failed to load: \(error.localizedDescription)")
         }
 
-        func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
+        func bannerViewDidRecordImpression(_ bannerView: BannerView) {
             print("👁️ Banner ad impression recorded")
         }
 
-        func bannerViewWillPresentScreen(_ bannerView: GADBannerView) {
+        func bannerViewWillPresentScreen(_ bannerView: BannerView) {
             print("📱 Banner ad will present screen")
         }
 
-        func bannerViewWillDismissScreen(_ bannerView: GADBannerView) {
+        func bannerViewWillDismissScreen(_ bannerView: BannerView) {
             print("📱 Banner ad will dismiss screen")
         }
 
-        func bannerViewDidDismissScreen(_ bannerView: GADBannerView) {
+        func bannerViewDidDismissScreen(_ bannerView: BannerView) {
             print("📱 Banner ad dismissed screen")
         }
     }

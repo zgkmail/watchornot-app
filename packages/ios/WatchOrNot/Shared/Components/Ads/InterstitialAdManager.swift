@@ -17,7 +17,7 @@ class InterstitialAdManager: NSObject, ObservableObject {
 
     // MARK: - Properties
 
-    private var interstitialAd: GADInterstitialAd?
+    private var interstitialAd: InterstitialAd?
     private var isLoading = false
     private let adManager = AdManager.shared
 
@@ -35,10 +35,10 @@ class InterstitialAdManager: NSObject, ObservableObject {
 
         isLoading = true
 
-        GADInterstitialAd.load(
-            withAdUnitID: AdManager.interstitialAdUnitID,
-            request: GADRequest()
-        ) { [weak self] ad, error in
+        InterstitialAd.load(
+            with: AdManager.interstitialAdUnitID,
+            request: Request(),
+            completionHandler: { [weak self] ad, error in
             guard let self = self else { return }
 
             self.isLoading = false
@@ -51,7 +51,8 @@ class InterstitialAdManager: NSObject, ObservableObject {
             self.interstitialAd = ad
             self.interstitialAd?.fullScreenContentDelegate = self
             print("✅ Interstitial ad loaded successfully")
-        }
+            }
+        )
     }
 
     /// Show the interstitial ad if one is loaded
@@ -72,7 +73,7 @@ class InterstitialAdManager: NSObject, ObservableObject {
         }
 
         // Present the ad
-        interstitialAd.present(fromRootViewController: rootViewController)
+        interstitialAd.present(from: rootViewController)
     }
 
     /// Check if an ad is ready to show
@@ -83,30 +84,30 @@ class InterstitialAdManager: NSObject, ObservableObject {
 
 // MARK: - GADFullScreenContentDelegate
 
-extension InterstitialAdManager: GADFullScreenContentDelegate {
-    func adDidRecordImpression(_ ad: GADFullScreenPresentingAd) {
+extension InterstitialAdManager: FullScreenContentDelegate {
+    func adDidRecordImpression(_ ad: FullScreenPresentingAd) {
         print("👁️ Interstitial ad impression recorded")
     }
 
-    func adDidRecordClick(_ ad: GADFullScreenPresentingAd) {
+    func adDidRecordClick(_ ad: FullScreenPresentingAd) {
         print("🖱️ Interstitial ad clicked")
     }
 
-    func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+    func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
         print("❌ Interstitial ad failed to present: \(error.localizedDescription)")
         // Load a new ad for next time
         loadAd()
     }
 
-    func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
         print("📱 Interstitial ad will present")
     }
 
-    func adWillDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adWillDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         print("📱 Interstitial ad will dismiss")
     }
 
-    func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         print("📱 Interstitial ad dismissed")
         // Clear the ad and load a new one for next time
         interstitialAd = nil
