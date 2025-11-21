@@ -58,7 +58,7 @@ struct MovieSnapView: View {
             }
             .navigationTitle("Movie Snap")
             .navigationBarTitleDisplayMode(.large)
-            .sheet(isPresented: $viewModel.showCamera) {
+            .fullScreenCover(isPresented: $viewModel.showCamera) {
                 CameraView { image in
                     viewModel.showCamera = false
                     Task {
