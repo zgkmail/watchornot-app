@@ -104,20 +104,20 @@ struct SnapPromptView: View {
             ZStack {
                 Circle()
                     .fill(Color.accent.opacity(0.2))
-                    .frame(width: 80, height: 80)
+                    .frame(width: 100, height: 100)
 
                 ZStack {
                     // TV in background
                     Image(systemName: "tv.fill")
-                        .font(.system(size: 32))
-                        .foregroundColor(.accent.opacity(0.6))
-                        .offset(x: -4, y: 4)
+                        .font(.system(size: 40))
+                        .foregroundColor(.accent.opacity(0.5))
+                        .offset(x: -6, y: 6)
 
                     // Camera in foreground
                     Image(systemName: "camera.fill")
-                        .font(.system(size: 32))
+                        .font(.system(size: 40))
                         .foregroundColor(.accent)
-                        .offset(x: 4, y: -4)
+                        .offset(x: 6, y: -6)
                 }
             }
             .onTapGesture {
@@ -134,7 +134,7 @@ struct SnapPromptView: View {
                     .font(.headlineLarge)
                     .foregroundColor(.textPrimary)
 
-                Text("Snap titles on Netflix, Prime, etc.\nfor instant recommendations")
+                Text("Snap titles on Netflix, Prime Video, etc.\nfor instant recommendations")
                     .font(.bodySmall)
                     .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
@@ -296,7 +296,7 @@ struct HowItWorksView: View {
                     icon: "tv.fill",
                     iconColor: .blue,
                     title: "Snap",
-                    description: "Point at Netflix, Prime titles",
+                    description: "Point at Netflix, Prime Video titles",
                     showArrow: true
                 )
 
