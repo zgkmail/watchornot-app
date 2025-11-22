@@ -158,14 +158,18 @@ struct DistancePresetButton: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
                 .background(
-                    isSelected ?
-                        LinearGradient(
-                            colors: [Color.blue, Color.purple],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .opacity(0.9) :
-                        Color.black.opacity(0.5)
+                    Group {
+                        if isSelected {
+                            LinearGradient(
+                                colors: [Color.blue, Color.purple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                            .opacity(0.9)
+                        } else {
+                            Color.black.opacity(0.5)
+                        }
+                    }
                 )
                 .cornerRadius(12)
                 .overlay(
