@@ -55,19 +55,19 @@ struct CameraView: View {
 
                     HStack(spacing: 16) {
                         DistancePresetButton(
-                            title: "2m\nClose",
+                            title: "Close",
                             isSelected: cameraManager.currentPreset == .close,
                             action: { cameraManager.setDistancePreset(.close) }
                         )
 
                         DistancePresetButton(
-                            title: "3m\nNormal",
+                            title: "Normal",
                             isSelected: cameraManager.currentPreset == .normal,
                             action: { cameraManager.setDistancePreset(.normal) }
                         )
 
                         DistancePresetButton(
-                            title: "4m\nFar",
+                            title: "Far",
                             isSelected: cameraManager.currentPreset == .far,
                             action: { cameraManager.setDistancePreset(.far) }
                         )
@@ -200,10 +200,6 @@ struct FrameGuideOverlay: View {
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color.white, lineWidth: 2)
                     )
-                    .overlay(
-                        // Corner brackets
-                        CornerBrackets(width: width, height: height)
-                    )
                     .blendMode(.destinationOut)
             }
             .compositingGroup()
@@ -213,7 +209,7 @@ struct FrameGuideOverlay: View {
                 Spacer()
                     .frame(height: (geometry.size.height - height) / 2 - 60)
 
-                Text("Frame the TV screen within the guides")
+                Text("Frame the title image within the guides")
                     .font(.caption)
                     .foregroundColor(.white)
                     .padding(.horizontal, 16)
@@ -224,50 +220,6 @@ struct FrameGuideOverlay: View {
                 Spacer()
             }
             .frame(maxWidth: .infinity)
-        }
-    }
-}
-
-// MARK: - Corner Brackets
-struct CornerBrackets: View {
-    let width: CGFloat
-    let height: CGFloat
-    let bracketLength: CGFloat = 30
-    let bracketWidth: CGFloat = 3
-
-    var body: some View {
-        ZStack {
-            // Top-left
-            Path { path in
-                path.move(to: CGPoint(x: -width/2, y: -height/2 + bracketLength))
-                path.addLine(to: CGPoint(x: -width/2, y: -height/2))
-                path.addLine(to: CGPoint(x: -width/2 + bracketLength, y: -height/2))
-            }
-            .stroke(Color.green, lineWidth: bracketWidth)
-
-            // Top-right
-            Path { path in
-                path.move(to: CGPoint(x: width/2 - bracketLength, y: -height/2))
-                path.addLine(to: CGPoint(x: width/2, y: -height/2))
-                path.addLine(to: CGPoint(x: width/2, y: -height/2 + bracketLength))
-            }
-            .stroke(Color.green, lineWidth: bracketWidth)
-
-            // Bottom-left
-            Path { path in
-                path.move(to: CGPoint(x: -width/2, y: height/2 - bracketLength))
-                path.addLine(to: CGPoint(x: -width/2, y: height/2))
-                path.addLine(to: CGPoint(x: -width/2 + bracketLength, y: height/2))
-            }
-            .stroke(Color.green, lineWidth: bracketWidth)
-
-            // Bottom-right
-            Path { path in
-                path.move(to: CGPoint(x: width/2 - bracketLength, y: height/2))
-                path.addLine(to: CGPoint(x: width/2, y: height/2))
-                path.addLine(to: CGPoint(x: width/2, y: height/2 - bracketLength))
-            }
-            .stroke(Color.green, lineWidth: bracketWidth)
         }
     }
 }
