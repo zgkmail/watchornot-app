@@ -441,11 +441,51 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
         }
 
         guard let imageData = photo.fileDataRepresentation(),
-              let image = UIImage(data: imageData) else {
+              let rawImage = UIImage(data: imageData) else {
             photoCompletion?(nil)
             return
         }
 
-        photoCompletion?(image)
+        // Normalize image orientation to prevent API errors
+        // AVFoundation captures images with orientation metadata that needs to be applied
+        let normalizedImage = normalizeImageOrientation(rawImage)
+
+        photoCompletion?(normalizedImage)
+    }
+
+    /// Normalize image orientation by re-rendering the image
+    /// This fixes issues where AVFoundation images have orientation metadata
+    /// that causes problems when encoding to JPEG and sending to APIs
+    private func normalizeImageOrientation(_ image: UIImage) -> UIImage {
+        // First, resize if image is too large (max 2048px on longest side)
+        // This prevents unnecessarily large images that could cause API issues
+        let maxDimension: CGFloat = 2048
+        let resizedImage: UIImage
+
+        let size = image.size
+        if size.width > maxDimension || size.height > maxDimension {
+            let scale = min(maxDimension / size.width, maxDimension / size.height)
+            let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+
+            UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+            resizedImage = UIGraphicsGetImageFromCurrentImageContext() ?? image
+            UIGraphicsEndImageContext()
+        } else {
+            resizedImage = image
+        }
+
+        // Then normalize orientation if needed
+        if resizedImage.imageOrientation == .up {
+            return resizedImage
+        }
+
+        // Render the image in the correct orientation
+        UIGraphicsBeginImageContextWithOptions(resizedImage.size, false, resizedImage.scale)
+        resizedImage.draw(in: CGRect(origin: .zero, size: resizedImage.size))
+        let normalizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return normalizedImage ?? resizedImage
     }
 }
