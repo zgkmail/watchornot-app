@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const { tmdbSearchCache, tmdbDetailsCache } = require('../utils/cache');
+const persistentCache = require('../utils/persistentCache');
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -51,13 +53,52 @@ router.get('/search', async (req, res) => {
       });
     }
 
-    // Make request to TMDB API
+    // Generate cache key (normalize query to lowercase for better hit rate)
+    const cacheKey = `tmdb:search:${query.toLowerCase().trim()}:${media_type || 'multi'}`;
+
+    // Two-layer cache strategy
+    const startTime = Date.now();
+
+    // Layer 1: Check in-memory cache first
+    let cached = tmdbSearchCache.get(cacheKey);
+
+    if (cached) {
+      const responseTime = Date.now() - startTime;
+      console.log(`[L1 Cache HIT] TMDB search: "${query}" (${responseTime}ms)`);
+      return res.json(cached);
+    }
+
+    // Layer 2: Check persistent cache (SQLite)
+    cached = persistentCache.get(cacheKey);
+
+    if (cached) {
+      const responseTime = Date.now() - startTime;
+      console.log(`[L2 Cache HIT] TMDB search: "${query}" (${responseTime}ms) - promoting to L1`);
+
+      // Promote to in-memory cache
+      tmdbSearchCache.set(cacheKey, cached);
+
+      return res.json(cached);
+    }
+
+    // Cache miss - make request to TMDB API
+    console.log(`[Cache MISS] TMDB search: "${query}" - fetching from API`);
     const response = await axios.get(`${TMDB_BASE_URL}${searchEndpoint}`, {
       params: {
         api_key: apiKey,
         query: query
       }
     });
+
+    const totalTime = Date.now() - startTime;
+    console.log(`[TMDB API] Search completed in ${totalTime}ms`);
+
+    // Cache the response in both layers
+    // L1: 24 hours (in-memory)
+    tmdbSearchCache.set(cacheKey, response.data);
+
+    // L2: 30 days (persistent)
+    persistentCache.set(cacheKey, response.data, 30 * 24 * 60 * 60 * 1000, 'tmdb-search');
 
     res.json(response.data);
   } catch (error) {
@@ -96,13 +137,52 @@ router.get('/:mediaType/:id', async (req, res) => {
       return res.status(500).json({ error: 'TMDB API key not configured on server. Please contact administrator.' });
     }
 
-    // Make request to TMDB API with credits, external_ids, and videos appended
+    // Generate cache key
+    const cacheKey = `tmdb:details:${mediaType}:${id}`;
+
+    // Two-layer cache strategy
+    const startTime = Date.now();
+
+    // Layer 1: Check in-memory cache first
+    let cached = tmdbDetailsCache.get(cacheKey);
+
+    if (cached) {
+      const responseTime = Date.now() - startTime;
+      console.log(`[L1 Cache HIT] TMDB details: ${mediaType}/${id} (${responseTime}ms)`);
+      return res.json(cached);
+    }
+
+    // Layer 2: Check persistent cache (SQLite)
+    cached = persistentCache.get(cacheKey);
+
+    if (cached) {
+      const responseTime = Date.now() - startTime;
+      console.log(`[L2 Cache HIT] TMDB details: ${mediaType}/${id} (${responseTime}ms) - promoting to L1`);
+
+      // Promote to in-memory cache
+      tmdbDetailsCache.set(cacheKey, cached);
+
+      return res.json(cached);
+    }
+
+    // Cache miss - make request to TMDB API with credits, external_ids, and videos appended
+    console.log(`[Cache MISS] TMDB details: ${mediaType}/${id} - fetching from API`);
     const response = await axios.get(`${TMDB_BASE_URL}/${mediaType}/${id}`, {
       params: {
         api_key: apiKey,
         append_to_response: 'credits,external_ids,videos'
       }
     });
+
+    const totalTime = Date.now() - startTime;
+    console.log(`[TMDB API] Details completed in ${totalTime}ms`);
+
+    // Cache the response in both layers
+    // L1: 7 days (in-memory)
+    tmdbDetailsCache.set(cacheKey, response.data);
+
+    // L2: 90 days (persistent)
+    persistentCache.set(cacheKey, response.data, 90 * 24 * 60 * 60 * 1000, 'tmdb-details');
 
     res.json(response.data);
   } catch (error) {

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const { omdbRatingsCache } = require('../utils/cache');
+const persistentCache = require('../utils/persistentCache');
 
 const OMDB_BASE_URL = 'https://www.omdbapi.com';
 
@@ -130,6 +132,39 @@ router.get('/ratings/:imdbId', async (req, res) => {
     }
 
     console.log('✓ API key configured (length:', apiKey.length, 'characters)');
+
+    // Generate cache key
+    const cacheKey = `omdb:ratings:${imdbId}`;
+
+    // Two-layer cache strategy
+    // Layer 1: Check in-memory cache first
+    let cached = omdbRatingsCache.get(cacheKey);
+
+    if (cached) {
+      const cacheDuration = Date.now() - startTime;
+      console.log(`[L1 Cache HIT] OMDb ratings: ${imdbId} (${cacheDuration}ms)`);
+      console.log('📊 Cached ratings:', JSON.stringify(cached.ratings, null, 2));
+      console.log('========================================\n');
+      return res.json(cached);
+    }
+
+    // Layer 2: Check persistent cache (SQLite)
+    cached = persistentCache.get(cacheKey);
+
+    if (cached) {
+      const cacheDuration = Date.now() - startTime;
+      console.log(`[L2 Cache HIT] OMDb ratings: ${imdbId} (${cacheDuration}ms) - promoting to L1`);
+      console.log('📊 Cached ratings:', JSON.stringify(cached.ratings, null, 2));
+
+      // Promote to in-memory cache
+      omdbRatingsCache.set(cacheKey, cached);
+
+      console.log('========================================\n');
+      return res.json(cached);
+    }
+
+    // Cache miss - fetch from API
+    console.log(`[Cache MISS] OMDb ratings: ${imdbId} - fetching from API`);
     console.log('📤 Fetching ratings from OMDb API...');
 
     // Make request to OMDb API
@@ -148,6 +183,7 @@ router.get('/ratings/:imdbId', async (req, res) => {
     // Check if movie was found
     if (response.data.Response === 'False') {
       console.log('⚠️  Movie not found in OMDb:', response.data.Error);
+      // Don't cache "not found" responses
       return res.json({
         found: false,
         error: response.data.Error
@@ -190,9 +226,9 @@ router.get('/ratings/:imdbId', async (req, res) => {
     console.log('   Metacritic:', ratings.metacritic ? ratings.metacritic + '/100' : 'N/A');
     console.log('   Director:', data.Director || 'N/A');
     console.log('   Actors:', data.Actors || 'N/A');
-    console.log('========================================\n');
 
-    res.json({
+    // Prepare response
+    const result = {
       found: true,
       title: data.Title,
       year: data.Year,
@@ -200,7 +236,19 @@ router.get('/ratings/:imdbId', async (req, res) => {
       actors: data.Actors !== 'N/A' ? data.Actors : null,
       ratings: ratings,
       responseTime: duration
-    });
+    };
+
+    // Cache the response in both layers
+    // L1: 7 days (in-memory)
+    omdbRatingsCache.set(cacheKey, result);
+
+    // L2: 30 days (persistent)
+    persistentCache.set(cacheKey, result, 30 * 24 * 60 * 60 * 1000, 'omdb-ratings');
+
+    console.log('💾 Cached ratings for', imdbId, '(L1 + L2)');
+    console.log('========================================\n');
+
+    res.json(result);
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error('\n❌❌❌ OMDB API ERROR ❌❌❌');
@@ -215,6 +263,20 @@ router.get('/ratings/:imdbId', async (req, res) => {
       // Handle rate limiting / too many requests
       if (error.response.status === 429) {
         console.error('⚠️  OMDb API rate limit exceeded');
+
+        // Try to serve stale cache if available
+        const cacheKey = `ratings:${req.params.imdbId}`;
+        const staleCache = omdbRatingsCache.cache.get(cacheKey, { allowStale: true });
+
+        if (staleCache) {
+          console.log('📦 Serving stale cache due to rate limit');
+          return res.json({
+            ...staleCache,
+            cached: true,
+            cacheWarning: 'Served from cache due to API rate limit'
+          });
+        }
+
         return res.status(429).json({
           error: 'Rate limit exceeded',
           message: 'Too many requests to OMDb API. Please try again later.',
@@ -232,6 +294,20 @@ router.get('/ratings/:imdbId', async (req, res) => {
         // Check for daily limit error
         if (errorMsg.includes('daily limit') || errorMsg.includes('limit reached') || errorMsg.includes('over quota')) {
           console.error('⚠️  OMDb API daily limit reached');
+
+          // Try to serve stale cache if available
+          const cacheKey = `ratings:${req.params.imdbId}`;
+          const staleCache = omdbRatingsCache.cache.get(cacheKey, { allowStale: true });
+
+          if (staleCache) {
+            console.log('📦 Serving stale cache due to daily limit');
+            return res.json({
+              ...staleCache,
+              cached: true,
+              cacheWarning: 'Served from cache due to OMDb daily limit'
+            });
+          }
+
           return res.status(429).json({
             error: 'Daily limit reached',
             message: 'OMDb API daily limit has been reached. Ratings unavailable until tomorrow.',
