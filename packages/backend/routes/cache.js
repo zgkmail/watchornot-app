@@ -8,6 +8,7 @@ const {
   clearAllCaches,
   resetAllMetrics
 } = require('../utils/cache');
+const persistentCache = require('../utils/persistentCache');
 
 /**
  * Get cache statistics
@@ -20,12 +21,14 @@ router.get('/stats', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const metrics = getAllMetrics();
+    const inMemoryMetrics = getAllMetrics();
+    const persistentStats = persistentCache.getStats();
 
     res.json({
       success: true,
       timestamp: new Date().toISOString(),
-      metrics
+      inMemoryCache: inMemoryMetrics,
+      persistentCache: persistentStats
     });
   } catch (error) {
     console.error('Error fetching cache stats:', error);
@@ -51,20 +54,27 @@ router.delete('/:cacheName', async (req, res) => {
     switch (cacheName) {
       case 'tmdb-search':
         tmdbSearchCache.clearAll();
+        persistentCache.clearBySource('tmdb-search');
         break;
       case 'tmdb-details':
         tmdbDetailsCache.clearAll();
+        persistentCache.clearBySource('tmdb-details');
         break;
       case 'omdb-ratings':
         omdbRatingsCache.clearAll();
+        persistentCache.clearBySource('omdb-ratings');
         break;
       case 'all':
         clearAllCaches();
+        persistentCache.clearAll();
+        break;
+      case 'persistent-only':
+        persistentCache.clearAll();
         break;
       default:
         return res.status(400).json({
           error: 'Invalid cache name',
-          validNames: ['tmdb-search', 'tmdb-details', 'omdb-ratings', 'all']
+          validNames: ['tmdb-search', 'tmdb-details', 'omdb-ratings', 'all', 'persistent-only']
         });
     }
 

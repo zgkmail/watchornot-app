@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const { omdbRatingsCache } = require('../utils/cache');
+const persistentCache = require('../utils/persistentCache');
 
 const OMDB_BASE_URL = 'https://www.omdbapi.com';
 
@@ -133,21 +134,37 @@ router.get('/ratings/:imdbId', async (req, res) => {
     console.log('✓ API key configured (length:', apiKey.length, 'characters)');
 
     // Generate cache key
-    const cacheKey = `ratings:${imdbId}`;
+    const cacheKey = `omdb:ratings:${imdbId}`;
 
-    // Check cache first
-    const cached = omdbRatingsCache.get(cacheKey);
+    // Two-layer cache strategy
+    // Layer 1: Check in-memory cache first
+    let cached = omdbRatingsCache.get(cacheKey);
 
     if (cached) {
       const cacheDuration = Date.now() - startTime;
-      console.log(`[Cache HIT] OMDb ratings: ${imdbId} (${cacheDuration}ms)`);
+      console.log(`[L1 Cache HIT] OMDb ratings: ${imdbId} (${cacheDuration}ms)`);
       console.log('📊 Cached ratings:', JSON.stringify(cached.ratings, null, 2));
       console.log('========================================\n');
       return res.json(cached);
     }
 
+    // Layer 2: Check persistent cache (SQLite)
+    cached = persistentCache.get(cacheKey);
+
+    if (cached) {
+      const cacheDuration = Date.now() - startTime;
+      console.log(`[L2 Cache HIT] OMDb ratings: ${imdbId} (${cacheDuration}ms) - promoting to L1`);
+      console.log('📊 Cached ratings:', JSON.stringify(cached.ratings, null, 2));
+
+      // Promote to in-memory cache
+      omdbRatingsCache.set(cacheKey, cached);
+
+      console.log('========================================\n');
+      return res.json(cached);
+    }
+
     // Cache miss - fetch from API
-    console.log(`[Cache MISS] OMDb ratings: ${imdbId}`);
+    console.log(`[Cache MISS] OMDb ratings: ${imdbId} - fetching from API`);
     console.log('📤 Fetching ratings from OMDb API...');
 
     // Make request to OMDb API
@@ -221,9 +238,14 @@ router.get('/ratings/:imdbId', async (req, res) => {
       responseTime: duration
     };
 
-    // Cache the response (7 days default)
+    // Cache the response in both layers
+    // L1: 7 days (in-memory)
     omdbRatingsCache.set(cacheKey, result);
-    console.log('💾 Cached ratings for', imdbId);
+
+    // L2: 30 days (persistent)
+    persistentCache.set(cacheKey, result, 30 * 24 * 60 * 60 * 1000, 'omdb-ratings');
+
+    console.log('💾 Cached ratings for', imdbId, '(L1 + L2)');
     console.log('========================================\n');
 
     res.json(result);
