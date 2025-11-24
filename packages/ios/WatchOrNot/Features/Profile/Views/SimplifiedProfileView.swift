@@ -150,23 +150,12 @@ struct SimplifiedProfileView: View {
 
                             // Settings section
                             VStack(alignment: .leading, spacing: 16) {
-                                Text("Settings & Account")
+                                Text("Settings")
                                     .font(.headlineSmall)
                                     .foregroundColor(.textPrimary)
                                     .padding(.horizontal)
 
                                 VStack(spacing: 0) {
-                                    SettingsRow(
-                                        icon: "person.circle",
-                                        title: "Account",
-                                        action: {
-                                            // TODO: Show account details
-                                        }
-                                    )
-
-                                    Divider()
-                                        .padding(.leading, 56)
-
                                     SettingsRow(
                                         icon: "circle.lefthalf.filled",
                                         title: "Appearance",
