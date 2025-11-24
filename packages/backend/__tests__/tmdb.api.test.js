@@ -9,8 +9,10 @@ const {
   createTestMovie
 } = require('../testHelpers');
 
-// Mock axios
+// Mock axios and cache modules
 jest.mock('axios');
+jest.mock('../utils/cache');
+jest.mock('../utils/persistentCache');
 
 // Create Express app for testing
 function createTestApp() {

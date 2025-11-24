@@ -19,8 +19,10 @@ const {
   mockTMDBMovieDetailsResponse
 } = require('../testHelpers');
 
-// Mock axios for TMDB calls
+// Mock axios for TMDB calls and cache modules
 jest.mock('axios');
+jest.mock('../utils/cache');
+jest.mock('../utils/persistentCache');
 
 // Shared test database
 let mockTestDb = null;

@@ -1,11 +1,13 @@
+// Mock axios and cache modules BEFORE importing routes
+jest.mock('axios');
+jest.mock('../utils/cache');
+jest.mock('../utils/persistentCache');
+
 const request = require('supertest');
 const express = require('express');
 const session = require('express-session');
 const axios = require('axios');
 const omdbRouter = require('../routes/omdb');
-
-// Mock axios
-jest.mock('axios');
 
 // Create Express app for testing
 function createTestApp(userId = 'test-user-123') {

@@ -266,7 +266,7 @@ router.get('/ratings/:imdbId', async (req, res) => {
 
         // Try to serve stale cache if available
         const cacheKey = `ratings:${req.params.imdbId}`;
-        const staleCache = omdbRatingsCache.cache.get(cacheKey, { allowStale: true });
+        const staleCache = omdbRatingsCache.cache?.get(cacheKey, { allowStale: true });
 
         if (staleCache) {
           console.log('📦 Serving stale cache due to rate limit');
@@ -297,7 +297,7 @@ router.get('/ratings/:imdbId', async (req, res) => {
 
           // Try to serve stale cache if available
           const cacheKey = `ratings:${req.params.imdbId}`;
-          const staleCache = omdbRatingsCache.cache.get(cacheKey, { allowStale: true });
+          const staleCache = omdbRatingsCache.cache?.get(cacheKey, { allowStale: true });
 
           if (staleCache) {
             console.log('📦 Serving stale cache due to daily limit');
