@@ -14,6 +14,7 @@ const claudeRouter = require('./routes/claude');
 const omdbRouter = require('./routes/omdb');
 const ratingsRouter = require('./routes/ratings');
 const onboardingRouter = require('./routes/onboarding');
+const cacheRouter = require('./routes/cache');
 
 // Import database utilities
 const { getOrCreateUser, closeDatabase } = require('./db/database');
@@ -278,6 +279,7 @@ app.use('/api/claude', strictLimiter, claudeRouter);
 app.use('/api/omdb', strictLimiter, omdbRouter);
 app.use('/api/ratings', ratingsRouter); // No strict limiter for ratings (internal data)
 app.use('/api/onboarding', onboardingRouter); // Onboarding flow (no strict limiter)
+app.use('/api/cache', cacheRouter); // Cache management endpoints
 
 // Error handling middleware
 app.use((err, req, res, next) => {

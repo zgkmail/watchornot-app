@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
+const { tmdbSearchCache, tmdbDetailsCache } = require('../utils/cache');
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -51,13 +52,33 @@ router.get('/search', async (req, res) => {
       });
     }
 
-    // Make request to TMDB API
+    // Generate cache key (normalize query to lowercase for better hit rate)
+    const cacheKey = `search:${query.toLowerCase().trim()}:${media_type || 'multi'}`;
+
+    // Check cache first
+    const startTime = Date.now();
+    const cached = tmdbSearchCache.get(cacheKey);
+
+    if (cached) {
+      const responseTime = Date.now() - startTime;
+      console.log(`[Cache HIT] TMDB search: "${query}" (${responseTime}ms)`);
+      return res.json(cached);
+    }
+
+    // Cache miss - make request to TMDB API
+    console.log(`[Cache MISS] TMDB search: "${query}"`);
     const response = await axios.get(`${TMDB_BASE_URL}${searchEndpoint}`, {
       params: {
         api_key: apiKey,
         query: query
       }
     });
+
+    const totalTime = Date.now() - startTime;
+    console.log(`[TMDB API] Search completed in ${totalTime}ms`);
+
+    // Cache the response (24 hours default)
+    tmdbSearchCache.set(cacheKey, response.data);
 
     res.json(response.data);
   } catch (error) {
@@ -96,13 +117,33 @@ router.get('/:mediaType/:id', async (req, res) => {
       return res.status(500).json({ error: 'TMDB API key not configured on server. Please contact administrator.' });
     }
 
-    // Make request to TMDB API with credits, external_ids, and videos appended
+    // Generate cache key
+    const cacheKey = `details:${mediaType}:${id}`;
+
+    // Check cache first
+    const startTime = Date.now();
+    const cached = tmdbDetailsCache.get(cacheKey);
+
+    if (cached) {
+      const responseTime = Date.now() - startTime;
+      console.log(`[Cache HIT] TMDB details: ${mediaType}/${id} (${responseTime}ms)`);
+      return res.json(cached);
+    }
+
+    // Cache miss - make request to TMDB API with credits, external_ids, and videos appended
+    console.log(`[Cache MISS] TMDB details: ${mediaType}/${id}`);
     const response = await axios.get(`${TMDB_BASE_URL}/${mediaType}/${id}`, {
       params: {
         api_key: apiKey,
         append_to_response: 'credits,external_ids,videos'
       }
     });
+
+    const totalTime = Date.now() - startTime;
+    console.log(`[TMDB API] Details completed in ${totalTime}ms`);
+
+    // Cache the response (7 days default)
+    tmdbDetailsCache.set(cacheKey, response.data);
 
     res.json(response.data);
   } catch (error) {
