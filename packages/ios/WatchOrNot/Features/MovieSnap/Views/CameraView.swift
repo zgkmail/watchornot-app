@@ -92,7 +92,7 @@ struct CameraView: View {
                             }
                         )
                         .accentColor(.white)
-                        .onChange(of: cameraManager.zoomFactor) { _ in
+                        .onChange(of: cameraManager.zoomFactor) { oldValue, newValue in
                             cameraManager.applyZoom()
                         }
 
@@ -305,7 +305,12 @@ class CameraManager: NSObject, ObservableObject {
 
             if session.canAddOutput(photoOutput) {
                 session.addOutput(photoOutput)
-                photoOutput.isHighResolutionCaptureEnabled = true
+                // Set max photo dimensions for high quality capture (iOS 16+)
+                if #available(iOS 16.0, *) {
+                    photoOutput.maxPhotoDimensions = videoDevice.activeFormat.supportedMaxPhotoDimensions.last ?? CMVideoDimensions(width: 0, height: 0)
+                } else {
+                    photoOutput.isHighResolutionCaptureEnabled = true
+                }
             }
 
             // Set max zoom factor (limit to reasonable amount)
@@ -369,7 +374,15 @@ class CameraManager: NSObject, ObservableObject {
         photoCompletion = completion
 
         let settings = AVCapturePhotoSettings()
-        settings.isHighResolutionPhotoEnabled = true
+
+        // Use maxPhotoDimensions for iOS 16+, fallback to deprecated API for older versions
+        if #available(iOS 16.0, *) {
+            if let device = videoDeviceInput?.device {
+                settings.maxPhotoDimensions = device.activeFormat.supportedMaxPhotoDimensions.last ?? CMVideoDimensions(width: 0, height: 0)
+            }
+        } else {
+            settings.isHighResolutionPhotoEnabled = true
+        }
 
         if let previewPixelType = settings.availablePreviewPhotoPixelFormatTypes.first {
             settings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPixelType]

@@ -256,7 +256,7 @@ struct ContactSection: View {
 
     private func sendSupportEmail() {
         let email = "zgkmail@gmail.com"
-        let subject = "WatchOrNot Support"
+        let subject = "Watch or Skip Support"
         let body = """
 
 

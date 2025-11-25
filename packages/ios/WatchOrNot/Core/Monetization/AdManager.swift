@@ -35,8 +35,8 @@ class AdManager: NSObject, ObservableObject {
     static let interstitialAdUnitID = "ca-app-pub-3940256099942544/4411468910"
     #else
     // Production ad unit IDs (replace with your actual IDs from AdMob)
-    static let bannerAdUnitID = "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"
-    static let interstitialAdUnitID = "ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX"
+    static let bannerAdUnitID = "ca-app-pub-1241248480511680/1043244651"
+    static let interstitialAdUnitID = "ca-app-pub-1241248480511680/5864326497"
     #endif
 
     // MARK: - Initialization

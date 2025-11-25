@@ -210,7 +210,7 @@ class PurchaseManager: ObservableObject {
 
 extension Product {
     /// Formatted display price (e.g., "$4.99")
-    var displayPrice: String {
-        return displayPrice
+    var formattedPrice: String {
+        return self.displayPrice
     }
 }

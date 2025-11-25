@@ -89,7 +89,7 @@ struct OnboardingView: View {
             if let error = viewModel.error {
                 // Show helpful message for local network permission
                 if error.contains("Local network access required") {
-                    Text("To connect to your local server, WatchOrNot needs permission to access your local network.\n\nPlease tap \"Allow\" when prompted, then tap \"Try Again\".")
+                    Text("To connect to your local server, Watch or Skip needs permission to access your local network.\n\nPlease tap \"Allow\" when prompted, then tap \"Try Again\".")
                 } else {
                     Text(error)
                 }

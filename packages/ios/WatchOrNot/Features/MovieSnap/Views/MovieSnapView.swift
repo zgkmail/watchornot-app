@@ -96,155 +96,158 @@ struct SnapPromptView: View {
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-                .frame(height: 16)
+        ScrollView {
+            VStack(spacing: 0) {
+                Spacer()
+                    .frame(height: 16)
 
-            // Icon - Camera + TV combo
-            ZStack {
-                Circle()
-                    .fill(Color.accent.opacity(0.2))
-                    .frame(width: 100, height: 100)
-
+                // Icon - Camera + TV combo
                 ZStack {
-                    // TV in background
-                    Image(systemName: "tv.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.accent.opacity(0.5))
-                        .offset(x: -6, y: 6)
+                    Circle()
+                        .fill(Color.accent.opacity(0.2))
+                        .frame(width: 100, height: 100)
 
-                    // Camera in foreground
-                    Image(systemName: "camera.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.accent)
-                        .offset(x: 6, y: -6)
+                    ZStack {
+                        // TV in background
+                        Image(systemName: "tv.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.accent.opacity(0.5))
+                            .offset(x: -6, y: 6)
+
+                        // Camera in foreground
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.accent)
+                            .offset(x: 6, y: -6)
+                    }
                 }
-            }
-            .onTapGesture {
-                // Dismiss keyboard when tapping outside search field
-                isSearchFocused = false
-            }
-
-            Spacer()
-                .frame(height: 12)
-
-            // Title
-            VStack(spacing: 6) {
-                Text("Watch or Not?")
-                    .font(.headlineLarge)
-                    .foregroundColor(.textPrimary)
-
-                Text("Snap titles on Netflix, Prime Video, etc.\nfor instant recommendations")
-                    .font(.bodySmall)
-                    .foregroundColor(.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(2)
-                    .padding(.horizontal, 24)
-            }
-            .onTapGesture {
-                // Dismiss keyboard when tapping outside search field
-                isSearchFocused = false
-            }
-
-            Spacer()
-                .frame(height: 16)
-
-            // How It Works Section
-            HowItWorksView()
-                .padding(.horizontal, 8)
                 .onTapGesture {
-                    // Dismiss keyboard when tapping
+                    // Dismiss keyboard when tapping outside search field
                     isSearchFocused = false
                 }
 
-            Spacer()
-                .frame(height: 16)
+                Spacer()
+                    .frame(height: 12)
 
-            // Action Buttons
-            VStack(spacing: 12) {
-                // Take Photo Button
-                Button {
-                    onTakePhoto()
-                } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "camera")
-                            .font(.titleMedium)
+                // Title
+                VStack(spacing: 6) {
+                    Text("Watch or Skip?")
+                        .font(.headlineLarge)
+                        .foregroundColor(.textPrimary)
 
-                        Text("Take Photo")
-                            .font(.titleMedium)
-                            .fontWeight(.semibold)
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(
-                        LinearGradient(
-                            colors: [Color.blue, Color.purple],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(16)
-                    .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 4)
+                    Text("Snap movies and TV shows on Netflix, Prime Video, etc.\nfor instant recommendations")
+                        .font(.bodySmall)
+                        .foregroundColor(.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(2)
+                        .padding(.horizontal, 24)
+                }
+                .onTapGesture {
+                    // Dismiss keyboard when tapping outside search field
+                    isSearchFocused = false
                 }
 
-                // Manual Search Field
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 12) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.textSecondary)
+                Spacer()
+                    .frame(height: 16)
 
-                        TextField("Search movie or show...", text: $searchQuery)
-                            .font(.bodyMedium)
-                            .foregroundColor(.textPrimary)
-                            .focused($isSearchFocused)
-                            .submitLabel(.search)
-                            .onSubmit {
-                                if !searchQuery.isEmpty {
-                                    onSearch(searchQuery)
+                // How It Works Section
+                HowItWorksView()
+                    .padding(.horizontal, 8)
+                    .onTapGesture {
+                        // Dismiss keyboard when tapping
+                        isSearchFocused = false
+                    }
+
+                Spacer()
+                    .frame(height: 16)
+
+                // Action Buttons
+                VStack(spacing: 12) {
+                    // Take Photo Button
+                    Button {
+                        onTakePhoto()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "camera")
+                                .font(.titleMedium)
+
+                            Text("Take Photo")
+                                .font(.titleMedium)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.blue, Color.purple],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(16)
+                        .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 4)
+                    }
+
+                    // Manual Search Field
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.textSecondary)
+
+                            TextField("Search movie or show...", text: $searchQuery)
+                                .font(.bodyMedium)
+                                .foregroundColor(.textPrimary)
+                                .focused($isSearchFocused)
+                                .submitLabel(.search)
+                                .onSubmit {
+                                    if !searchQuery.isEmpty {
+                                        onSearch(searchQuery)
+                                    }
+                                }
+
+                            if !searchQuery.isEmpty {
+                                Button {
+                                    searchQuery = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.textSecondary)
                                 }
                             }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                        .background(Color.surface)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(isSearchFocused ? Color.accent : Color.gray.opacity(0.3), lineWidth: isSearchFocused ? 2 : 1)
+                        )
+                        .cornerRadius(16)
 
                         if !searchQuery.isEmpty {
                             Button {
-                                searchQuery = ""
+                                onSearch(searchQuery)
                             } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.textSecondary)
+                                HStack {
+                                    Spacer()
+                                    Text("Search")
+                                        .font(.bodyMedium)
+                                        .fontWeight(.semibold)
+                                    Image(systemName: "arrow.right")
+                                }
+                                .foregroundColor(.accent)
+                                .padding(.horizontal, 4)
                             }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                    .background(Color.surface)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(isSearchFocused ? Color.accent : Color.gray.opacity(0.3), lineWidth: isSearchFocused ? 2 : 1)
-                    )
-                    .cornerRadius(16)
-
-                    if !searchQuery.isEmpty {
-                        Button {
-                            onSearch(searchQuery)
-                        } label: {
-                            HStack {
-                                Spacer()
-                                Text("Search")
-                                    .font(.bodyMedium)
-                                    .fontWeight(.semibold)
-                                Image(systemName: "arrow.right")
-                            }
-                            .foregroundColor(.accent)
-                            .padding(.horizontal, 4)
                         }
                     }
                 }
-            }
-            .padding(.horizontal, 24)
+                .padding(.horizontal, 24)
 
-            Spacer()
-                .frame(height: 16)
+                Spacer()
+                    .frame(height: 16)
+            }
         }
+        .scrollDismissesKeyboard(.interactively)
         .onAppear {
             // Pre-populate search query if provided (e.g., from "Wrong title?" button)
             if !initialSearchQuery.isEmpty {
@@ -296,7 +299,7 @@ struct HowItWorksView: View {
                     icon: "tv.fill",
                     iconColor: .blue,
                     title: "Snap",
-                    description: "Point at Netflix, Prime Video titles",
+                    description: "Point your phone and snap the poster on your TV screen",
                     showArrow: true
                 )
 
@@ -305,7 +308,7 @@ struct HowItWorksView: View {
                     icon: "sparkles",
                     iconColor: .purple,
                     title: "Analyze",
-                    description: "AI checks your taste profile",
+                    description: "AI finds the show and checks it against your taste profile",
                     showArrow: true
                 )
 
@@ -314,7 +317,7 @@ struct HowItWorksView: View {
                     icon: "checkmark.circle.fill",
                     iconColor: .green,
                     title: "Decide",
-                    description: "Get instant recommendation",
+                    description: "Get an instant recommendation to watch the show or not",
                     showArrow: false
                 )
             }

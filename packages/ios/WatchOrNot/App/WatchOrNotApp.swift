@@ -13,18 +13,13 @@ struct WatchOrNotApp: App {
     @StateObject private var sessionManager = SessionManager.shared
     @StateObject private var appState = AppState()
     @StateObject private var appearanceManager = AppearanceManager()
-    @StateObject private var adManager = AdManager.shared
-    @StateObject private var purchaseManager = PurchaseManager.shared
+    // Lazy load these to avoid blocking startup
+    @State private var adManager: AdManager?
+    @State private var purchaseManager: PurchaseManager?
 
     init() {
-        // Initialize AdMob on app launch (if user hasn't purchased ad removal)
-        Task { @MainActor in
-            AdManager.shared.initializeAdMob()
-            await PurchaseManager.shared.loadProducts()
-
-            // Pre-load first interstitial ad
-            InterstitialAdManager.shared.loadAd()
-        }
+        print("🚀 App init started: \(Date())")
+        // AdMob and StoreKit will be initialized after UI appears
     }
 
     var body: some Scene {
@@ -33,9 +28,26 @@ struct WatchOrNotApp: App {
                 .environmentObject(sessionManager)
                 .environmentObject(appState)
                 .environmentObject(appearanceManager)
-                .environmentObject(adManager)
-                .environmentObject(purchaseManager)
                 .applyAppearance(appearanceManager.colorScheme)
+                .onAppear {
+                    print("✅ UI appeared: \(Date())")
+                    // Initialize monetization after UI appears
+                    if adManager == nil {
+                        adManager = AdManager.shared
+                        purchaseManager = PurchaseManager.shared
+
+                        Task.detached(priority: .background) {
+                            await MainActor.run {
+                                AdManager.shared.initializeAdMob()
+                                InterstitialAdManager.shared.loadAd()
+                            }
+                        }
+
+                        Task.detached(priority: .background) {
+                            await PurchaseManager.shared.loadProducts()
+                        }
+                    }
+                }
         }
     }
 }
@@ -68,9 +80,9 @@ class AppState: ObservableObject {
     init() {
         checkWelcomeAndOnboardingStatus()
 
-        // Trigger network permission prompt early (non-blocking)
-        Task {
-            await performHealthCheck()
+        // Health check in background (don't block startup)
+        Task.detached(priority: .utility) {
+            await self.performHealthCheck()
         }
     }
 

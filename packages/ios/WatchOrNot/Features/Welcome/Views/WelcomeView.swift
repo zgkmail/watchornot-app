@@ -131,7 +131,7 @@ struct WelcomeScreen1: View {
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.white)
 
-                Text("WatchOrNot")
+                Text("Watch or Skip")
                     .font(.system(size: 32, weight: .bold))
                     .foregroundColor(.white)
 

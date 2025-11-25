@@ -94,26 +94,25 @@ class HistoryViewModel: ObservableObject {
 
             // Update local state
             if let index = history.firstIndex(where: { $0.id == entry.id }) {
-                var updatedEntry = entry
                 // Create a new HistoryEntry with updated values
                 let newEntry = HistoryEntry(
-                    id: updatedEntry.id,
-                    movieId: updatedEntry.movieId,
-                    title: updatedEntry.title,
-                    year: updatedEntry.year,
-                    poster: updatedEntry.poster,
+                    id: entry.id,
+                    movieId: entry.movieId,
+                    title: entry.title,
+                    year: entry.year,
+                    poster: entry.poster,
                     rating: ratingValue,  // Use nil if canceled
-                    timestamp: updatedEntry.timestamp,
-                    genre: updatedEntry.genre,
-                    imdbRating: updatedEntry.imdbRating,
-                    rottenTomatoes: updatedEntry.rottenTomatoes,
-                    metacritic: updatedEntry.metacritic,
-                    director: updatedEntry.director,
-                    cast: updatedEntry.cast,
-                    trailerUrl: updatedEntry.trailerUrl,
-                    badge: response.badge ?? updatedEntry.badge,
-                    badgeEmoji: response.badgeEmoji ?? updatedEntry.badgeEmoji,
-                    badgeDescription: response.badgeDescription ?? updatedEntry.badgeDescription
+                    timestamp: entry.timestamp,
+                    genre: entry.genre,
+                    imdbRating: entry.imdbRating,
+                    rottenTomatoes: entry.rottenTomatoes,
+                    metacritic: entry.metacritic,
+                    director: entry.director,
+                    cast: entry.cast,
+                    trailerUrl: entry.trailerUrl,
+                    badge: response.badge ?? entry.badge,
+                    badgeEmoji: response.badgeEmoji ?? entry.badgeEmoji,
+                    badgeDescription: response.badgeDescription ?? entry.badgeDescription
                 )
                 history[index] = newEntry
             }

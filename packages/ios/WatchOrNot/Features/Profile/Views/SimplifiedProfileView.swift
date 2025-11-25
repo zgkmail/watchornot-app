@@ -131,7 +131,7 @@ struct SimplifiedProfileView: View {
                                                 .font(.titleMedium)
                                                 .foregroundColor(.textPrimary)
 
-                                            Text("Enjoy WatchOrNot without ads")
+                                            Text("Enjoy Watch or Skip without ads")
                                                 .font(.caption)
                                                 .foregroundColor(.textSecondary)
                                         }
@@ -228,7 +228,7 @@ struct SimplifiedProfileView: View {
         .alert("Purchase Successful", isPresented: $showPurchaseSuccess) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Ads have been removed. Enjoy WatchOrNot ad-free!")
+            Text("Ads have been removed. Enjoy Watch or Skip ad-free!")
         }
         .alert("Restore Successful", isPresented: $showRestoreSuccess) {
             Button("OK", role: .cancel) {}
@@ -434,7 +434,7 @@ struct AppearanceSettingsView: View {
 
             ScrollView {
                 VStack(spacing: 16) {
-                    Text("Choose how WatchOrNot looks on your device")
+                    Text("Choose how Watch or Skip looks on your device")
                         .font(.bodyMedium)
                         .foregroundColor(.textSecondary)
                         .multilineTextAlignment(.center)

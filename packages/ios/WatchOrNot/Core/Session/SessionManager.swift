@@ -31,11 +31,13 @@ class SessionManager: ObservableObject {
         isAuthenticated = sessionID != nil
     }
 
-    /// Save session ID to Keychain
-    func saveSessionID(_ id: String) {
-        sessionID = id
-        isAuthenticated = true
+    /// Save session ID to Keychain (nonisolated for synchronous access from network layer)
+    nonisolated func saveSessionID(_ id: String) {
         saveToKeychain(key: sessionIDKey, value: id)
+        Task { @MainActor in
+            sessionID = id
+            isAuthenticated = true
+        }
     }
 
     /// Save user ID to Keychain
@@ -44,9 +46,9 @@ class SessionManager: ObservableObject {
         saveToKeychain(key: userIDKey, value: id)
     }
 
-    /// Get current session ID
-    func getSessionID() -> String? {
-        return sessionID
+    /// Get current session ID (nonisolated for synchronous access)
+    nonisolated func getSessionID() -> String? {
+        return loadFromKeychain(key: sessionIDKey)
     }
 
     /// Clear session (logout)
@@ -61,7 +63,7 @@ class SessionManager: ObservableObject {
 
     // MARK: - Keychain Helpers
 
-    private func saveToKeychain(key: String, value: String) {
+    nonisolated private func saveToKeychain(key: String, value: String) {
         guard let data = value.data(using: .utf8) else {
             print("Error: Failed to convert value to data for Keychain storage")
             return
@@ -84,7 +86,7 @@ class SessionManager: ObservableObject {
         }
     }
 
-    private func loadFromKeychain(key: String) -> String? {
+    nonisolated private func loadFromKeychain(key: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
@@ -104,7 +106,7 @@ class SessionManager: ObservableObject {
         return value
     }
 
-    private func deleteFromKeychain(key: String) {
+    nonisolated private func deleteFromKeychain(key: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key
