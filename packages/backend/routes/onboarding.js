@@ -36,8 +36,20 @@ router.get('/movies', (req, res) => {
       });
     }
 
+    // Filter out movies without valid poster paths
+    const moviesWithPosters = moviePool.filter(movie =>
+      movie.posterPath &&
+      movie.posterPath.trim() !== '' &&
+      movie.posterPath !== 'null' &&
+      movie.posterPath !== 'undefined'
+    );
+
+    if (moviesWithPosters.length < 10) {
+      console.warn(`⚠️  Only ${moviesWithPosters.length} movies with valid posters available`);
+    }
+
     // Shuffle and select 10 movies (to account for skips, user needs to vote on at least 5)
-    const shuffled = [...moviePool].sort(() => Math.random() - 0.5);
+    const shuffled = [...moviesWithPosters].sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, 10);
 
     console.log('✅ Selected 10 movies for onboarding:');
