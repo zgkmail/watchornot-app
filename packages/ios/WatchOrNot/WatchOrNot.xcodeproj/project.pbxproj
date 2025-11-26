@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		179AC1B34113409C84F4652C /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB0721B90A34436D81928B06 /* APIModels.swift */; };
+		3F0CD72A2ED1338F00ADD62F /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 7FCB60C4D73246F49F9DCB9D /* GoogleMobileAds */; };
+		3F0CD7332ED674CC00ADD62F /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F0CD7322ED674CC00ADD62F /* StoreKit.framework */; };
 		3FB84EB42EC5545B000C1E6D /* ProfileViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E912EC5545B000C1E6D /* ProfileViewModel.swift */; };
 		3FB84EB52EC5545B000C1E6D /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84E742EC5545B000C1E6D /* APIClient.swift */; };
 		3FB84EB62EC5545B000C1E6D /* UserModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB84EA52EC5545B000C1E6D /* UserModels.swift */; };
@@ -84,6 +86,7 @@
 		0C8E2C75417D47DAB1F52996 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		22055EF719A147E89BFBF2BFC7F6DD8B /* HelpAndSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpAndSupportView.swift; sourceTree = "<group>"; };
 		3CD18F2477A94977BD08BF93 /* PhotoPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPicker.swift; sourceTree = "<group>"; };
+		3F0CD7322ED674CC00ADD62F /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		3FB84E452EC55430000C1E6D /* WatchOrNot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WatchOrNot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FB84E522EC55431000C1E6D /* WatchOrNotTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WatchOrNotTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FB84E5C2EC55431000C1E6D /* WatchOrNotUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WatchOrNotUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -122,6 +125,7 @@
 		3FB84EA52EC5545B000C1E6D /* UserModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModels.swift; sourceTree = "<group>"; };
 		3FB84EA72EC5545B000C1E6D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3FB84EA82EC5545B000C1E6D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3FB84EA92EC5545B000C1E6D /* Configuration.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Configuration.storekit; sourceTree = "<group>"; };
 		3FB84EAA2EC5545B000C1E6D /* BadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BadgeView.swift; sourceTree = "<group>"; };
 		3FB84EAB2EC5545B000C1E6D /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		3FB84EAC2EC5545B000C1E6D /* MoviePosterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviePosterView.swift; sourceTree = "<group>"; };
@@ -157,6 +161,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F0CD72A2ED1338F00ADD62F /* GoogleMobileAds in Frameworks */,
+				3F0CD7332ED674CC00ADD62F /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -194,6 +200,14 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		3F0CD7312ED674CC00ADD62F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3F0CD7322ED674CC00ADD62F /* StoreKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		3FB84E3C2EC55430000C1E6D = {
 			isa = PBXGroup;
 			children = (
@@ -205,6 +219,7 @@
 				3FB84EB12EC5545B000C1E6D /* Shared */,
 				3FB84E552EC55431000C1E6D /* WatchOrNotTests */,
 				3FB84E5F2EC55431000C1E6D /* WatchOrNotUITests */,
+				3F0CD7312ED674CC00ADD62F /* Frameworks */,
 				3FB84E462EC55430000C1E6D /* Products */,
 			);
 			sourceTree = "<group>";

@@ -39,5 +39,9 @@
     "swiftui"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "jest": "^30.2.0",
+    "jest-circus": "^30.2.0"
+  }
 }
