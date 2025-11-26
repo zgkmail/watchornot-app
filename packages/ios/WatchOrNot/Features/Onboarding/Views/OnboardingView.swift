@@ -11,6 +11,21 @@ struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
     @EnvironmentObject var appState: AppState
 
+    // Computed property to determine if error is skip validation
+    private var isSkipValidationError: Bool {
+        guard let error = viewModel.error else { return false }
+        return error.contains("You need to vote on at least")
+    }
+
+    // Computed property for dynamic alert title
+    private var alertTitle: String {
+        if isSkipValidationError {
+            return "Not Enough Votes"
+        } else {
+            return "Connection Issue"
+        }
+    }
+
     var body: some View {
         ZStack {
             // Background gradient
@@ -75,15 +90,30 @@ struct OnboardingView: View {
         .task {
             await viewModel.loadMovies()
         }
-        .alert("Connection Issue", isPresented: .constant(viewModel.error != nil)) {
-            Button("Try Again") {
-                viewModel.error = nil
-                Task {
-                    await viewModel.loadMovies()
+        .alert(alertTitle, isPresented: .constant(viewModel.error != nil)) {
+            if isSkipValidationError {
+                // User skipped too many movies - offer to restart
+                Button("Restart Onboarding") {
+                    viewModel.restart()
+                    viewModel.error = nil
+                    Task {
+                        await viewModel.loadMovies()
+                    }
                 }
-            }
-            Button("Cancel", role: .cancel) {
-                viewModel.error = nil
+                Button("Cancel", role: .cancel) {
+                    viewModel.error = nil
+                }
+            } else {
+                // Connection or other error - offer to retry
+                Button("Try Again") {
+                    viewModel.error = nil
+                    Task {
+                        await viewModel.loadMovies()
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    viewModel.error = nil
+                }
             }
         } message: {
             if let error = viewModel.error {
