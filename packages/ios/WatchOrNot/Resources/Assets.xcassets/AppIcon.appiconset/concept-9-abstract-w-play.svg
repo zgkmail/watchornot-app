@@ -1,0 +1,24 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient background -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="url(#bgGrad)"/>
+
+  <!-- W lettermark (bold geometric) -->
+  <path d="M 180 280 L 280 280 L 392 720 L 512 380 L 632 720 L 744 280 L 844 280 L 682 820 L 512 480 L 342 820 Z"
+        fill="#ffffff" opacity="0.95"/>
+
+  <!-- Play button triangle (subtle movie/show indicator) -->
+  <g opacity="0.3">
+    <polygon points="430,500 630,612 430,724" fill="#ffffff"/>
+  </g>
+
+  <!-- Rounded corners for film frame aesthetic -->
+  <rect x="160" y="240" width="704" height="620" rx="40" fill="none" stroke="#ffffff" stroke-width="8" opacity="0.15"/>
+</svg>
