@@ -180,6 +180,7 @@ struct WelcomeView: View {
                 .padding(.horizontal, 24)
 
                 Spacer()
+                    .frame(minHeight: 32)
 
                 // CTAs
                 VStack(spacing: 12) {

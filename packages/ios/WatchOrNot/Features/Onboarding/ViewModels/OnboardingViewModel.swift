@@ -96,8 +96,30 @@ class OnboardingViewModel: ObservableObject {
             // Move to next movie
             moveToNext()
         } else {
-            // Ran out of movies without enough votes
-            error = "You need to vote on at least \(requiredVotes) movies (not \"Skip\"). Please try again."
+            // Ran out of movies without enough votes - load more movies
+            await loadMoreMovies()
+        }
+    }
+
+    /// Load more movies when user runs out without enough votes
+    func loadMoreMovies() async {
+        isLoading = true
+        error = nil
+
+        do {
+            let response = try await apiClient.request(
+                .getOnboardingMovies,
+                expecting: OnboardingMoviesResponse.self
+            )
+            // Append new movies to existing list
+            movies.append(contentsOf: response.movies)
+            // Move to next movie (first of the newly loaded batch)
+            moveToNext()
+            isLoading = false
+        } catch {
+            // If loading more movies fails, show error with option to skip to app
+            self.error = "Need \(votesRemaining) more vote\(votesRemaining == 1 ? "" : "s") to personalize recommendations. Continue voting or skip to app?"
+            isLoading = false
         }
     }
 

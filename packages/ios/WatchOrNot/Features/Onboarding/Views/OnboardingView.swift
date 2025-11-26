@@ -14,13 +14,13 @@ struct OnboardingView: View {
     // Computed property to determine if error is skip validation
     private var isSkipValidationError: Bool {
         guard let error = viewModel.error else { return false }
-        return error.contains("You need to vote on at least")
+        return error.contains("Need") && error.contains("more vote")
     }
 
     // Computed property for dynamic alert title
     private var alertTitle: String {
         if isSkipValidationError {
-            return "Not Enough Votes"
+            return "Almost There!"
         } else {
             return "Connection Issue"
         }
@@ -92,16 +92,16 @@ struct OnboardingView: View {
         }
         .alert(alertTitle, isPresented: .constant(viewModel.error != nil)) {
             if isSkipValidationError {
-                // User skipped too many movies - offer to restart
-                Button("Restart Onboarding") {
-                    viewModel.restart()
+                // User needs more votes - offer to continue or skip to app
+                Button("Continue Voting") {
                     viewModel.error = nil
                     Task {
-                        await viewModel.loadMovies()
+                        await viewModel.loadMoreMovies()
                     }
                 }
-                Button("Cancel", role: .cancel) {
+                Button("Skip to App") {
                     viewModel.error = nil
+                    appState.skipOnboarding()
                 }
             } else {
                 // Connection or other error - offer to retry
