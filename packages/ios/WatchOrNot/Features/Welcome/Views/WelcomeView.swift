@@ -92,7 +92,7 @@ struct WelcomeView: View {
                         .italic()
                         .foregroundColor(.gray)
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, 24)
 
                 // Value Proposition Card
                 VStack(spacing: 16) {
@@ -228,7 +228,7 @@ struct WelcomeView: View {
                     .padding(.top, 4)
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 40)
+                .padding(.bottom, 50)
             }
         }
     }
