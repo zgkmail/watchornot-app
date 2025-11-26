@@ -20,6 +20,7 @@ class OnboardingViewModel: ObservableObject {
     private let apiClient: APIClient
     private let requiredVotes = Config.onboardingRequiredVotes // 5 actual votes needed
     private var allVotes: [VoteRequest] = [] // Store all votes locally
+    private var shownMovieIds: Set<String> = [] // Track shown movies to prevent duplicates
 
     init(apiClient: APIClient = .shared) {
         self.apiClient = apiClient
@@ -49,6 +50,8 @@ class OnboardingViewModel: ObservableObject {
                 expecting: OnboardingMoviesResponse.self
             )
             movies = response.movies
+            // Track initially loaded movie IDs
+            shownMovieIds = Set(response.movies.map { $0.id })
             isLoading = false
         } catch {
             self.error = "Failed to load movies: \(error.localizedDescription)"
@@ -111,8 +114,20 @@ class OnboardingViewModel: ObservableObject {
                 .getOnboardingMovies,
                 expecting: OnboardingMoviesResponse.self
             )
-            // Append new movies to existing list
-            movies.append(contentsOf: response.movies)
+
+            // Filter out movies that have already been shown to prevent duplicates
+            let newMovies = response.movies.filter { movie in
+                !shownMovieIds.contains(movie.id)
+            }
+
+            // Update the tracking set with new movie IDs
+            newMovies.forEach { movie in
+                shownMovieIds.insert(movie.id)
+            }
+
+            // Append only new movies to existing list
+            movies.append(contentsOf: newMovies)
+
             // Move to next movie (first of the newly loaded batch)
             moveToNext()
             isLoading = false
