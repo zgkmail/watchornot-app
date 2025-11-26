@@ -1,0 +1,18 @@
+# GitHub Pages Configuration for Watch or Skip
+# This enables GitHub Pages to serve content from the /docs directory
+
+# Site settings
+title: Watch or Skip
+description: Privacy Policy and Documentation
+baseurl: ""
+
+# Build settings
+markdown: kramdown
+
+# Include directories
+include:
+  - privacy
+
+# Exclude files
+exclude:
+  - README.md
